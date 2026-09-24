@@ -4,3 +4,15 @@ node_modules
 .env*
 playwright-report
 test-results
+private
+*handoff*
+*.pem
+*.key
+*.ppk
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+mcp.private.toml
+*.dump
+*.sql.gz

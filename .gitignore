@@ -7,3 +7,17 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 .DS_Store
+
+# Private handoffs, credentials and database exports must stay outside Git.
+/private/
+*handoff*/
+*.pem
+*.key
+*.ppk
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+mcp.private.toml
+*.dump
+*.sql.gz
