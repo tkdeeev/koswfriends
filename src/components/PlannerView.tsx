@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DateTime } from "luxon";
 import type { Calendar, Choice, Lesson, Localized, Me } from "@/lib/types";
 import { conflicts, ZONE } from "@/lib/calendar";
-import type { Locale, Text } from "@/lib/i18n";
+import { groupLabel, type Locale, type Text } from "@/lib/i18n";
 import type { Mutate } from "./FriendsView";
 import s from "./Workspace.module.css";
 export type SharedPlan = {
@@ -38,7 +38,7 @@ function ChoiceCard({
       </div>
       <p className={s.choiceTitle}>
         {choice.title[locale]}
-        {choice.group ? ` · ${choice.group}` : ""}
+        {choice.group ? ` · ${groupLabel(choice.group, locale)}` : ""}
       </p>
       <label className={s.field}>
         {t.note}
@@ -241,7 +241,7 @@ export default function PlannerView({
                         onChange={() => setGroup(g.key)}
                       />
                       <span>
-                        <strong>{g.key}</strong>
+                        <strong>{groupLabel(g.key, locale)}</strong>
                         <br />
                         {first &&
                           `${DateTime.fromISO(first.start).setZone(ZONE).setLocale(locale).toFormat("ccc HH:mm")}–${DateTime.fromISO(first.end).setZone(ZONE).toFormat("HH:mm")} · ${first.room}`}
@@ -329,7 +329,7 @@ export default function PlannerView({
               {!p.choices.length && <p className={s.hint}>{t.noChoices}</p>}
               {p.choices.map((c) => (
                 <div className={s.sharedChoice} key={c.id}>
-                  {c.course} {c.group && `· ${c.group}`}
+                  {c.course} {c.group && `· ${groupLabel(c.group, locale)}`}
                   <br />
                   <span className={s.hint}>
                     {c.verified ? t.verified : t.unverified}

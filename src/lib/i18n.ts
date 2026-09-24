@@ -364,3 +364,21 @@ export const copy = {
 };
 export type Locale = keyof typeof copy;
 export type Text = typeof copy.en;
+const lessonTypes: Record<string, { cs: string; en: string }> = {
+  lecture: { cs: "Přednáška", en: "Lecture" },
+  tutorial: { cs: "Cvičení", en: "Tutorial" },
+  laboratory: { cs: "Laboratoř", en: "Laboratory" },
+  exam: { cs: "Zkouška", en: "Exam" },
+  assessment: { cs: "Zápočet", en: "Assessment" },
+  course_event: { cs: "Událost předmětu", en: "Course event" },
+  teacher_timetable_slot: { cs: "Výuka", en: "Teaching" },
+};
+export function lessonType(type: string, locale: Locale) {
+  return lessonTypes[type]?.[locale] || type;
+}
+export function groupLabel(group: string, locale: Locale) {
+  const colon = group.indexOf(":");
+  return colon < 0
+    ? group
+    : `${lessonType(group.slice(0, colon), locale)} · ${group.slice(colon + 1)}`;
+}

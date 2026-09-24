@@ -150,6 +150,11 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
     path: "test-results/friends-desktop.png",
     fullPage: true,
   });
+  await pageB
+    .getByRole("button", { name: new RegExp(`TEST-MAT.*${a.username}`) })
+    .first()
+    .click();
+  await expect(pageB.locator("dialog[open]")).toBeVisible();
   const row = page.locator("article").filter({ hasText: b.username });
   await row.getByLabel("My timetable", { exact: true }).uncheck();
   await row.getByRole("button", { name: "Save sharing" }).click();
@@ -161,6 +166,7 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
   await expect(
     pageB.getByRole("button", { name: new RegExp(`TEST-MAT.*${a.username}`) }),
   ).toHaveCount(0);
+  await expect(pageB.locator("dialog[open]")).toHaveCount(0);
   await second.close();
 });
 test("manual draft CRUD, conflicts, invitation creation and responsive timetable", async ({

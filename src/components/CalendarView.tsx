@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DateTime } from "luxon";
 import {
   commonLessons,
@@ -8,7 +8,7 @@ import {
   ZONE,
 } from "@/lib/calendar";
 import type { Calendar, Choice, Friend, Lesson, Me } from "@/lib/types";
-import type { Locale, Text } from "@/lib/i18n";
+import { lessonType, type Locale, type Text } from "@/lib/i18n";
 import s from "./Workspace.module.css";
 type Display = {
   lesson: Lesson;
@@ -111,6 +111,16 @@ export default function CalendarView({
     drafts,
     week.toMillis(),
   ]);
+  useEffect(() => {
+    if (!detail) return;
+    const current = displays.find(
+      (item) => item.lesson.id === detail.lesson.id,
+    );
+    if (!current) {
+      dialog.current?.close();
+      setDetail(null);
+    } else setDetail(current);
+  }, [displays, detail?.lesson.id]);
   const slices = displays.flatMap((d) =>
     daySegments(d.lesson).map((segment) => ({ ...segment, display: d })),
   );
@@ -446,7 +456,7 @@ export default function CalendarView({
               <dt>{t.group}</dt>
               <dd>{detail.lesson.group || "—"}</dd>
               <dt>{t.type}</dt>
-              <dd>{detail.lesson.type || "—"}</dd>
+              <dd>{lessonType(detail.lesson.type, locale) || "—"}</dd>
               <dt>{t.room}</dt>
               <dd>{detail.lesson.room || "—"}</dd>
               <dt>{t.attendees}</dt>
