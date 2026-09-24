@@ -14,18 +14,15 @@
 }
 .brand {
   display: block;
-  position: relative;
   flex: 0 0 120px;
   width: 120px;
-  height: 46px;
-  overflow: hidden;
+  height: 45px;
   background: #172d3b;
 }
-.brand img {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
+.brand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .navigation {
@@ -157,100 +154,6 @@
 .hero .button {
   margin-top: 28px;
   padding: 14px 22px;
-}
-.privacy {
-  font-size: 12px;
-  margin-top: 20px;
-  color: var(--muted);
-  max-width: 420px;
-}
-.privacy strong {
-  font-weight: 500;
-  color: var(--dark);
-}
-.previewWrap {
-  background: var(--grey);
-  padding: 25px 25px 18px;
-  transform: translateY(5px);
-  position: relative;
-}
-.previewWrap:before {
-  content: "";
-  width: 50px;
-  height: 50px;
-  background: var(--accent);
-  position: absolute;
-  right: -12px;
-  top: -12px;
-  z-index: -1;
-}
-.preview {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 20px 15px 14px;
-  box-shadow: 0 10px 24px #16354c0b;
-}
-.preview h2 {
-  font-size: 17px;
-  color: var(--blue);
-  font-weight: 400;
-}
-.previewBar {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--muted);
-  margin: 14px 0;
-}
-.miniGrid {
-  height: 255px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  position: relative;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 50px,
-    var(--line) 51px
-  );
-}
-.miniCol {
-  border-left: 1px solid var(--line);
-  position: relative;
-}
-.miniCol:nth-child(even) {
-  background: color-mix(in srgb, var(--grey) 27%, transparent);
-}
-.miniEvent {
-  position: absolute;
-  left: 5px;
-  right: 5px;
-  background: var(--accent);
-  color: white;
-  padding: 7px 5px;
-  font-size: 10px;
-  line-height: 1.45;
-  min-height: 62px;
-}
-.miniEvent b {
-  display: block;
-  font-weight: 700;
-}
-.miniOutline {
-  background: var(--surface);
-  color: var(--blue);
-  border: 1.5px solid var(--blue);
-}
-.miniDraft {
-  background: var(--soft-blue);
-  color: var(--blue);
-  border: 1.5px dashed var(--blue);
-}
-.previewFoot {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 14px;
-  text-align: center;
 }
 
 .footer {
@@ -927,6 +830,9 @@
     gap: 18px;
   }
   .identity {
+    display: flex;
+  }
+  .accountUsername {
     display: none;
   }
   .workspace {
@@ -942,9 +848,6 @@
   .hero {
     gap: 5%;
     padding: 60px 4%;
-  }
-  .previewWrap {
-    padding: 16px;
   }
 
   .lesson {
@@ -990,11 +893,6 @@
   }
   .intro {
     font-size: 17px;
-  }
-  .previewWrap {
-    max-width: 530px;
-    width: 100%;
-    margin: auto;
   }
 
   .footer {
@@ -1126,9 +1024,7 @@
   .subtitle {
     font-size: 14px;
   }
-  .previewFoot {
-    font-size: 9px;
-  }
+
   .empty {
     padding: 35px 15px;
   }
@@ -1554,5 +1450,225 @@
   .dayPicker button {
     min-width: 0;
     padding: 8px 2px;
+  }
+}
+
+.filterToggle {
+  display: none;
+}
+.installDialog {
+  width: 420px;
+}
+@media (max-width: 760px) {
+  .app {
+    min-height: 100dvh;
+  }
+  .signedIn {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .header {
+    padding: calc(12px + env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right)) 12px
+      max(12px, env(safe-area-inset-left));
+    gap: 8px;
+  }
+  .brand {
+    width: 96px;
+    height: 36px;
+    flex-basis: 96px;
+  }
+  .headerEnd {
+    gap: 4px;
+  }
+  .headerEnd button {
+    min-height: 44px;
+  }
+  .languages button {
+    width: 40px;
+    padding-inline: 4px;
+  }
+  .themeToggle,
+  .accountButton {
+    min-width: 44px;
+  }
+  .accountButton {
+    display: grid;
+    place-items: center;
+  }
+  .accountUsername {
+    display: none;
+  }
+  .navigation {
+    position: fixed;
+    inset: auto 0 0;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom)
+      max(8px, env(safe-area-inset-left));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    z-index: 10;
+    gap: 0;
+  }
+  .nav {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .active {
+    background: var(--soft-blue);
+  }
+  .active:after {
+    top: 0;
+    bottom: auto;
+  }
+  .main {
+    padding-inline: max(12px, env(safe-area-inset-left))
+      max(12px, env(safe-area-inset-right));
+  }
+  .button,
+  .quiet,
+  .iconButton,
+  .small,
+  .dayPicker button {
+    min-height: 44px;
+  }
+  .panel {
+    padding: 16px;
+    min-width: 0;
+  }
+  .person {
+    min-width: 0;
+  }
+  .person > span:not(.profileAvatar) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .field input,
+  .field select,
+  .field textarea,
+  .semesterLabel select,
+  .eventFields input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .check {
+    min-height: 44px;
+  }
+  .calendarFilters {
+    padding: 0 12px;
+  }
+  .filterToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 48px;
+    border: 0;
+    background: none;
+    color: var(--dark);
+    padding: 8px 0;
+    text-align: left;
+  }
+  .filterContent {
+    padding-bottom: 14px;
+  }
+  .filtersCollapsed .filterContent {
+    display: none;
+  }
+  .dayPicker {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 3;
+    padding-top: 6px;
+  }
+  .agendaEvent {
+    gap: 12px;
+  }
+  .agendaEvent > div:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .eventDialog,
+  .installDialog {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .eventDialog {
+    width: calc(100vw - 24px);
+  }
+  .toast {
+    bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: grid;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.featureList li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.featureList li:before {
+  content: "✓";
+  color: var(--blue);
+  font-weight: 700;
+}
+.hero {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
+  gap: 5%;
+  padding: 56px 4%;
+}
+.hero h1 {
+  font-size: clamp(36px, 3.7vw, 58px);
+  letter-spacing: -1.6px;
+}
+.productPreview {
+  margin: 0;
+  min-width: 0;
+}
+.productPreview img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 40px #0001;
+}
+.productPreview figcaption {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 10px;
+}
+.previewLight {
+  display: block;
+}
+.previewDark {
+  display: none;
+}
+:global([data-theme="dark"]) .previewLight {
+  display: none;
+}
+:global([data-theme="dark"]) .previewDark {
+  display: block;
+}
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 28px 16px;
+    gap: 32px;
+  }
+  .hero h1 {
+    font-size: 38px;
+    margin: 12px 0;
+  }
+  .hero .button {
+    margin-top: 20px;
   }
 }

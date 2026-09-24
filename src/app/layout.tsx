@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
@@ -7,6 +7,25 @@ export const metadata: Metadata = {
   title: "KOSwFriends",
   description: "School timetables, friends and shared draft semester plans.",
   robots: { index: false, follow: false },
+  appleWebApp: { capable: true, title: "KOS++", statusBarStyle: "default" },
+  icons: {
+    apple: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
+};
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141f29" },
+  ],
 };
 export default function RootLayout({
   children,

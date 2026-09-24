@@ -78,6 +78,7 @@ export default function CalendarView({
     setExpandedDate(null);
   };
   const [onlyShared, setOnlyShared] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [drafts, setDrafts] = useState(false);
   const [detail, setDetail] = useState<Display | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -234,93 +235,107 @@ export default function CalendarView({
     `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map((p) => p.username).join(", ")}`;
   return (
     <div className={s.calendarWorkspace}>
-      <section className={s.calendarFilters} aria-label={t.legend}>
-        <div className={s.filterRow}>
-          <div className={s.person}>
-            <Avatar person={me} />
-            <strong>{t.yourCalendar}</strong>
-          </div>
-          <label className={s.check}>
-            <input
-              type="checkbox"
-              checked={
-                allOverlays ||
-                (people.length > 0 &&
-                  people.every((p) => selected.includes(p.id)))
-              }
-              ref={(el) => {
-                if (el)
-                  el.indeterminate =
-                    !allOverlays &&
-                    selected.length > 0 &&
-                    !people.every((p) => selected.includes(p.id));
-              }}
-              onChange={(e) => toggleAll(e.target.checked)}
-            />
-            {t.allOverlays}
-          </label>
-          <label className={s.check}>
-            <input
-              type="checkbox"
-              checked={onlyShared}
-              onChange={(e) => setOnlyShared(e.target.checked)}
-            />
-            {t.commonOnly}
-          </label>
-          <label className={s.check}>
-            <input
-              type="checkbox"
-              checked={drafts}
-              onChange={(e) => setDrafts(e.target.checked)}
-            />
-            {t.showDrafts}
-          </label>
-          <button
-            className={`${s.button} ${s.secondary} ${s.small}`}
-            onClick={() => onEditEvent()}
-          >
-            {t.personalEvents}
-          </button>
-          <span className={s.syncLabel}>
-            {own?.lastSuccess
-              ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
-              : t.neverSynced}
-          </span>
-        </div>
-        <details className={s.overlayPicker}>
-          <summary>
-            <span>{t.overlay}</span>
-            {selected.length ? ` · ${selected.length}` : ""}
-          </summary>
+      <section
+        className={`${s.calendarFilters} ${filtersOpen ? "" : s.filtersCollapsed}`}
+        aria-label={t.legend}
+      >
+        <button
+          className={s.filterToggle}
+          aria-expanded={filtersOpen}
+          aria-controls="calendar-filters"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          {t.filters}
+          <span aria-hidden>{filtersOpen ? "−" : "+"}</span>
+        </button>
+        <div id="calendar-filters" className={s.filterContent}>
           <div className={s.filterRow}>
-            {people.map((person) => (
-              <label className={s.personChip} key={person.id}>
-                <input
-                  type="checkbox"
-                  aria-label={person.username}
-                  checked={selected.includes(person.id)}
-                  onChange={(e) =>
-                    setSelected(
-                      e.target.checked
-                        ? [...selected, person.id]
-                        : selected.filter((id) => id !== person.id),
-                    )
-                  }
-                />
-                <Avatar person={person} small />
-                <span>{person.username}</span>
-              </label>
-            ))}
-            {selected.length > 0 && (
-              <button className={s.quiet} onClick={() => setSelected([])}>
-                {t.clearOverlay}
-              </button>
-            )}
-            <button className={s.quiet} onClick={onFriends}>
-              + {t.addFriend}
+            <div className={s.person}>
+              <Avatar person={me} />
+              <strong>{t.yourCalendar}</strong>
+            </div>
+            <label className={s.check}>
+              <input
+                type="checkbox"
+                checked={
+                  allOverlays ||
+                  (people.length > 0 &&
+                    people.every((p) => selected.includes(p.id)))
+                }
+                ref={(el) => {
+                  if (el)
+                    el.indeterminate =
+                      !allOverlays &&
+                      selected.length > 0 &&
+                      !people.every((p) => selected.includes(p.id));
+                }}
+                onChange={(e) => toggleAll(e.target.checked)}
+              />
+              {t.allOverlays}
+            </label>
+            <label className={s.check}>
+              <input
+                type="checkbox"
+                checked={onlyShared}
+                onChange={(e) => setOnlyShared(e.target.checked)}
+              />
+              {t.commonOnly}
+            </label>
+            <label className={s.check}>
+              <input
+                type="checkbox"
+                checked={drafts}
+                onChange={(e) => setDrafts(e.target.checked)}
+              />
+              {t.showDrafts}
+            </label>
+            <button
+              className={`${s.button} ${s.secondary} ${s.small}`}
+              onClick={() => onEditEvent()}
+            >
+              {t.personalEvents}
             </button>
+            <span className={s.syncLabel}>
+              {own?.lastSuccess
+                ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
+                : t.neverSynced}
+            </span>
           </div>
-        </details>
+          <details className={s.overlayPicker}>
+            <summary>
+              <span>{t.overlay}</span>
+              {selected.length ? ` · ${selected.length}` : ""}
+            </summary>
+            <div className={s.filterRow}>
+              {people.map((person) => (
+                <label className={s.personChip} key={person.id}>
+                  <input
+                    type="checkbox"
+                    aria-label={person.username}
+                    checked={selected.includes(person.id)}
+                    onChange={(e) =>
+                      setSelected(
+                        e.target.checked
+                          ? [...selected, person.id]
+                          : selected.filter((id) => id !== person.id),
+                      )
+                    }
+                  />
+                  <Avatar person={person} small />
+                  <span>{person.username}</span>
+                </label>
+              ))}
+              {selected.length > 0 && (
+                <button className={s.quiet} onClick={() => setSelected([])}>
+                  {t.clearOverlay}
+                </button>
+              )}
+              <button className={s.quiet} onClick={onFriends}>
+                + {t.addFriend}
+              </button>
+            </div>
+          </details>
+        </div>
       </section>
       <section className={s.calendarArea} aria-label={t.timetable}>
         <div className={s.calendarToolbar}>

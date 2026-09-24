@@ -19,7 +19,7 @@ Real OAuth requires the registered callback `https://kos.deeev.cz/callback`. The
 ```
 npm run typecheck
 npm test
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:e2e
 npm run build
 ```
@@ -41,6 +41,26 @@ Group owners invite people by their school username or a reusable invite link. L
 The default week shows the user's timetable and all authorized shared calendars, with stacked initials for people attending the same Sirius event. The All friends checkbox toggles all overlays at once; individual controls remain in the filters above the calendar. Weekday columns have equal widths and fit on screen. The week shows up to three parallel lanes; crowded blocks reserve the last lane for a count of more lessons and prioritize the user’s own lessons. Click a day heading or the overflow count to expand that day across the timetable, then use Back to week or Escape to return. Expanded days show every lesson; very dense days can scroll internally. Empty weekend days are hidden independently. Lesson accents use Fittable's published lecture, tutorial, laboratory and exam palette. Avatars use the first and sixth username letters. The separate Usermap photo endpoint documents only public employee photos, so student photos are not imported; see [profile-photos.md](docs/profile-photos.md). No additional school scope is requested. Dark mode follows the system preference until changed with the header toggle, then remembers the choice. Calendar colors mix against the active theme surface, including custom colors, and dialogs and forms use the same theme.
 
 Personal subjects and events (for example TV1-PE) have editable names, locations, notes, colors and optional weekly repetition. They are stored separately from Sirius imports, remain after synchronization and follow calendar sharing permissions. Weekly series preserve Prague wall-clock time across DST; editing or deleting changes the whole series. Their default teal color and Personal event label distinguish them from imported teaching. These entries do not perform registration in KOS. Course-only wishes without times remain available in the semester planner.
+
+## Mobile and installation
+
+The app can be installed on Android through the browser install action and on
+iPhone/iPad through Safari's Share → Add to Home Screen (Open as Web App).
+The footer's Install app action opens the browser prompt when available or short
+platform instructions. Installed apps use standalone display and platform icons.
+Mobile navigation stays at the bottom; timetable filters can be expanded above
+the agenda. Forms use larger touch controls and respect screen safe areas.
+
+The service worker caches only public icons and a static reconnect screen.
+Timetables, APIs, sessions, OAuth responses and authenticated pages are never
+stored in the PWA cache. Opening offline shows a reconnect screen, not an offline
+calendar. Existing session and sharing rules apply after reconnecting.
+
+Landing screenshots use synthetic data from the current UI. To regenerate them,
+run the dev server on port 3100 and `node scripts/capture-preview.mjs`. Regenerate
+platform icons from the supplied SVG with `node scripts/render-icons.mjs`.
+Both scripts need Playwright Chromium. See [feature-ideas.md](docs/feature-ideas.md)
+for proposed follow-up features and API constraints.
 
 ## Deployment
 

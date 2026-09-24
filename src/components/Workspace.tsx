@@ -18,6 +18,8 @@ import ThemeToggle from "./ThemeToggle";
 import GroupInvitation from "./GroupInvitation";
 import GroupsView from "./GroupsView";
 import CalendarView from "./CalendarView";
+import Logo from "./Logo";
+import InstallApp from "./InstallApp";
 import FriendsView, { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
 import s from "./Workspace.module.css";
@@ -237,10 +239,10 @@ export default function Workspace() {
       : t.errors[error as keyof typeof t.errors] || t.error;
   const own = calendars.find((c) => c.userId === me?.id);
   return (
-    <div className={s.app}>
+    <div className={`${s.app} ${me ? s.signedIn : ""}`}>
       <header className={s.header}>
         <a className={s.brand} href="/" aria-label="KOSwFriends">
-          <img src="/logo.svg" alt="KOS++" width={120} height={120} />
+          <Logo />
         </a>
         {me && (
           <nav className={s.navigation} aria-label="Navigation">
@@ -277,15 +279,14 @@ export default function Workspace() {
           </div>
           {me && (
             <button
-              className={s.quiet}
+              className={`${s.quiet} ${s.accountButton}`}
               onClick={() => setView("account")}
               aria-label={t.account}
             >
               <span className={s.identity}>
                 <Avatar person={me} />
-                {me.username}
+                <span className={s.accountUsername}>{me.username}</span>
               </span>
-              <span className={s.mobileControls}>☰</span>
             </button>
           )}
         </div>
@@ -318,59 +319,36 @@ export default function Workspace() {
               <a className={s.button} href={signIn}>
                 {t.signIn} <span aria-hidden>↗</span>
               </a>
-              <p className={s.privacy}>{t.privacy}</p>
+              <ul className={s.featureList}>
+                {[
+                  t.featureTimetables,
+                  t.featureGroups,
+                  t.featureEvents,
+                  t.featurePlanner,
+                  t.featureTheme,
+                  t.featureInstall,
+                ].map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
             </div>
-            <div className={s.previewWrap}>
-              <div className={s.preview}>
-                <div className={s.previewBar}>
-                  <span>
-                    {t.yourCalendar} + {t.friends.toLowerCase()}
-                  </span>
-                  <span>‹　{t.week}　›</span>
-                </div>
-                <div className={s.miniGrid} aria-hidden>
-                  {[t.monday, t.tuesday, t.wednesday, t.thursday, t.friday].map(
-                    (d, i) => (
-                      <div className={s.miniCol} key={d}>
-                        <div
-                          style={{
-                            textAlign: "center",
-                            fontSize: 10,
-                            color: "var(--muted)",
-                          }}
-                        >
-                          {d}
-                        </div>
-                        {i !== 3 && (
-                          <div
-                            className={`${s.miniEvent} ${i === 2 ? s.miniOutline : i === 4 ? s.miniDraft : ""}`}
-                            style={{
-                              top: 38 + (i % 3) * 48,
-                              height: i === 1 ? 96 : 74,
-                            }}
-                          >
-                            <b>{["MAT", "PRG", "MAT", "", "WEB"][i]}</b>
-                            {i === 2 ? t.friend : i === 4 ? t.draft : t.own}
-                            <br />
-                            {i === 0 ? "9:00–10:30" : "11:00–12:30"}
-                          </div>
-                        )}
-                        {i === 0 && (
-                          <div
-                            className={`${s.miniEvent} ${s.miniOutline}`}
-                            style={{ top: 166 }}
-                          >
-                            <b>WEB</b>
-                            {t.sharedLesson}
-                          </div>
-                        )}
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-              <p className={s.previewFoot}>{t.preview}</p>
-            </div>
+            <figure className={s.productPreview}>
+              <img
+                className={s.previewLight}
+                src={`/preview/timetable-${locale}-light.png`}
+                alt={t.previewAlt}
+                width={1280}
+                height={940}
+              />
+              <img
+                className={s.previewDark}
+                src={`/preview/timetable-${locale}-dark.png`}
+                alt={t.previewAlt}
+                width={1280}
+                height={940}
+              />
+              <figcaption>{t.preview}</figcaption>
+            </figure>
           </main>
         </>
       ) : (
@@ -646,6 +624,7 @@ export default function Workspace() {
           </span>
         </div>
         <span>{t.independent}</span>
+        <InstallApp t={t} />
       </footer>
       {toast && (
         <div role="status" className={s.toast}>
