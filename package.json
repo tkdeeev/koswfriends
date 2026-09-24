@@ -1,0 +1,48 @@
+{
+  "name": "koswfriends",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/with-test-db.mjs vitest run",
+    "test:e2e": "node scripts/with-test-db.mjs playwright test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/server/migrate.ts",
+    "worker": "tsx src/server/worker.ts"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@fontsource/roboto": "5.3.0",
+    "drizzle-orm": "0.45.3",
+    "luxon": "3.7.2",
+    "next": "16.3.6",
+    "postgres": "3.4.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/luxon": "3.7.5",
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "embedded-postgres": "17.10.0-beta.17",
+    "esbuild": "0.28.2",
+    "prettier": "3.9.9",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  },
+  "allowScripts": {
+    "embedded-postgres@17.10.0-beta.17": true,
+    "@embedded-postgres/linux-x64@17.10.0-beta.17": true
+  }
+}

@@ -1,0 +1,102 @@
+x-app-env: &app-env
+  NODE_ENV: production
+  APP_URL: https://kos.deeev.cz
+  APP_REVISION: ${APP_REVISION:?set revision}
+  APP_VERSION: 0.1.0
+  DATABASE_URL: postgres://koswfriends:${POSTGRES_PASSWORD:?set database password}@postgres:5432/koswfriends
+  TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:?set encryption key}
+  SCHOOL_OAUTH_CLIENT_ID: ${SCHOOL_OAUTH_CLIENT_ID:?set client id}
+  SCHOOL_OAUTH_CLIENT_SECRET: ${SCHOOL_OAUTH_CLIENT_SECRET:?set secret}
+  SCHOOL_OAUTH_REDIRECT_URI: https://kos.deeev.cz/callback
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: koswfriends
+      POSTGRES_DB: koswfriends
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set database password}
+    volumes: [database:/var/lib/postgresql/data]
+    networks: [private]
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U koswfriends -d koswfriends"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  migrate:
+    image: koswfriends:${APP_REVISION:?set revision}
+    build: .
+    command: [node, dist/migrate.js]
+    environment: *app-env
+    networks: [private]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+  web:
+    image: koswfriends:${APP_REVISION:?set revision}
+    build: .
+    environment: *app-env
+    networks: [private, dokploy-network]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      worker: { condition: service_started }
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          'fetch("http://127.0.0.1:3000/api/health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))',
+        ]
+      start_period: 30s
+      interval: 20s
+      timeout: 5s
+      retries: 5
+  worker:
+    image: koswfriends:${APP_REVISION:?set revision}
+    build: .
+    command: [node, dist/worker.js]
+    environment: *app-env
+    networks: [private, egress]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          --input-type=module,
+          -e,
+          'import postgres from "postgres";const db=postgres(process.env.DATABASE_URL,{connect_timeout:3});const r=await db`select heartbeat > now() - interval ''2 minutes'' as alive from worker_status where id=''sync''`;await db.end();process.exit(r[0]?.alive?0:1)',
+        ]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+  backup:
+    image: postgres:17-alpine
+    entrypoint: [/bin/sh, /scripts/backup.sh]
+    environment:
+      PGHOST: postgres
+      PGUSER: koswfriends
+      PGDATABASE: koswfriends
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set database password}
+    volumes: [backups:/backups, "./scripts/backup.sh:/scripts/backup.sh:ro"]
+    networks: [private]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, 'find /backups -name "*.dump" -mtime -2 | grep -q .']
+      start_period: 60s
+      interval: 1h
+      timeout: 10s
+      retries: 2
+networks:
+  private: { internal: true }
+  egress: {}
+  dokploy-network: { external: true }
+volumes:
+  database:
+  backups:
