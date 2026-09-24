@@ -2,7 +2,7 @@ x-app-env: &app-env
   NODE_ENV: production
   APP_URL: https://kos.deeev.cz
   APP_REVISION: ${APP_REVISION:?set revision}
-  APP_VERSION: 0.1.1
+  APP_VERSION: 0.1.2
   DATABASE_URL: postgres://koswfriends:${POSTGRES_PASSWORD:?set database password}@postgres:5432/koswfriends
   TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:?set encryption key}
   SCHOOL_OAUTH_CLIENT_ID: ${SCHOOL_OAUTH_CLIENT_ID:?set client id}
@@ -94,7 +94,11 @@ services:
       timeout: 10s
       retries: 2
 networks:
-  private: { internal: true }
+  private:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${PRIVATE_SUBNET:?set a verified unused private subnet}
   egress: {}
   dokploy-network: { external: true }
 volumes:
