@@ -13,31 +13,21 @@
   gap: 24px;
 }
 .brand {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  color: var(--dark);
-  font-size: 23px;
-  font-weight: 700;
-  text-decoration: none;
-  letter-spacing: -0.8px;
-  white-space: nowrap;
+  display: block;
+  position: relative;
+  flex: 0 0 120px;
+  width: 120px;
+  height: 46px;
+  overflow: hidden;
+  background: #172d3b;
 }
-.brand span:last-child {
-  font-weight: 400;
-  color: var(--blue);
+.brand img {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
 }
-.mark {
-  background: var(--accent);
-  width: 36px;
-  height: 36px;
-  color: white;
-  display: grid;
-  place-items: center;
-  font-size: 25px;
-  letter-spacing: -4px;
-  padding-right: 3px;
-}
+
 .navigation {
   display: flex;
   align-self: stretch;
@@ -149,22 +139,7 @@
   padding: 85px 6% 65px;
   align-items: center;
 }
-.eyebrow {
-  font-size: 11px;
-  letter-spacing: 2px;
-  font-weight: 700;
-  color: var(--blue);
-  text-transform: uppercase;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.eyebrow:before {
-  content: "";
-  width: 18px;
-  height: 2px;
-  background: var(--accent);
-}
+
 .hero h1 {
   font-size: clamp(40px, 4.2vw, 66px);
   font-weight: 400;
@@ -277,35 +252,7 @@
   margin-top: 14px;
   text-align: center;
 }
-.features {
-  padding: 30px 6% 42px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 50px;
-  max-width: 1420px;
-  margin: 0 auto;
-  width: 100%;
-}
-.feature {
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
-}
-.featureNumber {
-  color: var(--blue);
-  font-size: 12px;
-  letter-spacing: 1px;
-  margin-bottom: 16px;
-}
-.feature h2 {
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 12px;
-}
-.feature p {
-  color: var(--muted);
-  font-size: 14px;
-  max-width: 340px;
-}
+
 .footer {
   display: flex;
   flex-wrap: wrap;
@@ -827,20 +774,111 @@
   color: var(--blue);
   font-weight: 400;
 }
-.details {
+.lessonDialog {
+  width: 440px;
+  padding: 0;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  box-shadow: 0 20px 80px #0004;
+}
+.lessonDialogHeader {
+  padding: 12px 24px 22px;
+  background: color-mix(in srgb, var(--lesson-color) 20%, var(--surface));
+  border-top: 4px solid var(--lesson-color);
+  color: var(--dark);
+}
+.lessonDialogTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+}
+.lessonDialogTop .iconButton {
+  background: transparent;
+  border-color: transparent;
+  color: inherit;
+  margin-right: -12px;
+}
+.lessonDialogHeader h2 {
+  font-size: 28px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  margin: 8px 0 12px;
+}
+.lessonDialogTime {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.lessonDialogDate {
+  margin-top: 4px;
+  font-size: 13px;
+}
+.lessonDialogStatus {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.lessonDialogBody {
+  padding: 24px;
   display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 12px;
-  font-size: 14px;
-  margin: 16px 0;
-}
-.details dt {
-  color: var(--muted);
-}
-.details dd {
-  margin: 0;
+  gap: 22px;
   overflow-wrap: anywhere;
 }
+.lessonDialogBody > h3 {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--blue);
+}
+.lessonFacts {
+  display: flex;
+  margin: 0;
+  padding: 18px 0;
+  border-block: 1px solid var(--line);
+}
+.lessonFacts > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+.lessonFacts > div + div {
+  padding-left: 18px;
+  margin-left: 18px;
+  border-left: 1px solid var(--line);
+}
+.lessonFacts dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+.lessonFacts dd {
+  margin: 0;
+  font-size: 18px;
+}
+.lessonAttendees h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.lessonAttendees h3 > span {
+  color: var(--muted);
+  font-weight: 400;
+}
+.lessonAttendees .attendeeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+}
+.lessonDialogBody .eventNote {
+  margin: 0;
+}
+
 .accountSection {
   max-width: 640px;
 }
@@ -908,10 +946,7 @@
   .previewWrap {
     padding: 16px;
   }
-  .features {
-    gap: 30px;
-    padding: 25px 4% 35px;
-  }
+
   .lesson {
     font-size: 10px;
     padding: 4px;
@@ -928,9 +963,7 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  .brand {
-    font-size: 21px;
-  }
+
   .headerEnd {
     margin-left: auto;
   }
@@ -963,25 +996,7 @@
     width: 100%;
     margin: auto;
   }
-  .features {
-    grid-template-columns: 1fr;
-    gap: 25px;
-    padding: 18px 6% 40px;
-  }
-  .feature {
-    display: grid;
-    grid-template-columns: 32px 1fr;
-    column-gap: 14px;
-  }
-  .featureNumber {
-    grid-row: span 2;
-  }
-  .feature h2 {
-    font-size: 17px;
-  }
-  .feature p {
-    max-width: none;
-  }
+
   .footer {
     padding: 20px 5%;
     flex-direction: column;

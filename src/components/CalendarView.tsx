@@ -81,6 +81,13 @@ export default function CalendarView({
   const [drafts, setDrafts] = useState(false);
   const [detail, setDetail] = useState<Display | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const detailOpen = detail !== null;
+  useEffect(() => {
+    if (!detailOpen) return;
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, [detailOpen]);
   const week = date.startOf("week");
   const now = DateTime.now().setZone(ZONE);
   const own = calendars.find((c) => c.userId === me.id);
@@ -181,7 +188,6 @@ export default function CalendarView({
     DateTime.fromISO(iso).setZone(ZONE).toFormat("HH:mm");
   const open = (item: Display) => {
     setDetail(item);
-    dialog.current?.showModal();
   };
   const expandedDay = days.find((day) => day.toISODate() === expandedDate);
   const arranged = (expandedDay ? [expandedDay] : days).map((day) => {
@@ -286,7 +292,6 @@ export default function CalendarView({
             <span>{t.overlay}</span>
             {selected.length ? ` · ${selected.length}` : ""}
           </summary>
-          <p className={s.hint}>{t.overlayHint}</p>
           <div className={s.filterRow}>
             {people.map((person) => (
               <label className={s.personChip} key={person.id}>
@@ -592,71 +597,124 @@ export default function CalendarView({
           )}
         </div>
       </section>
-      <dialog ref={dialog} onClose={() => setDetail(null)}>
-        <div className={s.dialogTitle}>
-          <h2>{detail?.lesson.course || t.lesson}</h2>
-          <button
-            className={s.iconButton}
-            onClick={() => dialog.current?.close()}
-            aria-label={t.close}
-          >
-            ×
-          </button>
-        </div>
+      <dialog
+        ref={dialog}
+        className={s.lessonDialog}
+        aria-labelledby="lesson-title"
+        style={
+          detail
+            ? colorStyle(detail.lesson.type, detail.lesson.color)
+            : undefined
+        }
+        onClose={() => setDetail(null)}
+      >
         {detail && (
           <>
-            <p>{detail.lesson.title[locale]}</p>
-            {detail.lesson.cancelled && (
-              <p className={`${s.banner} ${s.warning}`}>{t.cancelled}</p>
-            )}
-            <dl className={s.details}>
-              <dt>{t.day}</dt>
-              <dd>
+            <header className={s.lessonDialogHeader}>
+              <div className={s.lessonDialogTop}>
+                <span>{lessonType(detail.lesson.type, locale)}</span>
+                <button
+                  className={s.iconButton}
+                  onClick={() => dialog.current?.close()}
+                  aria-label={t.close}
+                  autoFocus
+                >
+                  ×
+                </button>
+              </div>
+              <h2 id="lesson-title">
+                {detail.lesson.course || detail.lesson.title[locale]}
+              </h2>
+              <div className={s.lessonDialogTime} title={t.prague}>
+                {time(detail.lesson.start)}–{time(detail.lesson.end)}
+              </div>
+              <p className={s.lessonDialogDate}>
                 {DateTime.fromISO(detail.lesson.start)
                   .setZone(ZONE)
                   .setLocale(locale)
                   .toLocaleString(DateTime.DATE_FULL)}
-              </dd>
-              <dt>{t.prague}</dt>
-              <dd>
-                {time(detail.lesson.start)}–{time(detail.lesson.end)}
-              </dd>
-              <dt>{t.group}</dt>
-              <dd>{detail.lesson.group || "—"}</dd>
-              <dt>{t.type}</dt>
-              <dd>{lessonType(detail.lesson.type, locale) || "—"}</dd>
-              <dt>{t.room}</dt>
-              <dd>{detail.lesson.room || "—"}</dd>
-              <dt>{t.attendees}</dt>
-              <dd className={s.attendeeList}>
-                {detail.attendees.map((p) => (
-                  <span className={s.person} key={p.id}>
-                    <Avatar person={p} />
-                    <span>
-                      {p.name || p.username}
-                      {p.name && p.name !== p.username && (
-                        <small>{p.username}</small>
-                      )}
+                {!DateTime.fromISO(detail.lesson.start)
+                  .setZone(ZONE)
+                  .hasSame(
+                    DateTime.fromISO(detail.lesson.end).setZone(ZONE),
+                    "day",
+                  ) && (
+                  <>
+                    {" "}
+                    –{" "}
+                    {DateTime.fromISO(detail.lesson.end)
+                      .setZone(ZONE)
+                      .setLocale(locale)
+                      .toLocaleString(DateTime.DATE_FULL)}
+                  </>
+                )}
+              </p>
+              {(detail.lesson.cancelled || detail.draft) && (
+                <div className={s.lessonDialogStatus}>
+                  {detail.lesson.cancelled && (
+                    <span className={`${s.badge} ${s.badgeWarning}`}>
+                      {t.cancelled}
                     </span>
-                  </span>
-                ))}
-              </dd>
-            </dl>
-            {detail.lesson.note && (
-              <p className={s.eventNote}>{detail.lesson.note}</p>
-            )}
-            {detail.lesson.personalId && detail.own && (
-              <button
-                className={s.button}
-                onClick={() => {
-                  dialog.current?.close();
-                  onEditEvent(detail.lesson.personalId);
-                }}
-              >
-                {t.editPersonal}
-              </button>
-            )}
-            {detail.draft && <p className={s.hint}>{t.plannerIntro}</p>}
+                  )}
+                  {detail.draft && <span className={s.badge}>{t.draft}</span>}
+                </div>
+              )}
+            </header>
+            <div className={s.lessonDialogBody}>
+              {detail.lesson.course &&
+                detail.lesson.title[locale] !== detail.lesson.course && (
+                  <h3>{detail.lesson.title[locale]}</h3>
+                )}
+              {(detail.lesson.room || detail.lesson.group) && (
+                <dl className={s.lessonFacts}>
+                  {detail.lesson.room && (
+                    <div>
+                      <dt>{t.room}</dt>
+                      <dd>{detail.lesson.room}</dd>
+                    </div>
+                  )}
+                  {detail.lesson.group && (
+                    <div>
+                      <dt>{t.group}</dt>
+                      <dd>{detail.lesson.group}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+              <section className={s.lessonAttendees} aria-label={t.attendees}>
+                <h3>
+                  {t.attendees} <span>{detail.attendees.length}</span>
+                </h3>
+                <ul className={s.attendeeList}>
+                  {detail.attendees.map((p) => (
+                    <li className={s.person} key={p.id}>
+                      <Avatar person={p} />
+                      <span>
+                        {p.name || p.username}
+                        {p.name && p.name !== p.username && (
+                          <small>{p.username}</small>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              {detail.lesson.note && (
+                <p className={s.eventNote}>{detail.lesson.note}</p>
+              )}
+              {detail.lesson.personalId && detail.own && (
+                <button
+                  className={`${s.button} ${s.secondary}`}
+                  onClick={() => {
+                    dialog.current?.close();
+                    onEditEvent(detail.lesson.personalId);
+                  }}
+                >
+                  {t.editPersonal}
+                </button>
+              )}
+              {detail.draft && <p className={s.hint}>{t.plannerIntro}</p>}
+            </div>
           </>
         )}
       </dialog>

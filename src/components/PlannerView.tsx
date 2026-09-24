@@ -317,7 +317,6 @@ export default function PlannerView({
         </section>
         <section className={s.panel}>
           <h2>{t.sharedChoices}</h2>
-          <p className={s.hint}>{t.livePlans}</p>
           {!shared.length && (
             <p className={s.muted} style={{ marginTop: 18 }}>
               {t.noSharedPlans}

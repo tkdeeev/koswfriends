@@ -344,7 +344,6 @@ export default function GroupsView({
         {!groups.length && (
           <div className={s.empty}>
             <h3>{t.noSharingGroups}</h3>
-            <p>{t.groupsIntro}</p>
           </div>
         )}
       </div>
