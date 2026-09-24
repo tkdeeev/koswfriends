@@ -1,12 +1,73 @@
 :root {
   --blue: #0079c1;
+  --accent: #0079c1;
   --dark: #172d3b;
   --muted: #576b78;
   --grey: #ebeef1;
   --line: #dce3e8;
+  --input-line: #bccbd5;
   --pale: #f6f8fa;
-  --white: #fff;
+  --surface: #fff;
+  --soft-blue: #eef7fc;
+  --blue-text: #214960;
+  --warning-bg: #fff8e8;
+  --warning-text: #735013;
+  --warning-line: #b77a17;
+  --error-bg: #fff0f0;
+  --error-text: #a42f30;
+  --error-line: #dfbabc;
+  --now: #bb3340;
+  --toast: #172d3b;
+  --selection: #bde4ff;
   color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --blue: #75c5fa;
+  --accent: #086c9e;
+  --dark: #e7edf3;
+  --muted: #a6b6c6;
+  --grey: #283643;
+  --line: #344454;
+  --input-line: #465b6f;
+  --pale: #1b2935;
+  --surface: #141f29;
+  --soft-blue: #16384c;
+  --blue-text: #bfe4fa;
+  --warning-bg: #382d19;
+  --warning-text: #f4d292;
+  --warning-line: #c69642;
+  --error-bg: #382127;
+  --error-text: #ffadb1;
+  --error-line: #965a64;
+  --now: #fa8793;
+  --toast: #2d4254;
+  --selection: #285b79;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --blue: #75c5fa;
+    --accent: #086c9e;
+    --dark: #e7edf3;
+    --muted: #a6b6c6;
+    --grey: #283643;
+    --line: #344454;
+    --input-line: #465b6f;
+    --pale: #1b2935;
+    --surface: #141f29;
+    --soft-blue: #16384c;
+    --blue-text: #bfe4fa;
+    --warning-bg: #382d19;
+    --warning-text: #f4d292;
+    --warning-line: #c69642;
+    --error-bg: #382127;
+    --error-text: #ffadb1;
+    --error-line: #965a64;
+    --now: #fa8793;
+    --toast: #2d4254;
+    --selection: #285b79;
+    color-scheme: dark;
+  }
 }
 * {
   box-sizing: border-box;
@@ -14,7 +75,7 @@
 }
 body {
   margin: 0;
-  background: #fff;
+  background: var(--surface);
   color: var(--dark);
   font-family: Roboto, Arial, sans-serif;
   font-size: 15px;
@@ -71,8 +132,8 @@ h3 {
 input,
 select,
 textarea {
-  background: #fff;
-  border: 1px solid #bccbd5;
+  background: var(--surface);
+  border: 1px solid var(--input-line);
   padding: 10px 12px;
   color: var(--dark);
   max-width: 100%;
@@ -92,6 +153,7 @@ button {
   min-height: 40px;
 }
 dialog {
+  background: var(--surface);
   border: 1px solid var(--line);
   padding: 28px;
   max-width: min(520px, calc(100vw - 32px));
@@ -114,5 +176,5 @@ summary {
   cursor: pointer;
 }
 ::selection {
-  background: #bde4ff;
+  background: var(--selection);
 }

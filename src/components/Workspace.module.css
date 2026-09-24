@@ -28,7 +28,7 @@
   color: var(--blue);
 }
 .mark {
-  background: var(--blue);
+  background: var(--accent);
   width: 36px;
   height: 36px;
   color: white;
@@ -61,7 +61,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--blue);
+  background: var(--accent);
 }
 .headerEnd {
   display: flex;
@@ -83,7 +83,7 @@
 }
 .languages .chosen {
   color: var(--blue);
-  background: #eef6fb;
+  background: var(--soft-blue);
   font-weight: 700;
 }
 .identity {
@@ -109,7 +109,7 @@
   gap: 8px;
   padding: 10px 16px;
   border: 1px solid var(--blue);
-  background: var(--blue);
+  background: var(--accent);
   color: #fff;
   text-decoration: none;
   font-weight: 500;
@@ -118,9 +118,9 @@
   max-width: 100%;
 }
 .secondary {
-  background: white;
+  background: var(--surface);
   color: var(--blue);
-  border-color: #bccedb;
+  border-color: var(--input-line);
 }
 .quiet {
   border: 0;
@@ -130,9 +130,9 @@
   text-align: left;
 }
 .danger {
-  color: #a42f30;
-  border-color: #dfbabc;
-  background: #fff;
+  color: var(--error-text);
+  border-color: var(--error-line);
+  background: var(--surface);
 }
 .small {
   font-size: 13px;
@@ -163,7 +163,7 @@
   content: "";
   width: 18px;
   height: 2px;
-  background: var(--blue);
+  background: var(--accent);
 }
 .hero h1 {
   font-size: clamp(40px, 4.2vw, 66px);
@@ -203,14 +203,14 @@
   content: "";
   width: 50px;
   height: 50px;
-  background: var(--blue);
+  background: var(--accent);
   position: absolute;
   right: -12px;
   top: -12px;
   z-index: -1;
 }
 .preview {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--line);
   padding: 20px 15px 14px;
   box-shadow: 0 10px 24px #16354c0b;
@@ -236,7 +236,7 @@
     to bottom,
     transparent 0,
     transparent 50px,
-    #e7ebef 51px
+    var(--line) 51px
   );
 }
 .miniCol {
@@ -244,13 +244,13 @@
   position: relative;
 }
 .miniCol:nth-child(even) {
-  background: #ebeef144;
+  background: color-mix(in srgb, var(--grey) 27%, transparent);
 }
 .miniEvent {
   position: absolute;
   left: 5px;
   right: 5px;
-  background: var(--blue);
+  background: var(--accent);
   color: white;
   padding: 7px 5px;
   font-size: 10px;
@@ -262,12 +262,12 @@
   font-weight: 700;
 }
 .miniOutline {
-  background: #fff;
+  background: var(--surface);
   color: var(--blue);
   border: 1.5px solid var(--blue);
 }
 .miniDraft {
-  background: #f4faff;
+  background: var(--soft-blue);
   color: var(--blue);
   border: 1.5px dashed var(--blue);
 }
@@ -409,16 +409,16 @@
 .swatch {
   width: 14px;
   height: 14px;
-  background: var(--blue);
+  background: var(--accent);
   display: inline-block;
   flex-shrink: 0;
 }
 .outlineSwatch {
-  background: white;
+  background: var(--surface);
   border: 1.5px solid var(--blue);
 }
 .draftSwatch {
-  background: #f4faff;
+  background: var(--soft-blue);
   border: 1.5px dashed var(--blue);
 }
 .calendarArea {
@@ -437,7 +437,7 @@
   font-size: 20px;
 }
 .iconButton {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   padding: 6px 12px;
   font-size: 20px;
@@ -451,7 +451,7 @@
 .dayHeaders {
   display: grid;
   grid-template-columns: 48px repeat(7, minmax(0, 1fr));
-  background: white;
+  background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -471,7 +471,7 @@
   color: var(--dark);
 }
 .dayHeader.current {
-  background: #eef7fc;
+  background: var(--soft-blue);
   color: var(--blue);
 }
 .dayHeader.current strong {
@@ -487,7 +487,7 @@
   position: relative;
   font-size: 10px;
   color: var(--muted);
-  background: #fff;
+  background: var(--surface);
 }
 .timeTick {
   position: absolute;
@@ -501,16 +501,16 @@
     to bottom,
     transparent 0,
     transparent 59px,
-    #e1e6eb 60px
+    var(--line) 60px
   );
 }
 .dayColumn:nth-child(odd) {
-  background-color: #f5f7f9;
+  background-color: var(--pale);
 }
 .lesson {
   position: absolute;
   border: 1px solid var(--blue);
-  background: var(--blue);
+  background: var(--accent);
   color: white;
   overflow: hidden;
   text-align: left;
@@ -532,13 +532,13 @@
   overflow-wrap: anywhere;
 }
 .friendLesson {
-  background: white;
+  background: var(--surface);
   color: var(--blue);
   border-width: 2px;
 }
 .draftLesson {
-  background: #f4faff;
-  color: #075b8e;
+  background: var(--soft-blue);
+  color: var(--blue);
   border: 2px dashed var(--blue);
 }
 .cancelled {
@@ -550,7 +550,7 @@
   height: 2px;
   left: 0;
   right: 0;
-  background: #bb3340;
+  background: var(--now);
   pointer-events: none;
   z-index: 1;
 }
@@ -561,26 +561,26 @@
   top: -3px;
   width: 8px;
   height: 8px;
-  background: #bb3340;
+  background: var(--now);
 }
 .banner {
   padding: 12px 15px;
   border-left: 3px solid var(--blue);
-  background: #eef7fc;
-  color: #214960;
+  background: var(--soft-blue);
+  color: var(--blue-text);
   font-size: 13px;
   margin-bottom: 18px;
   overflow-wrap: anywhere;
 }
 .warning {
-  border-left-color: #b77a17;
-  background: #fff8e8;
-  color: #735013;
+  border-left-color: var(--warning-line);
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 .error {
-  border-left-color: #b6353b;
-  background: #fff0f0;
-  color: #852d32;
+  border-left-color: var(--error-line);
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 .empty {
   padding: 46px 25px;
@@ -614,7 +614,7 @@
 .panel {
   border: 1px solid var(--line);
   padding: 24px;
-  background: #fff;
+  background: var(--surface);
   min-width: 0;
 }
 .panel h2 {
@@ -696,13 +696,13 @@
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--blue);
-  background: #eef7fc;
+  background: var(--soft-blue);
   padding: 4px 7px;
   display: inline-block;
 }
 .badgeWarning {
-  background: #fff4dd;
-  color: #866015;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 .actions {
   display: flex;
@@ -736,7 +736,7 @@
   width: 100%;
   gap: 15px;
   justify-content: space-between;
-  background: #fff;
+  background: var(--surface);
   border: 0;
   border-bottom: 1px solid var(--line);
   color: var(--dark);
@@ -754,7 +754,7 @@
 .draftCard {
   padding: 18px;
   border: 1px dashed var(--blue);
-  background: #f8fcff;
+  background: var(--soft-blue);
   margin-bottom: 14px;
 }
 .draftCard:last-child {
@@ -792,7 +792,7 @@
   font-size: 13px;
 }
 .conflict b {
-  color: #945f10;
+  color: var(--warning-text);
 }
 .sharedPlan {
   padding-top: 16px;
@@ -846,7 +846,7 @@
   right: 25px;
   max-width: calc(100vw - 50px);
   padding: 14px 20px;
-  background: var(--dark);
+  background: var(--toast);
   color: white;
   z-index: 5;
   box-shadow: 0 4px 20px #172d3b22;
@@ -1030,12 +1030,12 @@
     padding: 8px;
     min-width: 42px;
     border: 1px solid var(--line);
-    background: white;
+    background: var(--surface);
     color: var(--dark);
     font-size: 12px;
   }
   .mobileControls .selectedDay {
-    background: var(--blue);
+    background: var(--accent);
     color: white;
     border-color: var(--blue);
   }
@@ -1043,7 +1043,7 @@
     border-left: 4px solid var(--blue);
     padding: 14px;
     margin: 12px 0;
-    background: #f3f8fc;
+    background: var(--soft-blue);
     width: 100%;
     display: flex;
     gap: 18px;
@@ -1066,14 +1066,14 @@
     font-size: 12px;
   }
   .agendaFriend {
-    background: white;
+    background: var(--surface);
     border: 1px solid var(--blue);
     border-left-width: 4px;
   }
   .agendaDraft {
     border: 1px dashed var(--blue);
     border-left-width: 4px;
-    background: #f8fcff;
+    background: var(--soft-blue);
   }
   .twoColumns {
     grid-template-columns: 1fr;
@@ -1156,12 +1156,12 @@
   margin-top: 5px;
 }
 .avatarStack .profileAvatar {
-  border: 2px solid white;
+  border: 2px solid var(--surface);
   margin-right: -6px;
   box-sizing: content-box;
 }
 .avatarMore {
-  background: #e8edf1;
+  background: var(--grey);
   color: var(--dark);
 }
 .attendeeList {
@@ -1257,13 +1257,13 @@
     to bottom,
     transparent 0,
     transparent 83px,
-    #e1e6eb 84px
+    var(--line) 84px
   );
 }
 .lesson {
-  background: color-mix(in srgb, var(--lesson-color) 20%, white);
-  color: #172d3b;
-  border: 1px solid color-mix(in srgb, var(--lesson-color) 70%, #44515a);
+  background: color-mix(in srgb, var(--lesson-color) 20%, var(--surface));
+  color: var(--dark);
+  border: 1px solid color-mix(in srgb, var(--lesson-color) 70%, var(--line));
   border-left: 4px solid var(--lesson-color);
   padding: 6px 7px;
   font-size: 12px;
@@ -1303,12 +1303,12 @@
   overflow-wrap: normal;
 }
 .friendLesson {
-  background: white;
+  background: var(--surface);
   border-style: solid;
   border-left-width: 2px;
 }
 .draftLesson {
-  background: white;
+  background: var(--surface);
   border-style: dashed;
 }
 .lesson:hover,
@@ -1319,7 +1319,7 @@
 }
 .agendaEvent {
   border-left-color: var(--lesson-color);
-  background: color-mix(in srgb, var(--lesson-color) 16%, white);
+  background: color-mix(in srgb, var(--lesson-color) 16%, var(--surface));
 }
 @media (max-width: 760px) {
   .groupsLayout {
@@ -1375,7 +1375,7 @@
 }
 .eventListItem {
   border: 0;
-  background: white;
+  background: var(--surface);
   width: 100%;
   display: flex;
   align-items: center;
@@ -1429,5 +1429,22 @@
     padding: 0 0 16px;
     max-height: 160px;
     overflow: auto;
+  }
+}
+
+.groupInviteLink {
+  border-top: 1px solid var(--line);
+  margin: 20px 0;
+  padding-top: 20px;
+}
+.themeToggle {
+  padding: 5px;
+  min-width: 36px;
+  font-size: 20px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .headerEnd {
+    gap: 8px;
   }
 }

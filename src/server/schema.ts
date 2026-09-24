@@ -160,3 +160,13 @@ export const personalEvents = pgTable(
   },
   (t) => [index("personal_event_owner_semester_idx").on(t.owner, t.semester)],
 );
+
+/** One revocable link per group; encrypted so its owner can copy it again. */
+export const groupInvites = pgTable("group_invites", {
+  groupId: uuid("group_id")
+    .primaryKey()
+    .references(() => groups.id, { onDelete: "cascade" }),
+  hash: text("hash").notNull().unique(),
+  token: text("token").notNull(),
+  expiresAt: time("expires_at").notNull(),
+});
