@@ -679,3 +679,176 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
   );
   expect(errors).toEqual([]);
 });
+
+test("equal week columns cap crowded lessons and expand a complete day without losing privacy", async ({
+  page,
+  context,
+  browser,
+}) => {
+  const a = await seed(context);
+  const second = await browser.newContext(),
+    b = await seed(second);
+  const [group] = await database()
+    .insert(groups)
+    .values({ owner: a.id, name: "Crowded week" })
+    .returning();
+  await database()
+    .insert(members)
+    .values(
+      [a, b].map((u) => ({
+        groupId: group.id,
+        userId: u.id,
+        status: "accepted" as const,
+        calendar: true,
+        plans: false,
+      })),
+    );
+  const [snapshot] = await database()
+    .select()
+    .from(snapshots)
+    .where(eq(snapshots.userId, a.id));
+  const base = snapshot.events[0];
+  const crowded = Array.from({ length: 6 }, (_, i) => ({
+    ...base,
+    id: `crowd-${i}`,
+    course: `CROWD-${i}`,
+    type: i % 2 ? "lecture" : "tutorial",
+    end: DateTime.fromISO(base.start).plus({ hours: 2 }).toISO()!,
+  }));
+  await database()
+    .update(snapshots)
+    .set({ events: crowded })
+    .where(eq(snapshots.userId, b.id));
+  await page.goto("/");
+  const frame = page.locator('[class*="calendarFrame"]');
+  const headers = page.locator("[data-date]");
+  const columns = page.locator("[data-day-column]");
+  const assertWeekFits = async () => {
+    await expect(headers).toHaveCount(5);
+    await expect(columns).toHaveCount(5);
+    const widths = await columns.evaluateAll((nodes) =>
+      nodes.map((n) => n.getBoundingClientRect().width),
+    );
+    expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
+    expect(
+      await page
+        .locator('[class*="dayScroll"]')
+        .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+    ).toBe(true);
+    const rects = await headers.evaluateAll((nodes) =>
+      nodes.map((n) => ({
+        left: n.getBoundingClientRect().left,
+        right: n.getBoundingClientRect().right,
+      })),
+    );
+    const viewport = page.viewportSize()!.width;
+    for (const rect of rects) {
+      expect(rect.left).toBeGreaterThanOrEqual(0);
+      expect(rect.right).toBeLessThanOrEqual(viewport);
+    }
+  };
+  for (const width of [1440, 1024, 800]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await assertWeekFits();
+  }
+  const thursday = DateTime.fromISO(base.start).setZone(ZONE).toISODate()!;
+  const day = page.locator(`[data-day-column="${thursday}"]`);
+  const overflow = day.getByRole("button", { name: /more lessons/ });
+  await expect(overflow).toHaveText(/\+6/);
+  await expect(day.locator("[data-lesson-type]")).toHaveCount(2);
+  await expect(day.getByRole("button", { name: /TEST-MAT/ })).toBeVisible();
+  await expect(day.getByRole("button", { name: /TEST-PRG/ })).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({
+    path: "test-results/week-crowded.png",
+    fullPage: true,
+  });
+  await overflow.click();
+  await expect(columns).toHaveCount(1);
+  await expect(headers).toHaveCount(5);
+  await expect(
+    page.getByRole("button", { name: "Back to week", exact: true }),
+  ).toBeVisible();
+  await expect(day.locator("[data-lesson-type]")).toHaveCount(8);
+  await expect(day.getByRole("button", { name: /more lessons/ })).toHaveCount(
+    0,
+  );
+  expect((await day.boundingBox())!.width).toBeGreaterThan(
+    (await frame.boundingBox())!.width - 60,
+  );
+  await page.screenshot({
+    path: "test-results/day-expanded.png",
+    fullPage: true,
+  });
+  // A full-width day must keep evaluating current sharing, including open details.
+  await day.getByRole("button", { name: /CROWD-0/ }).click();
+  await expect(page.locator("dialog[open]")).toContainText("CROWD-0");
+  await database()
+    .update(members)
+    .set({ calendar: false })
+    .where(eq(members.userId, b.id));
+  await expect(day.getByRole("button", { name: /CROWD-/ })).toHaveCount(0, {
+    timeout: 15000,
+  });
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to week", exact: true }).click();
+  await assertWeekFits();
+  const monday = headers.first();
+  await monday.click();
+  await expect(columns).toHaveCount(1);
+  await expect(columns.locator("[data-lesson-type]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await assertWeekFits();
+  await monday.focus();
+  await page.keyboard.press("Enter");
+  await expect(columns).toHaveCount(1);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await assertWeekFits();
+  await page.getByRole("button", { name: "Dark mode", exact: true }).click();
+  await page.screenshot({
+    path: "test-results/empty-week-dark.png",
+    fullPage: true,
+  });
+  const weekend = [2, 3].map((days, i) => {
+    const start = DateTime.fromISO(base.start).plus({ days });
+    return {
+      ...base,
+      id: `weekend-${i}`,
+      course: `WEEKEND-${i}`,
+      start: start.toISO()!,
+      end: start.plus({ hours: 1 }).toISO()!,
+    };
+  });
+  await database()
+    .update(snapshots)
+    .set({ events: [...snapshot.events, ...weekend] })
+    .where(eq(snapshots.userId, a.id));
+  await page.reload();
+  await expect(headers).toHaveCount(7);
+  const widths = await columns.evaluateAll((nodes) =>
+    nodes.map((n) => n.getBoundingClientRect().width),
+  );
+  expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
+  expect(
+    await page
+      .locator('[class*="dayScroll"]')
+      .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+  ).toBe(true);
+  await page.setViewportSize({ width: 320, height: 844 });
+  const picker = page.locator('[class*="dayPicker"]');
+  await expect(picker.getByRole("button")).toHaveCount(7);
+  const right = await picker
+    .getByRole("button")
+    .last()
+    .evaluate((el) => el.getBoundingClientRect().right);
+  expect(right).toBeLessThanOrEqual(320);
+  await picker.getByRole("button", { name: /^Sun/ }).click();
+  await expect(
+    page.locator('[class*="agendaEvent"]').filter({ hasText: "WEEKEND-1" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/seven-day-mobile.png",
+    fullPage: true,
+  });
+  await second.close();
+});

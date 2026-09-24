@@ -11,6 +11,7 @@ import { daySegments, semesterWindow, ZONE } from "@/lib/calendar";
 import type { Calendar, Choice, Lesson, Me, Person } from "@/lib/types";
 import { lessonType, type Locale, type Text } from "@/lib/i18n";
 import { lessonColor } from "@/lib/appearance";
+import { arrangeDay } from "@/lib/timetable-layout";
 import { PERSONAL_COLOR } from "@/lib/personal-events";
 import Avatar, { AvatarStack } from "./Avatar";
 import s from "./Workspace.module.css";
@@ -52,7 +53,7 @@ export default function CalendarView({
   onFriends: () => void;
   onEditEvent: (id?: string) => void;
 }) {
-  const [date, setDate] = useState(() => {
+  const [date, setDate] = useState<DateTime>(() => {
     const now = DateTime.now().setZone(ZONE).startOf("day");
     const window =
       calendars.find((c) => c.userId === me.id)?.semester ||
@@ -62,6 +63,20 @@ export default function CalendarView({
       ? now
       : DateTime.fromISO(window.from).setZone(ZONE).startOf("day");
   });
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const dayButtons = useRef(new Map<string, HTMLButtonElement>());
+  const navigateDate = (next: DateTime) => {
+    setDate(next);
+    setExpandedDate(null);
+  };
+  const expandDay = (day: string) => {
+    setExpandedDate(day);
+    dayButtons.current.get(day)?.focus();
+  };
+  const collapseDay = () => {
+    if (expandedDate) dayButtons.current.get(expandedDate)?.focus();
+    setExpandedDate(null);
+  };
   const [onlyShared, setOnlyShared] = useState(false);
   const [drafts, setDrafts] = useState(false);
   const [detail, setDetail] = useState<Display | null>(null);
@@ -168,50 +183,42 @@ export default function CalendarView({
     setDetail(item);
     dialog.current?.showModal();
   };
-  const arranged = days.map((day) => {
+  const expandedDay = days.find((day) => day.toISODate() === expandedDate);
+  const arranged = (expandedDay ? [expandedDay] : days).map((day) => {
     const events = slices
       .filter((e) => e.date === day.toISODate())
-      .sort((a, b) => a.startMinute - b.startMinute);
-    const placed: ((typeof events)[number] & {
-      column: number;
-      columns: number;
-    })[] = [];
-    let cluster: typeof placed = [],
-      clusterEnd = -1;
-    const finish = () => {
-      const columns = Math.max(1, ...cluster.map((x) => x.column + 1));
-      cluster.forEach((x) => (x.columns = columns));
-      cluster = [];
-    };
-    for (const event of events) {
-      if (event.startMinute >= clusterEnd) {
-        finish();
-        clusterEnd = -1;
-      }
-      const used = new Set(
-        cluster
-          .filter((x) => x.endMinute > event.startMinute)
-          .map((x) => x.column),
+      .map((e) => ({
+        ...e,
+        priority: e.display.lesson.cancelled
+          ? 3
+          : e.display.draft
+            ? 2
+            : e.display.own
+              ? 0
+              : 1,
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.display.own) - Number(a.display.own) ||
+          Number(a.display.draft) - Number(b.display.draft) ||
+          a.display.lesson.id.localeCompare(b.display.lesson.id),
       );
-      let column = 0;
-      while (used.has(column)) column++;
-      const item = { ...event, column, columns: 1 };
-      placed.push(item);
-      cluster.push(item);
-      clusterEnd = Math.max(clusterEnd, event.endMinute);
-    }
-    finish();
-    return {
-      day,
-      placed,
-      width: Math.max(180, ...placed.map((p) => p.columns * 126)),
-    };
+    const { visible, overflow } = arrangeDay(
+      events,
+      expandedDay ? Infinity : 3,
+    );
+    return { day, placed: visible, overflow };
   });
-  const columns = `52px ${arranged.map((d) => `minmax(${d.width}px, 1fr)`).join(" ")}`;
-  const gridStyle = {
-    gridTemplateColumns: columns,
-    minWidth: 52 + arranged.reduce((n, d) => n + d.width, 0),
+  const weekGrid = {
+    gridTemplateColumns: `52px repeat(${days.length}, minmax(0, 1fr))`,
   };
+  const gridStyle = expandedDay
+    ? {
+        gridTemplateColumns: "52px minmax(0, 1fr)",
+        minWidth:
+          52 + Math.max(1, ...arranged[0].placed.map((p) => p.columns)) * 150,
+      }
+    : weekGrid;
   const dayEvents = displays
     .filter((d) =>
       daySegments(d.lesson).some((seg) => seg.date === activeDay.toISODate()),
@@ -320,20 +327,20 @@ export default function CalendarView({
             <button
               aria-label={t.previous}
               className={s.iconButton}
-              onClick={() => setDate(date.minus({ weeks: 1 }))}
+              onClick={() => navigateDate(date.minus({ weeks: 1 }))}
             >
               ‹
             </button>
             <button
               className={`${s.button} ${s.secondary} ${s.small}`}
-              onClick={() => setDate(now.startOf("day"))}
+              onClick={() => navigateDate(now.startOf("day"))}
             >
               {t.today}
             </button>
             <button
               aria-label={t.next}
               className={s.iconButton}
-              onClick={() => setDate(date.plus({ weeks: 1 }))}
+              onClick={() => navigateDate(date.plus({ weeks: 1 }))}
             >
               ›
             </button>
@@ -352,12 +359,17 @@ export default function CalendarView({
           </span>
           <span className={s.muted}>{t.prague}</span>
         </div>
-        <div className={s.mobileControls}>
+        <div
+          className={`${s.mobileControls} ${s.dayPicker}`}
+          style={{
+            gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
+          }}
+        >
           {days.map((d) => (
             <button
               key={d.toISODate()}
               className={d.hasSame(activeDay, "day") ? s.selectedDay : ""}
-              onClick={() => setDate(d)}
+              onClick={() => navigateDate(d)}
             >
               {d.toFormat("ccc")}
               <br />
@@ -372,22 +384,58 @@ export default function CalendarView({
             <p>{t.noLessonsBody}</p>
           </div>
         )}
-        {displays.length > 0 && (
-          <div className={s.calendarFrame}>
-            <div className={s.dayHeaders} style={gridStyle}>
-              <div />
-              {days.map((d) => (
-                <div
-                  className={`${s.dayHeader} ${d.hasSame(now, "day") ? s.current : ""}`}
-                  key={d.toISODate()}
-                  data-date={d.toISODate()}
-                >
-                  {d.toFormat("cccc")}
-                  <strong>{d.day}</strong>
-                </div>
-              ))}
+        <div
+          className={s.calendarFrame}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && expandedDay) {
+              e.preventDefault();
+              collapseDay();
+            }
+          }}
+        >
+          <div className={s.dayHeaders} style={weekGrid}>
+            <div />
+            {days.map((d) => (
+              <button
+                className={`${s.dayHeader} ${d.hasSame(now, "day") ? s.current : ""} ${d.toISODate() === expandedDay?.toISODate() ? s.expandedDayHeader : ""}`}
+                key={d.toISODate()}
+                data-date={d.toISODate()}
+                ref={(el) => {
+                  if (el) dayButtons.current.set(d.toISODate()!, el);
+                  else dayButtons.current.delete(d.toISODate()!);
+                }}
+                aria-label={`${t.expandDay}: ${d.toFormat("cccc d. LLL")}`}
+                aria-expanded={d.toISODate() === expandedDay?.toISODate()}
+                aria-controls="week-timetable"
+                title={t.expandDay}
+                onClick={() =>
+                  d.toISODate() === expandedDay?.toISODate()
+                    ? collapseDay()
+                    : expandDay(d.toISODate()!)
+                }
+              >
+                <span className={s.dayName}>{d.toFormat("cccc")}</span>
+                <strong>{d.day}</strong>
+                <span className={s.expandDayIcon} aria-hidden>
+                  ↔
+                </span>
+              </button>
+            ))}
+          </div>
+          {expandedDay && (
+            <div className={s.expandedDayToolbar}>
+              <h3>{expandedDay.toFormat("cccc d. LLL yyyy")}</h3>
+              <button
+                className={`${s.button} ${s.secondary} ${s.small}`}
+                onClick={collapseDay}
+              >
+                {t.backToWeek}
+              </button>
             </div>
+          )}
+          <div className={s.dayScroll}>
             <div
+              id="week-timetable"
               className={s.gridBody}
               style={{
                 ...gridStyle,
@@ -405,8 +453,12 @@ export default function CalendarView({
                   </div>
                 ))}
               </div>
-              {arranged.map(({ day, placed }) => (
-                <div className={s.dayColumn} key={day.toISODate()}>
+              {arranged.map(({ day, placed, overflow }) => (
+                <div
+                  className={s.dayColumn}
+                  key={day.toISODate()}
+                  data-day-column={day.toISODate()}
+                >
                   {placed.map(
                     ({
                       display: item,
@@ -469,6 +521,27 @@ export default function CalendarView({
                       );
                     },
                   )}
+                  {overflow.map((more) => (
+                    <button
+                      key={more.startMinute}
+                      className={s.lessonOverflow}
+                      aria-label={`${t.expandDay}: ${day.toFormat("cccc d. LLL")} · ${more.count} ${t.moreLessons}`}
+                      title={`${more.count} ${t.moreLessons} · ${t.expandDay}`}
+                      style={{
+                        top: (more.startMinute - startHour * 60) * SCALE,
+                        height: Math.max(
+                          22,
+                          (more.endMinute - more.startMinute) * SCALE - 3,
+                        ),
+                        left: `calc(${(more.column * 100) / more.columns}% + 3px)`,
+                        width: `calc(${100 / more.columns}% - 6px)`,
+                      }}
+                      onClick={() => expandDay(day.toISODate()!)}
+                    >
+                      <strong>+{more.count}</strong>
+                      <span>{t.moreLessons}</span>
+                    </button>
+                  ))}
                   {day.hasSame(now, "day") &&
                     now.hour >= startHour &&
                     now.hour < endHour && (
@@ -485,7 +558,7 @@ export default function CalendarView({
               ))}
             </div>
           </div>
-        )}
+        </div>
         <div className={s.mobileAgenda}>
           {dayEvents.map((item) => (
             <button

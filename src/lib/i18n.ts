@@ -1,5 +1,9 @@
 export const copy = {
   cs: {
+    expandDay: "Rozšířit den",
+    backToWeek: "Zpět na týden",
+    moreLessons: "další hodiny",
+
     darkMode: "Tmavý režim",
     allOverlays: "Všichni přátelé",
     groupLink: "Odkaz na skupinu",
@@ -262,6 +266,10 @@ export const copy = {
     },
   },
   en: {
+    expandDay: "Expand day",
+    backToWeek: "Back to week",
+    moreLessons: "more lessons",
+
     darkMode: "Dark mode",
     allOverlays: "All friends",
     groupLink: "Group invite link",
