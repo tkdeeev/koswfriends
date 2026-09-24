@@ -16,6 +16,8 @@ jobs:
       - run: npm run test:e2e
       - run: npm run build
       - run: docker build -t koswfriends:verify .
+      - name: Verify packaged logo
+        run: docker run --rm --entrypoint test koswfriends:verify -s /app/public/logo.svg
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
