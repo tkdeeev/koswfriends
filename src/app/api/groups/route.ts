@@ -1,7 +1,13 @@
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { database } from "@/server/db";
-import { groups, members, overrides, users } from "@/server/schema";
+import {
+  groups,
+  members,
+  overrides,
+  users,
+  groupInvites,
+} from "@/server/schema";
 import { body, endpoint, json, session } from "@/server/http";
 import { AppError } from "@/server/security";
 import { canRead, isBlocked, saveOverride } from "@/server/sharing";
@@ -89,14 +95,12 @@ export const POST = endpoint(async (req) => {
       .insert(groups)
       .values({ owner: user.id, name: data.name })
       .returning();
-    await tx
-      .insert(members)
-      .values({
-        groupId: group.id,
-        userId: user.id,
-        status: "accepted",
-        ...data.giving,
-      });
+    await tx.insert(members).values({
+      groupId: group.id,
+      userId: user.id,
+      status: "accepted",
+      ...data.giving,
+    });
     return group.id;
   });
   return json({ ok: true, id });
@@ -226,6 +230,8 @@ export const PATCH = endpoint(async (req) => {
         .where(
           and(eq(members.groupId, data.id), eq(members.userId, data.target)),
         );
+      // Removal must also invalidate a link the removed member might still hold.
+      await tx.delete(groupInvites).where(eq(groupInvites.groupId, data.id));
     } else if (data.action === "delete")
       await tx.delete(groups).where(eq(groups.id, data.id));
     else if (data.action === "rename") {

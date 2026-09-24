@@ -14,6 +14,8 @@ import type {
 import { semesterOptions } from "@/lib/calendar";
 import PersonalEvents from "./PersonalEvents";
 import Avatar from "./Avatar";
+import ThemeToggle from "./ThemeToggle";
+import GroupInvitation from "./GroupInvitation";
 import GroupsView from "./GroupsView";
 import CalendarView from "./CalendarView";
 import FriendsView, { Sharing, type Invite } from "./FriendsView";
@@ -52,6 +54,9 @@ export default function Workspace() {
     [],
   );
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [allOverlays, setAllOverlays] = useState(true);
+  const previousPeople = useRef<string[]>([]);
+  const [groupInviteToken, setGroupInviteToken] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [choices, setChoices] = useState<Choice[]>([]);
@@ -74,6 +79,23 @@ export default function Workspace() {
           ? "en"
           : "cs",
     );
+    const captureInvite = () => {
+      const incoming = new URLSearchParams(location.hash.slice(1)).get(
+        "groupInvite",
+      );
+      let token = incoming;
+      try {
+        if (incoming && /^[A-Za-z0-9_-]{43}$/.test(incoming))
+          sessionStorage.setItem("kwf_group_invite", incoming);
+        token ||= sessionStorage.getItem("kwf_group_invite");
+      } catch {}
+      if (token && /^[A-Za-z0-9_-]{43}$/.test(token))
+        setGroupInviteToken(token);
+      if (incoming)
+        history.replaceState(null, "", location.pathname + location.search);
+    };
+    captureInvite();
+    window.addEventListener("hashchange", captureInvite);
     const params = new URLSearchParams(location.search);
     setInviteToken(params.get("invite") || "");
     setError(params.get("authError") || "");
@@ -84,6 +106,7 @@ export default function Workspace() {
         setMe(null);
         if (e.message !== "unauthorized") setError(e.message);
       });
+    return () => window.removeEventListener("hashchange", captureInvite);
   }, []);
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -100,7 +123,7 @@ export default function Workspace() {
       const [f, c, p, user, g, e] = await Promise.all([
         request("/api/friends"),
         request(
-          `/api/calendar?semester=${me.semester}&friends=${selected.join(",")}`,
+          `/api/calendar?semester=${me.semester}&friends=${allOverlays ? "all" : selected.join(",")}`,
         ),
         request(`/api/plans?semester=${me.semester}`),
         request("/api/me"),
@@ -111,6 +134,13 @@ export default function Workspace() {
       setFriends(f.friends);
       setGroups(g.groups);
       setEvents(e.events);
+      if (
+        previousPeople.current.some(
+          (id) => !c.people.some((p: Person) => p.id === id),
+        )
+      )
+        setRevoked(true);
+      previousPeople.current = c.people.map((p: Person) => p.id);
       setPeople(c.people);
       setAttendees(c.attendees);
       setBlocked(f.blocked);
@@ -143,7 +173,7 @@ export default function Workspace() {
         setChoices([]);
       }
     }
-  }, [me?.id, me?.semester, selected.join(","), view]);
+  }, [me?.id, me?.semester, selected.join(","), allOverlays, view]);
   useEffect(() => {
     void reload();
     const timer = setInterval(() => {
@@ -165,7 +195,7 @@ export default function Workspace() {
       .then((d) => setInviteFrom(d.username))
       .catch((e) => setError(e.message));
   }, [me?.id, inviteToken]);
-  const read = async (path: string) => {
+  const read = useCallback(async (path: string) => {
     try {
       setError("");
       return await request(path);
@@ -173,7 +203,7 @@ export default function Workspace() {
       setError(e instanceof Error ? e.message : "unavailable");
       throw e;
     }
-  };
+  }, []);
   const mutate = async (path: string, data: unknown, method = "POST") => {
     try {
       setError("");
@@ -193,6 +223,12 @@ export default function Workspace() {
       setError(e instanceof Error ? e.message : "unavailable");
       throw e;
     }
+  };
+  const clearGroupInvite = () => {
+    setGroupInviteToken("");
+    try {
+      sessionStorage.removeItem("kwf_group_invite");
+    } catch {}
   };
   const signIn = `/auth/login${inviteToken ? `?invite=${encodeURIComponent(inviteToken)}` : ""}`;
   const errorMessage =
@@ -228,6 +264,7 @@ export default function Workspace() {
           </nav>
         )}
         <div className={s.headerEnd}>
+          <ThemeToggle t={t} />
           <div className={s.languages} aria-label="Language">
             {(["cs", "en"] as const).map((l) => (
               <button
@@ -271,6 +308,14 @@ export default function Workspace() {
               {errorMessage}
             </div>
           )}
+          {groupInviteToken && (
+            <div className={s.banner} style={{ margin: "20px 6% 0" }}>
+              <p>{t.groupSignIn}</p>
+              <button className={s.quiet} onClick={clearGroupInvite}>
+                {t.cancel}
+              </button>
+            </div>
+          )}
           <main className={s.hero}>
             <div>
               <div className={s.eyebrow}>{t.school}</div>
@@ -302,7 +347,7 @@ export default function Workspace() {
                           style={{
                             textAlign: "center",
                             fontSize: 10,
-                            color: "#576b78",
+                            color: "var(--muted)",
                           }}
                         >
                           {d}
@@ -453,6 +498,22 @@ export default function Workspace() {
           {revoked && view === "timetable" && (
             <div className={s.banner}>{t.revoked}</div>
           )}
+          {groupInviteToken && (
+            <GroupInvitation
+              key={groupInviteToken}
+              token={groupInviteToken}
+              me={me}
+              request={request}
+              mutate={mutate}
+              t={t}
+              dismiss={clearGroupInvite}
+              joined={() => {
+                clearGroupInvite();
+                setView("groups");
+              }}
+              onError={setError}
+            />
+          )}
           {inviteFrom && (
             <section className={s.panel} style={{ marginBottom: 25 }}>
               <h2>
@@ -491,8 +552,15 @@ export default function Workspace() {
                 calendars={calendars}
                 people={people}
                 attendees={attendees}
-                selected={selected}
+                selected={allOverlays ? people.map((p) => p.id) : selected}
+                allOverlays={allOverlays}
+                toggleAll={(checked) => {
+                  setAllOverlays(checked);
+                  setSelected([]);
+                  setRevoked(false);
+                }}
                 setSelected={(ids) => {
+                  setAllOverlays(false);
                   setSelected(ids);
                   setRevoked(false);
                 }}
@@ -518,7 +586,14 @@ export default function Workspace() {
             />
           )}
           {view === "groups" && (
-            <GroupsView groups={groups} me={me} mutate={mutate} t={t} />
+            <GroupsView
+              groups={groups}
+              me={me}
+              mutate={mutate}
+              read={read}
+              locale={locale}
+              t={t}
+            />
           )}
           {view === "friends" && (
             <FriendsView

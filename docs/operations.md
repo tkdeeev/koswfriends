@@ -5,7 +5,7 @@ Target: dedicated **KOSwFriends / production** on `https://host.deeev.cz`, publi
 ## Release
 
 1. Verify GitHub identity `tkdeeev`, review the diff and run the repository checks. Commit features with `#minor`, fixes with `#patch`, breaking upgrades with `#major`.
-2. Push the reviewed private repository commit. Wait for its Verify workflow, and compare local HEAD, remote main and the intended deployment SHA.
+2. Push the reviewed feature branch and open a pull request. Wait for the required verification and secret scan, merge through the protected main branch, and compare local HEAD, remote main and the intended deployment SHA. Wait for main verification before deploying.
 3. Set Dokploy `APP_REVISION` to that full SHA. Configure GitHub owner `tkdeeev`, repository `koswfriends`, branch `main`, path `compose.yaml`; use a reviewed tag for a pinned rollback. Keep automatic deployments disabled until the exact tested revision is selected.
 4. Runtime environment: `POSTGRES_PASSWORD` (random hex), `TOKEN_ENCRYPTION_KEY` (32 random bytes as base64), `SCHOOL_OAUTH_CLIENT_ID`, `SCHOOL_OAUTH_CLIENT_SECRET`, `APP_REVISION`, and `PRIVATE_SUBNET` (a verified unused CIDR). Values are never build arguments. Compose fixes the origin and callback to the registered HTTPS domain. This host exhausted Docker's default pools during the initial deployment; `10.253.242.0/28` was verified against every Docker subnet and host route for this app's private network. Recheck overlap before using that CIDR on another host.
 5. Route only `web:3000` to `kos.deeev.cz` with HTTPS. PostgreSQL has an internal network and no host port; the worker has a separate egress network for the school APIs.
@@ -39,3 +39,7 @@ Application images are tagged `koswfriends:<full SHA>`; retain the previous work
 ## Version 0.2 migrations
 
 Migrations 0001 and 0002 add sharing groups, memberships, per-person overrides and personal events. They do not rewrite or drop existing timetable snapshots, tokens or plans. Take and verify a fresh backup before deploying. Old 0.1 code remains structurally compatible with these additive tables but does not understand group overrides; after users have changed sharing in 0.2, rolling back to 0.1 can restore old friend grants. Prefer a forward fix. A rollback then needs a reviewed permission reconciliation before reopening reads.
+
+## Version 0.3 migration
+
+Migration 0003 adds one expiring invite-link record per sharing group. It stores the random token encrypted and its lookup hash, and cascades when a group is deleted. Existing data and grants remain unchanged. Take and verify a fresh backup before deploying. Prefer a forward fix over 0.2 rollback while group links are active: old membership-removal code does not revoke links.

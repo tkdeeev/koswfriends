@@ -828,3 +828,275 @@ describe("personal subjects and events", () => {
     );
   });
 });
+
+import {
+  GET as groupLink,
+  POST as groupLinkAction,
+  DELETE as revokeGroupLink,
+} from "../src/app/api/group-invites/route";
+async function createLink(u: User, groupId: string) {
+  const response = await groupLinkAction(
+    req(u, "/api/group-invites", "POST", { action: "create", groupId }),
+  );
+  expect(response.status).toBe(200);
+  const { link } = await response.json();
+  return {
+    ...link,
+    token: new URLSearchParams(new URL(link.url).hash.slice(1)).get(
+      "groupInvite",
+    )!,
+  };
+}
+const linkAction = (
+  u: User,
+  token: string,
+  action = "join",
+  giving = permission,
+) =>
+  groupLinkAction(
+    req(u, "/api/group-invites", "POST", { action, token, giving }),
+  );
+describe("group links and all-friend overlays", () => {
+  it("previews without joining, requires explicit sharing and keeps permissions on repeated joins", async () => {
+    const a = await user("link-a"),
+      b = await user("link-b");
+    const id = await makeGroup(a),
+      link = await createLink(a, id);
+    const stored = (await database().select().from(tables.groupInvites))[0];
+    expect(stored.token).not.toBe(link.token);
+    expect(decrypt(stored.token)).toBe(link.token);
+    const preview = await (await linkAction(b, link.token, "preview")).json();
+    expect(preview.group).toMatchObject({
+      id,
+      joined: false,
+      owner: a.username,
+    });
+    expect(preview.group).not.toHaveProperty("members");
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    expect(
+      (
+        await groupLinkAction(
+          req(b, "/api/group-invites", "POST", {
+            action: "join",
+            token: link.token,
+          }),
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await linkAction(b, link.token, "join", {
+          calendar: false,
+          plans: false,
+        })
+      ).status,
+    ).toBe(200);
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    expect((await viewCalendar(a, b)).calendars).toHaveLength(1);
+    await linkAction(b, link.token, "join", { calendar: true, plans: true });
+    expect((await viewCalendar(a, b)).calendars).toHaveLength(1);
+    const again = await (
+      await groupLink(req(a, `/api/group-invites?group=${id}`))
+    ).json();
+    expect(again.link.url).toBe(link.url);
+    expect(
+      (
+        await (
+          await groupLinkAction(
+            req(b, "/api/group-invites", "POST", {
+              action: "preview",
+              token: link.token,
+            }),
+          )
+        ).json()
+      ).group.joined,
+    ).toBe(true);
+  });
+  it("only lets owners manage links and rejects CSRF, expired, replaced and revoked links", async () => {
+    const a = await user("link-a"),
+      b = await user("link-b");
+    const id = await makeGroup(a),
+      first = await createLink(a, id);
+    expect(
+      (
+        await groupLink(
+          new NextRequest(
+            `http://localhost:3100/api/group-invites?group=${id}`,
+          ),
+        )
+      ).status,
+    ).toBe(401);
+    expect(
+      (await groupLink(req(b, `/api/group-invites?group=${id}`))).status,
+    ).toBe(404);
+    expect(
+      (
+        await groupLinkAction(
+          req(b, "/api/group-invites", "POST", {
+            action: "create",
+            groupId: id,
+          }),
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await revokeGroupLink(
+          req(b, "/api/group-invites", "DELETE", { groupId: id }),
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await groupLinkAction(
+          req(
+            a,
+            "/api/group-invites",
+            "POST",
+            { action: "create", groupId: id },
+            "https://attacker.invalid",
+          ),
+        )
+      ).status,
+    ).toBe(403);
+    const replacement = await createLink(a, id);
+    expect((await linkAction(b, first.token)).status).toBe(410);
+    await linkAction(b, replacement.token);
+    await revokeGroupLink(
+      req(a, "/api/group-invites", "DELETE", { groupId: id }),
+    );
+    expect((await linkAction(b, replacement.token)).status).toBe(410);
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    const expired = await createLink(a, id);
+    await database()
+      .update(tables.groupInvites)
+      .set({ expiresAt: new Date(0) })
+      .where(eq(tables.groupInvites.groupId, id));
+    expect((await linkAction(b, expired.token)).status).toBe(410);
+    expect((await linkAction(b, expired.token, "preview")).status).toBe(410);
+    expect(
+      (await (await groupLink(req(a, `/api/group-invites?group=${id}`))).json())
+        .link,
+    ).toBeNull();
+  });
+  it("blocks link joins, converts pending invites, serializes duplicates and invalidates links on removal", async () => {
+    const a = await user("link-a"),
+      b = await user("link-b");
+    const id = await makeGroup(a),
+      link = await createLink(a, id);
+    await database()
+      .insert(tables.blocks)
+      .values({ owner: b.id, target: a.id });
+    expect((await linkAction(b, link.token)).status).toBe(403);
+    await database().delete(tables.blocks);
+    await groupAction(a, id, "invite", { username: b.username });
+    const replies = await Promise.all([
+      linkAction(b, link.token),
+      linkAction(b, link.token),
+    ]);
+    expect(replies.map((r) => r.status)).toEqual([200, 200]);
+    expect(
+      await database()
+        .select()
+        .from(tables.members)
+        .where(eq(tables.members.userId, b.id)),
+    ).toHaveLength(1);
+    await Promise.all([
+      groupAction(a, id, "remove", { target: b.id }),
+      linkAction(b, link.token),
+    ]);
+    expect((await linkAction(b, link.token)).status).toBe(410);
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    await createLink(a, id);
+    await groupAction(a, id, "delete");
+    expect(await database().select().from(tables.groupInvites)).toHaveLength(0);
+  });
+  it("enforces group capacity and serializes joining with revocation", async () => {
+    const a = await user("link-a"),
+      b = await user("link-b");
+    const id = await makeGroup(a),
+      link = await createLink(a, id);
+    const many = await database()
+      .insert(tables.users)
+      .values(
+        Array.from({ length: 99 }, (_, i) => ({
+          username: `capacity-${i}`,
+          name: "Synthetic",
+          semester,
+        })),
+      )
+      .returning();
+    await database()
+      .insert(tables.members)
+      .values(
+        many.map((u) => ({
+          groupId: id,
+          userId: u.id,
+          status: "accepted" as const,
+        })),
+      );
+    expect((await linkAction(b, link.token)).status).toBe(400);
+    await database()
+      .delete(tables.members)
+      .where(
+        and(
+          eq(tables.members.groupId, id),
+          eq(tables.members.userId, many[0].id),
+        ),
+      );
+    const [join, revoke] = await Promise.all([
+      linkAction(b, link.token),
+      revokeGroupLink(req(a, "/api/group-invites", "DELETE", { groupId: id })),
+    ]);
+    expect([200, 410]).toContain(join.status);
+    expect(revoke.status).toBe(200);
+    expect((await linkAction(b, link.token)).status).toBe(410);
+  });
+  it("all overlays include every authorized member beyond 30 and immediately honor denials and blocks", async () => {
+    const a = await user("all-a"),
+      b = await user("all-b"),
+      c = await user("all-c");
+    const id = await makeGroup(a);
+    await joinGroup(a, b, id);
+    await joinGroup(a, c, id);
+    const many = await database()
+      .insert(tables.users)
+      .values(
+        Array.from({ length: 31 }, (_, i) => ({
+          username: `overlay-${i}`,
+          name: "Synthetic",
+          semester,
+        })),
+      )
+      .returning();
+    await database()
+      .insert(tables.members)
+      .values(
+        many.map((u) => ({
+          groupId: id,
+          userId: u.id,
+          status: "accepted" as const,
+          calendar: true,
+          plans: false,
+        })),
+      );
+    const all = async () =>
+      (await (await calendar(req(b, "/api/calendar?friends=all"))).json())
+        .calendars;
+    expect(await all()).toHaveLength(34);
+    await groupAction(a, id, "override", {
+      target: b.id,
+      giving: { calendar: false, plans: false },
+    });
+    expect(
+      (await all()).map((x: { userId: string }) => x.userId),
+    ).not.toContain(a.id);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", { id: c.id, action: "block" }),
+    );
+    expect(
+      (await all()).map((x: { userId: string }) => x.userId),
+    ).not.toContain(c.id);
+    expect((await viewCalendar(b)).calendars).toHaveLength(1);
+  });
+});

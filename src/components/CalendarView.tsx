@@ -29,6 +29,8 @@ export default function CalendarView({
   people,
   attendees,
   selected,
+  allOverlays,
+  toggleAll,
   setSelected,
   choices,
   locale,
@@ -41,6 +43,8 @@ export default function CalendarView({
   people: Person[];
   attendees: Record<string, Person[]>;
   selected: string[];
+  allOverlays: boolean;
+  toggleAll: (checked: boolean) => void;
   setSelected: (ids: string[]) => void;
   choices: Choice[];
   locale: Locale;
@@ -226,6 +230,25 @@ export default function CalendarView({
           <label className={s.check}>
             <input
               type="checkbox"
+              checked={
+                allOverlays ||
+                (people.length > 0 &&
+                  people.every((p) => selected.includes(p.id)))
+              }
+              ref={(el) => {
+                if (el)
+                  el.indeterminate =
+                    !allOverlays &&
+                    selected.length > 0 &&
+                    !people.every((p) => selected.includes(p.id));
+              }}
+              onChange={(e) => toggleAll(e.target.checked)}
+            />
+            {t.allOverlays}
+          </label>
+          <label className={s.check}>
+            <input
+              type="checkbox"
               checked={onlyShared}
               onChange={(e) => setOnlyShared(e.target.checked)}
             />
@@ -253,7 +276,7 @@ export default function CalendarView({
         </div>
         <details className={s.overlayPicker}>
           <summary>
-            {t.overlay}
+            <span>{t.overlay}</span>
             {selected.length ? ` · ${selected.length}` : ""}
           </summary>
           <p className={s.hint}>{t.overlayHint}</p>
@@ -264,9 +287,6 @@ export default function CalendarView({
                   type="checkbox"
                   aria-label={person.username}
                   checked={selected.includes(person.id)}
-                  disabled={
-                    selected.length >= 30 && !selected.includes(person.id)
-                  }
                   onChange={(e) =>
                     setSelected(
                       e.target.checked

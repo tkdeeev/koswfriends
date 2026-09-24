@@ -1,5 +1,22 @@
 export const copy = {
   cs: {
+    darkMode: "Tmavý režim",
+    allOverlays: "Všichni přátelé",
+    groupLink: "Odkaz na skupinu",
+    createGroupLink: "Vytvořit odkaz",
+    replaceGroupLink: "Nahradit odkaz",
+    copyGroupLink: "Kopírovat odkaz",
+    copiedGroupLink: "Zkopírováno",
+    copyGroupLinkHint: "Odkaz můžete označit a zkopírovat výše.",
+    groupLinkHint:
+      "Odkaz platí 7 dní. Kdokoli s odkazem se může přihlásit a připojit. Nahrazení či odebrání člena starý odkaz zneplatní; stávající členové zůstanou.",
+    joinGroup: "Připojit se ke skupině",
+    openGroup: "Otevřít skupiny",
+    groupSignIn:
+      "Máte pozvánku do skupiny. Přihlaste se a zvolte, co budete sdílet.",
+    groupJoinHint:
+      "Připojením získáte přístup ke sdílení skupiny. Zvolte, co zpřístupníte jejím současným i budoucím členům.",
+
     personalEvents: "Vlastní předměty a události",
     addPersonal: "Přidat vlastní událost",
     editPersonal: "Upravit vlastní událost",
@@ -48,7 +65,7 @@ export const copy = {
     emptyGroup: "Pozvěte prvního člena pomocí školního uživatelského jména.",
     noSharingGroups: "Zatím žádné skupiny.",
     overlayHint:
-      "Váš rozvrh s lidmi na společných hodinách. Vyberte lidi pro zobrazení celého rozvrhu.",
+      "Sdílené rozvrhy jsou zapnuté ve výchozím stavu. Vypněte je najednou nebo vyberte jednotlivé lidi.",
     overlay: "Překrýt další rozvrhy",
     clearOverlay: "Jen můj rozvrh",
     allDetails: "Otevřít podrobnosti a účastníky",
@@ -245,6 +262,23 @@ export const copy = {
     },
   },
   en: {
+    darkMode: "Dark mode",
+    allOverlays: "All friends",
+    groupLink: "Group invite link",
+    createGroupLink: "Create group link",
+    replaceGroupLink: "Replace link",
+    copyGroupLink: "Copy link",
+    copiedGroupLink: "Copied",
+    copyGroupLinkHint: "You can select and copy the link above.",
+    groupLinkHint:
+      "Valid for 7 days. Anyone with the link can sign in and join. Replacing the link or removing a member invalidates the old link; existing members stay.",
+    joinGroup: "Join group",
+    openGroup: "Open groups",
+    groupSignIn:
+      "You have a group invitation. Sign in to choose what to share and join.",
+    groupJoinHint:
+      "Joining gives you access to the group’s sharing. Choose what to share with its current and future members.",
+
     personalEvents: "Personal subjects and events",
     addPersonal: "Add personal event",
     editPersonal: "Edit personal event",
@@ -293,7 +327,7 @@ export const copy = {
     emptyGroup: "Invite the first member using their school username.",
     noSharingGroups: "No groups yet.",
     overlayHint:
-      "Your timetable with people attending the same lessons. Select people to overlay their full timetable.",
+      "Shared timetables are on by default. Toggle everyone at once or select individual people.",
     overlay: "Overlay timetables",
     clearOverlay: "My timetable only",
     allDetails: "Open details and attendees",

@@ -15,11 +15,12 @@ export const GET = endpoint(async (req) => {
     .string()
     .regex(/^B\d{2}[12]$/)
     .parse(req.nextUrl.searchParams.get("semester") || user.semester);
+  const all = req.nextUrl.searchParams.get("friends") === "all";
   const ids = z
     .array(z.uuid())
-    .max(30)
+    .max(1000)
     .parse(
-      (req.nextUrl.searchParams.get("friends") || "")
+      (all ? "" : req.nextUrl.searchParams.get("friends") || "")
         .split(",")
         .filter(Boolean),
     );
@@ -58,7 +59,7 @@ export const GET = endpoint(async (req) => {
     ...row,
     events: [...(row.events || []), ...expandPersonalEvents(personal)],
   }));
-  // Default view needs only matching attendees, not everyone's full calendar.
+  // Matching attendees remain available even when overlays are switched off.
   const ownIds = new Set(
     ownEvents.filter((e) => !e.cancelled).map((e) => e.id),
   );
@@ -84,7 +85,7 @@ export const GET = endpoint(async (req) => {
         semester: own?.window || semesterWindow(semester),
       },
       ...shared
-        .filter((s) => ids.includes(s.userId))
+        .filter((s) => all || ids.includes(s.userId))
         .map((s) => ({
           ...s,
           events: s.events || [],

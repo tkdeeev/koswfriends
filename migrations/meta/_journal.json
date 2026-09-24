@@ -22,6 +22,13 @@
       "when": 1790267274974,
       "tag": "0002_cynical_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790268752182,
+      "tag": "0003_typical_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

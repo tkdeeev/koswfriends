@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import type { Grant, Me, SharingGroup } from "@/lib/types";
-import type { Text } from "@/lib/i18n";
+import type { Locale, Text } from "@/lib/i18n";
 import { Sharing, type Mutate } from "./FriendsView";
 import Avatar from "./Avatar";
+import GroupInviteLink, { type Read } from "./GroupInviteLink";
 import s from "./Workspace.module.css";
 function MemberRow({
   member,
@@ -113,11 +114,15 @@ function GroupCard({
   group,
   me,
   mutate,
+  read,
+  locale,
   t,
 }: {
   group: SharingGroup;
   me: Me;
   mutate: Mutate;
+  read: Read;
+  locale: Locale;
   t: Text;
 }) {
   const [giving, setGiving] = useState<Grant>(
@@ -209,6 +214,19 @@ function GroupCard({
       {group.status === "accepted" && (
         <>
           {admin && (
+            <GroupInviteLink
+              groupId={group.id}
+              rosterKey={group.members
+                .map((m) => `${m.id}:${m.status}`)
+                .sort()
+                .join(",")}
+              read={read}
+              mutate={mutate}
+              locale={locale}
+              t={t}
+            />
+          )}
+          {admin && (
             <form
               className={s.inlineForm}
               onSubmit={(e) => {
@@ -259,11 +277,15 @@ export default function GroupsView({
   groups,
   me,
   mutate,
+  read,
+  locale,
   t,
 }: {
   groups: SharingGroup[];
   me: Me;
   mutate: Mutate;
+  read: Read;
+  locale: Locale;
   t: Text;
 }) {
   const [name, setName] = useState("");
@@ -313,6 +335,8 @@ export default function GroupsView({
             key={`${group.id}:${group.status}:${JSON.stringify(group.giving)}`}
             group={group}
             me={me}
+            read={read}
+            locale={locale}
             mutate={mutate}
             t={t}
           />
