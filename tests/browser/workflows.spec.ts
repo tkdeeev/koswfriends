@@ -622,10 +622,40 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
     "background-color",
     "rgb(20, 31, 41)",
   );
+  const detail = page.getByRole("dialog", { name: "THEME-0", exact: true });
+  await expect(
+    detail.getByRole("button", { name: "Close", exact: true }),
+  ).toBeFocused();
+  await expect(detail.getByText("TEST-101", { exact: true })).toBeVisible();
+  await detail.screenshot({ path: "test-results/subject-dark-desktop.png" });
+  await page.keyboard.press("Escape");
+  await expect(detail).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /THEME-0/ }).first(),
+  ).toBeFocused();
   await page
-    .locator("dialog[open]")
-    .getByRole("button", { name: "Close", exact: true })
+    .getByRole("button", { name: /THEME-1/ })
+    .first()
     .click();
+  await expect(
+    page.locator("dialog[open]").getByText("Exercise", { exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 844 });
+  const exercise = page.getByRole("dialog", { name: "THEME-1", exact: true });
+  expect(
+    await exercise.evaluate((el) => el.scrollWidth <= el.clientWidth),
+  ).toBe(true);
+  await exercise.screenshot({ path: "test-results/subject-dark-mobile.png" });
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await theme.click();
+  await page
+    .getByRole("button", { name: /THEME-1/ })
+    .first()
+    .click();
+  await exercise.screenshot({ path: "test-results/subject-light-desktop.png" });
+  await page.keyboard.press("Escape");
+  await theme.click();
   await page
     .getByRole("button", { name: "Personal subjects and events", exact: true })
     .click();

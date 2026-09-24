@@ -240,12 +240,7 @@ export default function Workspace() {
     <div className={s.app}>
       <header className={s.header}>
         <a className={s.brand} href="/" aria-label="KOSwFriends">
-          <span className={s.mark} aria-hidden>
-            K
-          </span>
-          <span>
-            KOS<span>wFriends</span>
-          </span>
+          <img src="/logo.svg" alt="KOS++" width={120} height={120} />
         </a>
         {me && (
           <nav className={s.navigation} aria-label="Navigation">
@@ -318,21 +313,15 @@ export default function Workspace() {
           )}
           <main className={s.hero}>
             <div>
-              <div className={s.eyebrow}>{t.school}</div>
               <h1>{t.hero}</h1>
               <p className={s.intro}>{t.intro}</p>
               <a className={s.button} href={signIn}>
                 {t.signIn} <span aria-hidden>↗</span>
               </a>
-              <p className={s.privacy}>
-                <strong>{t.private}</strong>
-                <br />
-                {t.privacy}
-              </p>
+              <p className={s.privacy}>{t.privacy}</p>
             </div>
             <div className={s.previewWrap}>
               <div className={s.preview}>
-                <h2>{t.sampleTitle}</h2>
                 <div className={s.previewBar}>
                   <span>
                     {t.yourCalendar} + {t.friends.toLowerCase()}
@@ -383,43 +372,15 @@ export default function Workspace() {
               <p className={s.previewFoot}>{t.preview}</p>
             </div>
           </main>
-          <section className={s.features}>
-            {[1, 2, 3].map((n, i) => (
-              <article key={n} className={s.feature}>
-                <div className={s.featureNumber}>0{n} /</div>
-                <h2>{[t.feature1, t.feature2, t.feature3][i]}</h2>
-                <p>{[t.feature1body, t.feature2body, t.feature3body][i]}</p>
-              </article>
-            ))}
-          </section>
         </>
       ) : (
         <main className={s.main}>
           <div className={s.titleRow}>
             <div>
-              <div className={s.eyebrow} style={{ marginBottom: 10 }}>
-                {view === "timetable" ? t.tagline : "KOSwFriends"}
-              </div>
-              <h1>
-                {view === "timetable"
-                  ? t.timetable
-                  : view === "friends"
-                    ? t.friendsTitle
-                    : view === "groups"
-                      ? t.groupsTitle
-                      : view === "planner"
-                        ? t.plannerTitle
-                        : t.account}
-              </h1>
-              {view === "friends" || view === "planner" || view === "groups" ? (
-                <p className={s.subtitle}>
-                  {view === "friends"
-                    ? t.friendsIntro
-                    : view === "groups"
-                      ? t.groupsIntro
-                      : t.plannerIntro}
-                </p>
-              ) : null}
+              <h1>{t[view]}</h1>
+              {view === "planner" && (
+                <p className={s.subtitle}>{t.plannerIntro}</p>
+              )}
             </div>
             {(view === "timetable" || view === "planner") && (
               <div className={s.toolbar}>
@@ -673,7 +634,6 @@ export default function Workspace() {
       )}
       <footer className={s.footer}>
         <div className={s.footerCredits}>
-          <span>KOSwFriends / {t.tagline}</span>
           <span>
             {t.credits} <span aria-hidden>·</span>{" "}
             <a

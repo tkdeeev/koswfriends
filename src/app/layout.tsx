@@ -4,7 +4,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "KOSwFriends — Same school. Shared time.",
+  title: "KOSwFriends",
   description: "School timetables, friends and shared draft semester plans.",
   robots: { index: false, follow: false },
 };

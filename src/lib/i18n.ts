@@ -26,8 +26,7 @@ export const copy = {
     personalEvents: "Vlastní předměty a události",
     addPersonal: "Přidat vlastní událost",
     editPersonal: "Upravit vlastní událost",
-    personalHint:
-      "Přidejte si např. TV1-PE nebo jinou aktivitu. Události se zobrazí ve vašem rozvrhu a sdílí se podle jeho oprávnění.",
+    personalHint: "Vlastní události se sdílí podle oprávnění vašeho rozvrhu.",
     personalEditHint:
       "Úpravy platí pro celou sérii. Zápis v KOS se tím nemění.",
     eventTitle: "Název události",
@@ -45,9 +44,6 @@ export const copy = {
     personalType: "Vlastní událost",
 
     groups: "Skupiny",
-    groupsTitle: "Sdílejte se svou skupinou.",
-    groupsIntro:
-      "Vytvořte skupinu a pozvěte přátele. Každý si při přijetí vybere, co sdílí.",
     createGroup: "Vytvořit skupinu",
     groupName: "Název skupiny",
     groupShareBefore: "Co sdílíte s celou skupinou",
@@ -70,8 +66,6 @@ export const copy = {
     leaveGroupConfirm: "Opustit skupinu a ukončit sdílení přes tuto skupinu?",
     emptyGroup: "Pozvěte prvního člena pomocí školního uživatelského jména.",
     noSharingGroups: "Zatím žádné skupiny.",
-    overlayHint:
-      "Sdílené rozvrhy jsou zapnuté ve výchozím stavu. Vypněte je najednou nebo vyberte jednotlivé lidi.",
     overlay: "Překrýt další rozvrhy",
     clearOverlay: "Jen můj rozvrh",
     allDetails: "Otevřít podrobnosti a účastníky",
@@ -81,26 +75,11 @@ export const copy = {
     planner: "Plán semestru",
     signIn: "Přihlásit školním účtem",
     signOut: "Odhlásit",
-    tagline: "Stejná škola. Společný čas.",
-    hero: "Najděte si čas\nna sebe.",
-    intro:
-      "Váš rozvrh, rozvrhy přátel a nápady na příští semestr. Přehledně, na jednom místě.",
-    school: "Pro studenty ČVUT",
-    private: "Sdílení je vždy na vás.",
-    privacy:
-      "Přátelé uvidí jen to, co jim povolíte. Své oprávnění můžete kdykoli odebrat.",
-    independent: "Nezávislý studentský projekt. Zápis předmětů probíhá v KOS.",
-    feature1: "Rozvrh bez přepínání",
-    feature1body:
-      "Srovnejte vlastní výuku s přáteli a najděte společné hodiny.",
-    feature2: "Semestr, který dává smysl",
-    feature2body:
-      "Vyberte předměty a skupiny. Kolize uvidíte dřív, než si je zapíšete.",
-    feature3: "Vaše data, vaše volba",
-    feature3body:
-      "Rozvrh a plány sdílíte zvlášť, s každým přítelem samostatně.",
-    preview: "Ukázka rozvržení · ilustrační data",
-    sampleTitle: "Prostor pro společný čas",
+    hero: "Rozvrhy ČVUT",
+    intro: "Váš rozvrh, přátelé a plány semestru.",
+    privacy: "Sdílení s každým člověkem ovládáte zvlášť.",
+    independent: "Nezávislý projekt · Zápis v KOS",
+    preview: "Ukázková data",
     monday: "Po",
     tuesday: "Út",
     wednesday: "St",
@@ -131,7 +110,7 @@ export const copy = {
     noLessonsBody:
       "Zkuste jiný týden nebo obnovte rozvrh. Prázdný rozvrh neznamená, že nemáte zapsané předměty.",
     noShared: "V tomto týdnu nemáte společné hodiny.",
-    noFriends: "Rozvrhy jsou lepší ve dvou.",
+    noFriends: "Zatím žádní přátelé.",
     noFriendsBody: "Přidejte přítele a po přijetí žádosti porovnejte výuku.",
     addFriend: "Přidat přítele",
     estimated:
@@ -150,9 +129,6 @@ export const copy = {
     attendees: "Účastníci",
     close: "Zavřít",
     prague: "Čas v Praze",
-    friendsTitle: "S kým se potkáte?",
-    friendsIntro:
-      "Pošlete žádost přes školní uživatelské jméno nebo pozvánku. Rozvrhy se zpřístupní až po přijetí.",
     username: "Školní uživatelské jméno",
     usernameHint:
       "Přesné jméno uživatele, který se už přihlásil do KOSwFriends.",
@@ -188,16 +164,13 @@ export const copy = {
     joinInvite: "Poslat žádost tomuto člověku",
     requestSent: "Žádost byla odeslána.",
     saved: "Uloženo.",
-    plannerTitle: "Váš příští semestr začíná tady.",
-    plannerIntro:
-      "Uvažované předměty a preferované skupiny. Toto je návrh, ne zápis do KOS.",
+    plannerIntro: "Návrh rozvrhu. Předměty je nutné zapsat v KOS.",
     findCourse: "Najít předmět",
     search: "Hledat",
     searchHint: "Kód nebo název předmětu",
     noResults: "Žádné předměty. Kód můžete zadat ručně.",
     manual: "Přidat ručně",
-    manualHint:
-      "Zatím bez rozvrhu? Uložte kód a poznámku jako neověřený návrh.",
+    manualHint: "Předmět bez rozvrhu se uloží jako neověřený návrh.",
     courseCode: "Kód předmětu",
     note: "Poznámka",
     addChoice: "Přidat do návrhu",
@@ -207,7 +180,7 @@ export const copy = {
     unverified: "Neověřeno",
     verified: "Skupina podle Sirius",
     yourChoices: "Vaše volby",
-    noChoices: "Zatím čistý list.",
+    noChoices: "Zatím žádné předměty.",
     noChoicesBody: "Najděte první předmět nebo přidejte vlastní kód.",
     sharedChoices: "Plány přátel",
     noSharedPlans: "Zatím s vámi nikdo nesdílí návrh semestru.",
@@ -216,7 +189,6 @@ export const copy = {
     conflictHint:
       "Porovnáváme skutečné časy návrhů a vašeho importovaného rozvrhu. Neověřené předměty bez termínů nelze zkontrolovat.",
     saveNote: "Uložit poznámku",
-    livePlans: "Sdílené plány se obnovují každých 5 sekund.",
     account: "Účet a data",
     deleteAccount: "Smazat účet a uložená data",
     deletePrompt:
@@ -295,7 +267,7 @@ export const copy = {
     addPersonal: "Add personal event",
     editPersonal: "Edit personal event",
     personalHint:
-      "Add TV1-PE or another activity. Events appear in your timetable and follow its sharing permissions.",
+      "Personal events follow your timetable’s sharing permissions.",
     personalEditHint:
       "Edits apply to the whole series. This does not change enrollment in KOS.",
     eventTitle: "Event name",
@@ -313,9 +285,6 @@ export const copy = {
     personalType: "Personal event",
 
     groups: "Groups",
-    groupsTitle: "Share with your group.",
-    groupsIntro:
-      "Create a group and invite people. Each person chooses what to share when accepting.",
     createGroup: "Create group",
     groupName: "Group name",
     groupShareBefore: "What you share with the whole group",
@@ -338,8 +307,6 @@ export const copy = {
     leaveGroupConfirm: "Leave this group and end sharing through it?",
     emptyGroup: "Invite the first member using their school username.",
     noSharingGroups: "No groups yet.",
-    overlayHint:
-      "Shared timetables are on by default. Toggle everyone at once or select individual people.",
     overlay: "Overlay timetables",
     clearOverlay: "My timetable only",
     allDetails: "Open details and attendees",
@@ -349,25 +316,11 @@ export const copy = {
     planner: "Semester planner",
     signIn: "Sign in with your school account",
     signOut: "Sign out",
-    tagline: "Same school. Shared time.",
-    hero: "Make time\nfor each other.",
-    intro:
-      "Your timetable, your friends’ classes and ideas for next semester. A little more connected, a lot more clear.",
-    school: "For CTU students",
-    private: "Sharing is always your choice.",
-    privacy:
-      "Friends only see what you allow. You can withdraw access at any time.",
-    independent:
-      "An independent student project. Official enrollment stays in KOS.",
-    feature1: "Your schedules, together",
-    feature1body: "Compare classes with friends and see the lessons you share.",
-    feature2: "A semester that works",
-    feature2body: "Explore courses and groups. Spot clashes before you enroll.",
-    feature3: "Your data, your decision",
-    feature3body:
-      "Share your calendar and draft plans separately, for each friend.",
-    preview: "Layout preview · illustrative data",
-    sampleTitle: "A little room for shared time",
+    hero: "ČVUT timetables",
+    intro: "Your timetable, friends and semester plans.",
+    privacy: "You control sharing with each person.",
+    independent: "Independent project · Enroll in KOS",
+    preview: "Sample data",
     monday: "Mon",
     tuesday: "Tue",
     wednesday: "Wed",
@@ -398,7 +351,7 @@ export const copy = {
     noLessonsBody:
       "Try another week or refresh your timetable. An empty timetable does not mean you have no enrolled courses.",
     noShared: "No shared lessons this week.",
-    noFriends: "Timetables are better together.",
+    noFriends: "No friends yet.",
     noFriendsBody:
       "Add a friend and compare classes once your request is accepted.",
     addFriend: "Add a friend",
@@ -418,9 +371,6 @@ export const copy = {
     attendees: "Displayed timetables",
     close: "Close",
     prague: "Prague time",
-    friendsTitle: "Who will you see?",
-    friendsIntro:
-      "Send a request using an exact school username or an invite link. Calendars become available only after acceptance.",
     username: "School username",
     usernameHint:
       "The exact username of someone who has already signed in to KOSwFriends.",
@@ -456,16 +406,13 @@ export const copy = {
     joinInvite: "Send this person a request",
     requestSent: "Request sent.",
     saved: "Saved.",
-    plannerTitle: "Your next semester starts here.",
-    plannerIntro:
-      "Courses you are considering and groups you prefer. This is a draft, not enrollment in KOS.",
+    plannerIntro: "Draft timetable. Enroll in courses through KOS.",
     findCourse: "Find a course",
     search: "Search",
     searchHint: "Course code or name",
     noResults: "No courses found. You can add a code manually.",
     manual: "Add manually",
-    manualHint:
-      "Timetable not available yet? Save a code and a note as an unverified draft.",
+    manualHint: "Courses without a timetable are saved as unverified drafts.",
     courseCode: "Course code",
     note: "Note",
     addChoice: "Add to draft",
@@ -475,7 +422,7 @@ export const copy = {
     unverified: "Unverified",
     verified: "Group from Sirius",
     yourChoices: "Your choices",
-    noChoices: "A fresh start.",
+    noChoices: "No courses yet.",
     noChoicesBody: "Find your first course or add a code of your own.",
     sharedChoices: "Friends’ plans",
     noSharedPlans: "Nobody is sharing a semester draft with you yet.",
@@ -484,7 +431,6 @@ export const copy = {
     conflictHint:
       "Compares actual draft lesson times with your imported timetable. Unverified courses without times cannot be checked.",
     saveNote: "Save note",
-    livePlans: "Shared plans refresh every 5 seconds.",
     account: "Account and data",
     deleteAccount: "Delete account and stored data",
     deletePrompt:
@@ -541,7 +487,7 @@ export type Text = typeof copy.en;
 const lessonTypes: Record<string, { cs: string; en: string }> = {
   personal: { cs: "Vlastní událost", en: "Personal event" },
   lecture: { cs: "Přednáška", en: "Lecture" },
-  tutorial: { cs: "Cvičení", en: "Tutorial" },
+  tutorial: { cs: "Cvičení", en: "Exercise" },
   laboratory: { cs: "Laboratoř", en: "Laboratory" },
   exam: { cs: "Zkouška", en: "Exam" },
   assessment: { cs: "Zápočet", en: "Assessment" },
