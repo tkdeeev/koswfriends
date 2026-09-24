@@ -672,7 +672,19 @@ export default function Workspace() {
         </main>
       )}
       <footer className={s.footer}>
-        <span>KOSwFriends / {t.tagline}</span>
+        <div className={s.footerCredits}>
+          <span>KOSwFriends / {t.tagline}</span>
+          <span>
+            {t.credits} <span aria-hidden>·</span>{" "}
+            <a
+              href="https://github.com/tkdeeev/koswfriends"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t.githubSource}
+            </a>
+          </span>
+        </div>
         <span>{t.independent}</span>
       </footer>
       {toast && (

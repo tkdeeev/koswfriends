@@ -1,5 +1,7 @@
 export const copy = {
   cs: {
+    credits: "Od TKDEV a komunity",
+    githubSource: "GitHub · Otevřený kód",
     expandDay: "Rozšířit den",
     backToWeek: "Zpět na týden",
     moreLessons: "další hodiny",
@@ -266,6 +268,8 @@ export const copy = {
     },
   },
   en: {
+    credits: "By TKDEV and community",
+    githubSource: "GitHub · Open source",
     expandDay: "Expand day",
     backToWeek: "Back to week",
     moreLessons: "more lessons",

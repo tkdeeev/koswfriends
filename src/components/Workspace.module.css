@@ -308,6 +308,8 @@
 }
 .footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
   padding: 22px 4%;
@@ -315,6 +317,11 @@
   font-size: 11px;
   color: var(--muted);
   margin-top: auto;
+}
+.footerCredits {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .main {
   padding: 32px 4% 40px;
