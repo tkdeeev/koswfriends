@@ -9,6 +9,9 @@ export type Lesson = {
   end: string;
   room: string;
   cancelled: boolean;
+  personalId?: string;
+  color?: string;
+  note?: string;
 };
 export type Semester = {
   code: string;
@@ -38,6 +41,7 @@ export type Friend = {
 export type Calendar = {
   userId: string;
   username: string;
+  name: string;
   events: Lesson[];
   lastSuccess: string | null;
   error: string | null;
@@ -50,4 +54,35 @@ export type Me = {
   csrf: string;
   semester: string;
   reconnect: boolean;
+};
+
+export type Person = { id: string; username: string; name: string };
+export type SharingGroup = {
+  id: string;
+  name: string;
+  owner: string;
+  status: "pending" | "accepted";
+  giving: Grant;
+  members: (Person & {
+    status: "pending" | "accepted";
+    blocked: boolean;
+    overridden: boolean;
+    giving: Grant;
+    receiving: Grant;
+  })[];
+};
+
+export type PersonalEventData = {
+  course: string;
+  title: string;
+  start: string;
+  end: string;
+  room: string;
+  color: string;
+  note: string;
+  repeatUntil: string | null;
+};
+export type PersonalEvent = PersonalEventData & {
+  id: string;
+  semester: string;
 };

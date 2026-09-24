@@ -10,6 +10,7 @@ import {
   requestFriend,
   saveGrant,
 } from "@/server/friends";
+import { related, saveOverride } from "@/server/sharing";
 import { AppError } from "@/server/security";
 export const dynamic = "force-dynamic";
 const grant = z.object({ calendar: z.boolean(), plans: z.boolean() });
@@ -67,11 +68,17 @@ export const PATCH = endpoint(async (req) => {
       return;
     }
     const [friend] = await tx.select().from(friendships).where(pairWhere(a, b));
-    if (!friend) throw new AppError("friend_not_found", 404);
+    if (!friend && data.action === "block") {
+      const [contact] = await tx
+        .select({ connected: related(user.id, data.id) })
+        .from(users)
+        .where(eq(users.id, data.id));
+      if (!contact?.connected) throw new AppError("friend_not_found", 404);
+    } else if (!friend) throw new AppError("friend_not_found", 404);
     if (data.action === "accept") {
       if (
-        friend.status !== "pending" ||
-        friend.requester === user.id ||
+        friend!.status !== "pending" ||
+        friend!.requester === user.id ||
         !data.giving
       )
         throw new AppError("invalid_request");
@@ -81,9 +88,10 @@ export const PATCH = endpoint(async (req) => {
         .where(pairWhere(a, b));
       await saveGrant(tx, user.id, data.id, data.giving);
     } else if (data.action === "sharing") {
-      if (friend.status !== "accepted" || !data.giving)
+      if (friend!.status !== "accepted" || !data.giving)
         throw new AppError("invalid_request");
       await saveGrant(tx, user.id, data.id, data.giving);
+      await saveOverride(tx, user.id, data.id, data.giving);
     } else {
       if (data.action === "block")
         await tx

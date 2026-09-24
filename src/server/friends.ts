@@ -2,6 +2,7 @@ import { and, eq, or, sql } from "drizzle-orm";
 import { database, type TX } from "./db";
 import { blocks, friendships, grants, users } from "./schema";
 import { AppError } from "./security";
+import { canRead } from "./sharing";
 import type { Grant } from "../lib/types";
 export const pair = (one: string, two: string) =>
   [one, two].sort() as [string, string];
@@ -65,7 +66,15 @@ export async function friendList(userId: string) {
     relations.map(async (f) => {
       const other = f.a === userId ? f.b : f.a;
       const [user] = await database()
-        .select({ id: users.id, username: users.username, name: users.name })
+        .select({
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          givingCalendar: canRead(userId, users.id, "calendar"),
+          givingPlans: canRead(userId, users.id, "plans"),
+          receivingCalendar: canRead(users.id, userId, "calendar"),
+          receivingPlans: canRead(users.id, userId, "plans"),
+        })
         .from(users)
         .where(eq(users.id, other));
       const permissions = await database()
@@ -78,32 +87,27 @@ export async function friendList(userId: string) {
           ),
         );
       const giving = permissions.find((g) => g.owner === userId);
-      const receiving = permissions.find((g) => g.owner === other);
       return {
-        ...user,
+        id: user.id,
+        username: user.username,
+        name: user.name,
         status: f.status,
         incoming: f.requester !== userId,
         giving: {
-          calendar: giving?.calendar ?? false,
-          plans: giving?.plans ?? false,
+          calendar:
+            f.status === "accepted"
+              ? user.givingCalendar
+              : (giving?.calendar ?? false),
+          plans:
+            f.status === "accepted"
+              ? user.givingPlans
+              : (giving?.plans ?? false),
         },
         receiving: {
-          calendar: f.status === "accepted" && (receiving?.calendar ?? false),
-          plans: f.status === "accepted" && (receiving?.plans ?? false),
+          calendar: user.receivingCalendar,
+          plans: user.receivingPlans,
         },
       };
     }),
-  );
-}
-/** This expression is joined into every read of another person's data. */
-export function acceptedGrant(viewer: string, kind: "calendar" | "plans") {
-  return and(
-    eq(grants.viewer, viewer),
-    eq(grants[kind], true),
-    eq(friendships.status, "accepted"),
-    or(
-      and(eq(friendships.a, grants.owner), eq(friendships.b, grants.viewer)),
-      and(eq(friendships.b, grants.owner), eq(friendships.a, grants.viewer)),
-    ),
   );
 }

@@ -10,7 +10,7 @@ import {
   check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import type { Lesson, Choice, Semester } from "../lib/types";
+import type { Lesson, Choice, Semester, PersonalEventData } from "../lib/types";
 const time = (name: string) =>
   timestamp(name, { withTimezone: true, mode: "date" });
 export const users = pgTable("users", {
@@ -114,3 +114,49 @@ export const workerStatus = pgTable("worker_status", {
   id: text("id").primaryKey(),
   heartbeat: time("heartbeat").defaultNow().notNull(),
 });
+
+export const groups = pgTable("sharing_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  owner: userRef("owner"),
+  name: text("name").notNull(),
+  createdAt: time("created_at").defaultNow().notNull(),
+});
+export const members = pgTable(
+  "group_members",
+  {
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    userId: userRef("user_id"),
+    status: text("status").$type<"pending" | "accepted">().notNull(),
+    calendar: boolean("calendar").default(false).notNull(),
+    plans: boolean("plans").default(false).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.groupId, t.userId] }),
+    index("group_member_user_idx").on(t.userId),
+    check("member_status", sql`${t.status} in ('pending', 'accepted')`),
+  ],
+);
+/** A person's explicit preference takes precedence over every sharing source. */
+export const overrides = pgTable(
+  "sharing_overrides",
+  {
+    owner: userRef("owner"),
+    viewer: userRef("viewer"),
+    calendar: boolean("calendar").notNull(),
+    plans: boolean("plans").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.owner, t.viewer] })],
+);
+
+export const personalEvents = pgTable(
+  "personal_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    owner: userRef("owner"),
+    semester: text("semester").notNull(),
+    details: jsonb("details").$type<PersonalEventData>().notNull(),
+  },
+  (t) => [index("personal_event_owner_semester_idx").on(t.owner, t.semester)],
+);

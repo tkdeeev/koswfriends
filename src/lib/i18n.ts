@@ -1,5 +1,58 @@
 export const copy = {
   cs: {
+    personalEvents: "Vlastní předměty a události",
+    addPersonal: "Přidat vlastní událost",
+    editPersonal: "Upravit vlastní událost",
+    personalHint:
+      "Přidejte si např. TV1-PE nebo jinou aktivitu. Události se zobrazí ve vašem rozvrhu a sdílí se podle jeho oprávnění.",
+    personalEditHint:
+      "Úpravy platí pro celou sérii. Zápis v KOS se tím nemění.",
+    eventTitle: "Název události",
+    starts: "Začátek",
+    ends: "Konec",
+    eventColor: "Barva",
+    weeklyRepeat: "Opakovat každý týden",
+    repeatUntil: "Opakovat do",
+    saveEvent: "Uložit událost",
+    deleteEvent: "Smazat událost",
+    deleteEventConfirm: "Smazat tuto událost včetně všech opakování?",
+    confirmDeleteEvent: "Ano, smazat událost",
+    eventSaveError:
+      "Událost se nepodařilo uložit. Zkontrolujte data: konec musí být po začátku a opakování nejvýše rok.",
+    personalType: "Vlastní událost",
+
+    groups: "Skupiny",
+    groupsTitle: "Sdílejte se svou skupinou.",
+    groupsIntro:
+      "Vytvořte skupinu a pozvěte přátele. Každý si při přijetí vybere, co sdílí.",
+    createGroup: "Vytvořit skupinu",
+    groupName: "Název skupiny",
+    groupShareBefore: "Co sdílíte s celou skupinou",
+    groupSharingHint:
+      "Platí pro přijaté i budoucí členy. Rozvrh a návrhy povolujete zvlášť.",
+    overrideHint:
+      "Nastavení pro konkrétního člověka má přednost ve všech skupinách i mezi přáteli. Blokace vždy zastaví sdílení oběma směry.",
+    customSharing: "Vlastní nastavení",
+    groupDefaults: "Výchozí sdílení",
+    useDefaults: "Použít výchozí sdílení",
+    groupInvitation: "Pozvánka do skupiny",
+    groupOwner: "Správce",
+    members: "členů",
+    inviteMember: "Pozvat člena",
+    removeMember: "Odebrat ze skupiny",
+    deleteGroup: "Smazat skupinu",
+    leaveGroup: "Opustit skupinu",
+    deleteGroupConfirm:
+      "Smazat skupinu pro všechny členy? Sdílení přes tuto skupinu skončí.",
+    leaveGroupConfirm: "Opustit skupinu a ukončit sdílení přes tuto skupinu?",
+    emptyGroup: "Pozvěte prvního člena pomocí školního uživatelského jména.",
+    noSharingGroups: "Zatím žádné skupiny.",
+    overlayHint:
+      "Váš rozvrh s lidmi na společných hodinách. Vyberte lidi pro zobrazení celého rozvrhu.",
+    overlay: "Překrýt další rozvrhy",
+    clearOverlay: "Jen můj rozvrh",
+    allDetails: "Otevřít podrobnosti a účastníky",
+
     timetable: "Rozvrh",
     friends: "Přátelé",
     planner: "Plán semestru",
@@ -71,7 +124,7 @@ export const copy = {
     room: "Místnost",
     type: "Typ",
     cancelled: "Zrušeno",
-    attendees: "Zobrazené rozvrhy",
+    attendees: "Účastníci",
     close: "Zavřít",
     prague: "Čas v Praze",
     friendsTitle: "S kým se potkáte?",
@@ -153,6 +206,17 @@ export const copy = {
     offline:
       "Spojení není dostupné. Sdílená data do obnovení spojení nezobrazujeme.",
     errors: {
+      events_full: "V semestru můžete mít nejvýše 100 vlastních událostí.",
+      event_not_found: "Událost už není dostupná.",
+
+      groups_full: "Můžete spravovat nejvýše 20 skupin.",
+      group_full: "Skupina může mít nejvýše 100 členů.",
+      member_exists: "Tento člověk už ve skupině je nebo má pozvánku.",
+      sharing_group_not_found: "Skupina už není dostupná.",
+      member_not_found: "Tento člen už není ve skupině.",
+      owner_cannot_leave: "Správce musí skupinu smazat.",
+      forbidden: "K této akci nemáte oprávnění.",
+
       unauthorized: "Přihlaste se znovu.",
       csrf: "Obnovte stránku a zkuste to znovu.",
       invalid_state:
@@ -181,6 +245,59 @@ export const copy = {
     },
   },
   en: {
+    personalEvents: "Personal subjects and events",
+    addPersonal: "Add personal event",
+    editPersonal: "Edit personal event",
+    personalHint:
+      "Add TV1-PE or another activity. Events appear in your timetable and follow its sharing permissions.",
+    personalEditHint:
+      "Edits apply to the whole series. This does not change enrollment in KOS.",
+    eventTitle: "Event name",
+    starts: "Starts",
+    ends: "Ends",
+    eventColor: "Color",
+    weeklyRepeat: "Repeat weekly",
+    repeatUntil: "Repeat until",
+    saveEvent: "Save event",
+    deleteEvent: "Delete event",
+    deleteEventConfirm: "Delete this event and all its repeats?",
+    confirmDeleteEvent: "Yes, delete event",
+    eventSaveError:
+      "Could not save this event. Check the dates: the end must follow the start, and repeats can span up to one year.",
+    personalType: "Personal event",
+
+    groups: "Groups",
+    groupsTitle: "Share with your group.",
+    groupsIntro:
+      "Create a group and invite people. Each person chooses what to share when accepting.",
+    createGroup: "Create group",
+    groupName: "Group name",
+    groupShareBefore: "What you share with the whole group",
+    groupSharingHint:
+      "Applies to current and future accepted members. Timetable and draft sharing are separate.",
+    overrideHint:
+      "A personal override takes precedence across all groups and friendships. Blocking always stops sharing in both directions.",
+    customSharing: "Personal override",
+    groupDefaults: "Default sharing",
+    useDefaults: "Use sharing defaults",
+    groupInvitation: "Group invitation",
+    groupOwner: "Owner",
+    members: "members",
+    inviteMember: "Invite member",
+    removeMember: "Remove from group",
+    deleteGroup: "Delete group",
+    leaveGroup: "Leave group",
+    deleteGroupConfirm:
+      "Delete this group for everyone? Sharing through this group will end.",
+    leaveGroupConfirm: "Leave this group and end sharing through it?",
+    emptyGroup: "Invite the first member using their school username.",
+    noSharingGroups: "No groups yet.",
+    overlayHint:
+      "Your timetable with people attending the same lessons. Select people to overlay their full timetable.",
+    overlay: "Overlay timetables",
+    clearOverlay: "My timetable only",
+    allDetails: "Open details and attendees",
+
     timetable: "Timetable",
     friends: "Friends",
     planner: "Semester planner",
@@ -334,6 +451,17 @@ export const copy = {
     offline:
       "Connection unavailable. Shared data stays hidden until we reconnect.",
     errors: {
+      events_full: "You can have up to 100 personal events per semester.",
+      event_not_found: "This event is no longer available.",
+
+      groups_full: "You can own up to 20 groups.",
+      group_full: "A group can have up to 100 members.",
+      member_exists: "This person is already a member or has an invitation.",
+      sharing_group_not_found: "This group is no longer available.",
+      member_not_found: "This person is no longer in the group.",
+      owner_cannot_leave: "The owner must delete the group.",
+      forbidden: "You do not have permission for this action.",
+
       unauthorized: "Please sign in again.",
       csrf: "Reload the page and try again.",
       invalid_state:
@@ -365,6 +493,7 @@ export const copy = {
 export type Locale = keyof typeof copy;
 export type Text = typeof copy.en;
 const lessonTypes: Record<string, { cs: string; en: string }> = {
+  personal: { cs: "Vlastní událost", en: "Personal event" },
   lecture: { cs: "Přednáška", en: "Lecture" },
   tutorial: { cs: "Cvičení", en: "Tutorial" },
   laboratory: { cs: "Laboratoř", en: "Laboratory" },

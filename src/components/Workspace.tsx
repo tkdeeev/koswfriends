@@ -1,8 +1,20 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { copy, type Locale } from "@/lib/i18n";
-import type { Calendar, Choice, Friend, Grant, Me } from "@/lib/types";
+import type {
+  Calendar,
+  Choice,
+  Friend,
+  Grant,
+  Me,
+  Person,
+  SharingGroup,
+  PersonalEvent,
+} from "@/lib/types";
 import { semesterOptions } from "@/lib/calendar";
+import PersonalEvents from "./PersonalEvents";
+import Avatar from "./Avatar";
+import GroupsView from "./GroupsView";
 import CalendarView from "./CalendarView";
 import FriendsView, { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
@@ -27,8 +39,14 @@ export default function Workspace() {
   const t = copy[locale];
   const [me, setMe] = useState<Me | null | undefined>(undefined);
   const [view, setView] = useState<
-    "timetable" | "friends" | "planner" | "account"
+    "timetable" | "friends" | "groups" | "planner" | "account"
   >("timetable");
+  const [events, setEvents] = useState<PersonalEvent[]>([]);
+  const [eventEditor, setEventEditor] = useState(false);
+  const [eventId, setEventId] = useState<string>();
+  const [groups, setGroups] = useState<SharingGroup[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [attendees, setAttendees] = useState<Record<string, Person[]>>({});
   const [friends, setFriends] = useState<Friend[]>([]);
   const [blocked, setBlocked] = useState<{ id: string; username: string }[]>(
     [],
@@ -79,16 +97,22 @@ export default function Workspace() {
     if (!me) return;
     const ticket = ++generation.current;
     try {
-      const [f, c, p, user] = await Promise.all([
+      const [f, c, p, user, g, e] = await Promise.all([
         request("/api/friends"),
         request(
           `/api/calendar?semester=${me.semester}&friends=${selected.join(",")}`,
         ),
         request(`/api/plans?semester=${me.semester}`),
         request("/api/me"),
+        request("/api/groups"),
+        request(`/api/events?semester=${me.semester}`),
       ]);
       if (ticket !== generation.current) return;
       setFriends(f.friends);
+      setGroups(g.groups);
+      setEvents(e.events);
+      setPeople(c.people);
+      setAttendees(c.attendees);
       setBlocked(f.blocked);
       setCalendars(c.calendars);
       setChoices(p.choices);
@@ -109,6 +133,9 @@ export default function Workspace() {
       setError(code);
       setCalendars((prev) => prev.filter((c) => c.userId === me.id));
       setShared([]);
+      setPeople([]);
+      setAttendees({});
+      setGroups([]);
       if (code === "unauthorized") {
         setMe(null);
         setCalendars([]);
@@ -186,16 +213,18 @@ export default function Workspace() {
         </a>
         {me && (
           <nav className={s.navigation} aria-label="Navigation">
-            {(["timetable", "friends", "planner"] as const).map((tab) => (
-              <button
-                key={tab}
-                aria-current={view === tab ? "page" : undefined}
-                className={`${s.nav} ${view === tab ? s.active : ""}`}
-                onClick={() => setView(tab)}
-              >
-                {t[tab]}
-              </button>
-            ))}
+            {(["timetable", "friends", "groups", "planner"] as const).map(
+              (tab) => (
+                <button
+                  key={tab}
+                  aria-current={view === tab ? "page" : undefined}
+                  className={`${s.nav} ${view === tab ? s.active : ""}`}
+                  onClick={() => setView(tab)}
+                >
+                  {t[tab]}
+                </button>
+              ),
+            )}
           </nav>
         )}
         <div className={s.headerEnd}>
@@ -221,9 +250,7 @@ export default function Workspace() {
               aria-label={t.account}
             >
               <span className={s.identity}>
-                <span className={s.avatar}>
-                  {me.username.slice(0, 2).toUpperCase()}
-                </span>
+                <Avatar person={me} />
                 {me.username}
               </span>
               <span className={s.mobileControls}>☰</span>
@@ -333,13 +360,19 @@ export default function Workspace() {
                   ? t.timetable
                   : view === "friends"
                     ? t.friendsTitle
-                    : view === "planner"
-                      ? t.plannerTitle
-                      : t.account}
+                    : view === "groups"
+                      ? t.groupsTitle
+                      : view === "planner"
+                        ? t.plannerTitle
+                        : t.account}
               </h1>
-              {view === "friends" || view === "planner" ? (
+              {view === "friends" || view === "planner" || view === "groups" ? (
                 <p className={s.subtitle}>
-                  {view === "friends" ? t.friendsIntro : t.plannerIntro}
+                  {view === "friends"
+                    ? t.friendsIntro
+                    : view === "groups"
+                      ? t.groupsIntro
+                      : t.plannerIntro}
                 </p>
               ) : null}
             </div>
@@ -456,7 +489,8 @@ export default function Workspace() {
                 key={me.semester}
                 me={me}
                 calendars={calendars}
-                friends={friends}
+                people={people}
+                attendees={attendees}
                 selected={selected}
                 setSelected={(ids) => {
                   setSelected(ids);
@@ -466,8 +500,26 @@ export default function Workspace() {
                 locale={locale}
                 t={t}
                 onFriends={() => setView("friends")}
+                onEditEvent={(id) => {
+                  setEventId(id);
+                  setEventEditor(true);
+                }}
               />
             ))}
+          {eventEditor && (
+            <PersonalEvents
+              open={eventEditor}
+              initialId={eventId}
+              close={() => setEventEditor(false)}
+              events={events}
+              me={me}
+              mutate={mutate}
+              t={t}
+            />
+          )}
+          {view === "groups" && (
+            <GroupsView groups={groups} me={me} mutate={mutate} t={t} />
+          )}
           {view === "friends" && (
             <FriendsView
               friends={friends}

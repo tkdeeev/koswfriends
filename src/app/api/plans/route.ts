@@ -2,9 +2,9 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { database } from "@/server/db";
-import { friendships, grants, plans, users } from "@/server/schema";
+import { plans, users } from "@/server/schema";
 import { body, endpoint, json, session } from "@/server/http";
-import { acceptedGrant } from "@/server/friends";
+import { canRead } from "@/server/sharing";
 import { AppError } from "@/server/security";
 import { accessToken } from "@/server/oauth";
 import { fetchEvents, resolveSemester } from "@/server/sirius";
@@ -27,13 +27,12 @@ export const GET = endpoint(async (req) => {
       choices: plans.choices,
       updatedAt: plans.updatedAt,
     })
-    .from(grants)
-    .innerJoin(friendships, acceptedGrant(user.id, "plans"))
-    .innerJoin(users, eq(users.id, grants.owner))
+    .from(users)
     .leftJoin(
       plans,
-      and(eq(plans.userId, grants.owner), eq(plans.semester, semester)),
-    );
+      and(eq(plans.userId, users.id), eq(plans.semester, semester)),
+    )
+    .where(canRead(users.id, user.id, "plans"));
   return json({
     choices: own?.choices || [],
     updatedAt: own?.updatedAt || null,
