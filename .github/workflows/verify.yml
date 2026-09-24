@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: npm }
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:e2e
@@ -18,6 +18,8 @@ jobs:
       - run: docker build -t koswfriends:verify .
       - name: Verify packaged logo
         run: docker run --rm --entrypoint test koswfriends:verify -s /app/public/logo.svg
+      - name: Verify packaged PWA and preview assets
+        run: docker run --rm --entrypoint sh koswfriends:verify -c 'test -s public/sw.js && test -s public/offline.html && test -s public/icons/icon-192.png && test -s public/icons/icon-512.png && test -s public/icons/maskable-512.png && test -s public/icons/apple-touch-icon.png && test -s public/preview/timetable-en-light.png && test -s public/preview/timetable-cs-dark.png'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

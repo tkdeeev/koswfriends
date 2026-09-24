@@ -39,7 +39,7 @@ export function Sharing({
         />
         {t.sharePlans}
       </label>
-      <p className={s.hint}>{t.shareHint}</p>
+
     </fieldset>
   );
 }
@@ -219,7 +219,7 @@ export default function FriendsView({
                 placeholder="username"
               />
             </label>
-            <p className={s.hint}>{t.usernameHint}</p>
+
             <Sharing value={giving} change={setGiving} t={t} />
             <button disabled={busy} className={s.button}>
               {t.sendRequest} <span aria-hidden>↗</span>

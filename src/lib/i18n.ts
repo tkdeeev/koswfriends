@@ -1,5 +1,20 @@
 export const copy = {
   cs: {
+    previewAlt:
+      "Ukázka aktuálního rozvrhu KOSwFriends se sdílenými hodinami a vlastní událostí",
+    featureTimetables: "Váš rozvrh a rozvrhy přátel",
+    featureGroups: "Skupiny, pozvánky a sdílení s jednotlivci",
+    featureEvents: "Vlastní předměty a opakované události",
+    featurePlanner: "Plán semestru s kontrolou kolizí",
+    featureTheme: "Světlý a tmavý režim",
+    featureInstall: "Instalace na iPhone a Android",
+
+    filters: "Filtry",
+    installApp: "Nainstalovat aplikaci",
+    installApple:
+      "V Safari otevřete Sdílet → Přidat na plochu → Otevřít jako webovou aplikaci.",
+    installBrowser:
+      "V nabídce prohlížeče zvolte Nainstalovat aplikaci nebo Přidat na plochu.",
     credits: "Od TKDEV a komunity",
     githubSource: "GitHub · Otevřený kód",
     expandDay: "Rozšířit den",
@@ -47,8 +62,6 @@ export const copy = {
     createGroup: "Vytvořit skupinu",
     groupName: "Název skupiny",
     groupShareBefore: "Co sdílíte s celou skupinou",
-    groupSharingHint:
-      "Platí pro přijaté i budoucí členy. Rozvrh a návrhy povolujete zvlášť.",
     overrideHint:
       "Nastavení pro konkrétního člověka má přednost ve všech skupinách i mezi přáteli. Blokace vždy zastaví sdílení oběma směry.",
     customSharing: "Vlastní nastavení",
@@ -130,14 +143,10 @@ export const copy = {
     close: "Zavřít",
     prague: "Čas v Praze",
     username: "Školní uživatelské jméno",
-    usernameHint:
-      "Přesné jméno uživatele, který se už přihlásil do KOSwFriends.",
     sendRequest: "Poslat žádost",
     shareBefore: "Co s tímto člověkem sdílíte",
     shareCalendar: "Můj rozvrh",
     sharePlans: "Mé návrhy semestru",
-    shareHint:
-      "Každý rozhoduje zvlášť. Přijetí žádosti vás nezavazuje sdílet obě položky.",
     invite: "Pozvánka odkazem",
     inviteHint:
       "Odkaz platí 7 dní. Otevření pouze umožní poslat žádost, samo nic nesdílí.",
@@ -240,6 +249,21 @@ export const copy = {
     },
   },
   en: {
+    previewAlt:
+      "Current KOSwFriends timetable with shared lessons and a personal event",
+    featureTimetables: "Your timetable and friends’ timetables",
+    featureGroups: "Groups, invites and per-person sharing",
+    featureEvents: "Personal subjects and recurring events",
+    featurePlanner: "Semester planning with conflict checks",
+    featureTheme: "Light and dark mode",
+    featureInstall: "Install on iPhone and Android",
+
+    filters: "Filters",
+    installApp: "Install app",
+    installApple:
+      "In Safari, choose Share → Add to Home Screen → Open as Web App.",
+    installBrowser:
+      "In your browser menu, choose Install app or Add to Home screen.",
     credits: "By TKDEV and community",
     githubSource: "GitHub · Open source",
     expandDay: "Expand day",
@@ -288,8 +312,6 @@ export const copy = {
     createGroup: "Create group",
     groupName: "Group name",
     groupShareBefore: "What you share with the whole group",
-    groupSharingHint:
-      "Applies to current and future accepted members. Timetable and draft sharing are separate.",
     overrideHint:
       "A personal override takes precedence across all groups and friendships. Blocking always stops sharing in both directions.",
     customSharing: "Personal override",
@@ -372,14 +394,10 @@ export const copy = {
     close: "Close",
     prague: "Prague time",
     username: "School username",
-    usernameHint:
-      "The exact username of someone who has already signed in to KOSwFriends.",
     sendRequest: "Send request",
     shareBefore: "What you share with this person",
     shareCalendar: "My timetable",
     sharePlans: "My semester drafts",
-    shareHint:
-      "Each person chooses independently. Accepting a request does not require sharing both.",
     invite: "Invite with a link",
     inviteHint:
       "Links expire after 7 days. Opening one lets someone send a request; it never grants access automatically.",

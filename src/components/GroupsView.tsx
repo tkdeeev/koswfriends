@@ -165,7 +165,7 @@ function GroupCard({
               : `${group.members.length} ${t.members}`}
         </span>
       </div>
-      <p className={s.hint}>{t.groupSharingHint}</p>
+
       <Sharing
         value={giving}
         change={setGiving}
@@ -323,7 +323,7 @@ export default function GroupsView({
             t={t}
             legend={t.groupShareBefore}
           />
-          <p className={s.hint}>{t.groupSharingHint}</p>
+
           <button className={s.button} disabled={busy}>
             {t.createGroup}
           </button>
