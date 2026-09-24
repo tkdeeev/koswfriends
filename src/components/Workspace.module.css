@@ -929,14 +929,16 @@
   }
   .navigation {
     order: 3;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     width: 100%;
-    justify-content: space-between;
-    gap: 16px;
-    height: 48px;
+    gap: 4px;
+    height: 52px;
   }
   .nav {
-    font-size: 14px;
-    padding: 6px;
+    font-size: 12px;
+    padding: 6px 2px;
+    min-width: 0;
   }
   .hero {
     grid-template-columns: 1fr;
@@ -1122,5 +1124,310 @@
   }
   .courseResult:hover {
     background: var(--pale);
+  }
+}
+
+/* People and group sharing */
+.profileAvatar {
+  border-radius: 50% !important;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+}
+.smallAvatar {
+  width: 26px;
+  height: 26px;
+  flex-basis: 26px;
+  font-size: 10px;
+}
+.avatarStack {
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+  padding-left: 0;
+  margin-top: 5px;
+}
+.avatarStack .profileAvatar {
+  border: 2px solid white;
+  margin-right: -6px;
+  box-sizing: content-box;
+}
+.avatarMore {
+  background: #e8edf1;
+  color: var(--dark);
+}
+.attendeeList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.attendeeList small {
+  display: block;
+  color: var(--muted);
+}
+.groupsLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.6fr);
+  gap: 26px;
+  align-items: start;
+}
+.groupMember {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 20px;
+}
+.groupsLayout form > .button {
+  margin-top: 14px;
+}
+/* Full-width calendar with compact controls above the week. */
+.calendarWorkspace {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.calendarFilters {
+  border: 1px solid var(--line);
+  background: var(--pale);
+  padding: 14px 18px;
+}
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+.filterRow .check {
+  margin: 0;
+}
+.filterRow strong {
+  font-weight: 500;
+  font-size: 14px;
+}
+.syncLabel {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+.overlayPicker {
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 12px;
+  font-size: 13px;
+}
+.overlayPicker .filterRow {
+  margin-top: 12px;
+}
+.personChip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  cursor: pointer;
+}
+.typeLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.typeLegend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.typeLegend i {
+  width: 12px;
+  height: 12px;
+}
+.calendarFrame {
+  overflow-x: auto;
+}
+.dayColumn {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 83px,
+    #e1e6eb 84px
+  );
+}
+.lesson {
+  background: color-mix(in srgb, var(--lesson-color) 20%, white);
+  color: #172d3b;
+  border: 1px solid color-mix(in srgb, var(--lesson-color) 70%, #44515a);
+  border-left: 4px solid var(--lesson-color);
+  padding: 6px 7px;
+  font-size: 12px;
+  line-height: 1.25;
+  container-type: inline-size;
+}
+.lesson b {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson > span {
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: normal;
+}
+.lesson .lessonTime {
+  white-space: nowrap;
+  font-size: 11px;
+}
+.lesson .lessonMeta,
+.lesson .lessonKind {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson .avatarStack {
+  display: flex;
+  margin-top: 5px;
+}
+.lesson .profileAvatar {
+  display: inline-flex;
+  margin-top: 0;
+  overflow-wrap: normal;
+}
+.friendLesson {
+  background: white;
+  border-style: solid;
+  border-left-width: 2px;
+}
+.draftLesson {
+  background: white;
+  border-style: dashed;
+}
+.lesson:hover,
+.lesson:focus-visible {
+  box-shadow: 0 2px 8px #172d3b33;
+  z-index: 3;
+  filter: brightness(0.98);
+}
+.agendaEvent {
+  border-left-color: var(--lesson-color);
+  background: color-mix(in srgb, var(--lesson-color) 16%, white);
+}
+@media (max-width: 760px) {
+  .groupsLayout {
+    grid-template-columns: 1fr;
+  }
+  .calendarFilters {
+    padding: 12px;
+  }
+  .filterRow {
+    gap: 12px 16px;
+  }
+  .syncLabel {
+    width: 100%;
+    margin-left: 0;
+  }
+  .profileAvatar {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+  .smallAvatar {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+  .typeLegend {
+    gap: 8px 14px;
+  }
+  .agendaEvent .avatarStack {
+    display: flex;
+  }
+  .agendaEvent .profileAvatar {
+    font-size: 10px;
+  }
+}
+.eventDialog {
+  width: min(880px, calc(100vw - 32px));
+  max-width: 880px;
+}
+.eventEditor {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 20px;
+}
+.eventEditor h3 {
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+.eventList {
+  border-right: 1px solid var(--line);
+  padding-right: 18px;
+}
+.eventListItem {
+  border: 0;
+  background: white;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 8px;
+  text-align: left;
+  margin-top: 8px;
+  color: var(--dark);
+}
+.eventListItem i {
+  width: 5px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.eventListItem small {
+  display: block;
+  font-size: 12px;
+}
+.eventListItem span {
+  overflow-wrap: anywhere;
+}
+.eventSelected {
+  background: var(--pale);
+}
+.eventFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+.eventFields input[type="color"] {
+  height: 44px;
+  width: 100%;
+  padding: 5px;
+}
+.eventNote {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-bottom: 18px;
+}
+@media (max-width: 760px) {
+  .eventDialog {
+    padding: 18px;
+  }
+  .eventEditor,
+  .eventFields {
+    grid-template-columns: 1fr;
+  }
+  .eventList {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 16px;
+    max-height: 160px;
+    overflow: auto;
   }
 }

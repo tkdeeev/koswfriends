@@ -521,3 +521,310 @@ describe("Sirius synchronization", () => {
     expect(snapshot.error).toBeNull();
   });
 });
+
+// Group access and personal events use the same authenticated API as the UI.
+import {
+  GET as listGroups,
+  POST as createGroup,
+  PATCH as changeGroup,
+} from "../src/app/api/groups/route";
+import {
+  GET as listEvents,
+  POST as createEvent,
+  PATCH as editEvent,
+  DELETE as deleteEvent,
+} from "../src/app/api/events/route";
+async function makeGroup(
+  owner: User,
+  giving = { calendar: true, plans: true },
+) {
+  const response = await createGroup(
+    req(owner, "/api/groups", "POST", { name: "Synthetic group", giving }),
+  );
+  expect(response.status).toBe(200);
+  return (await response.json()).id as string;
+}
+async function groupAction(
+  u: User,
+  id: string,
+  action: string,
+  rest: Record<string, unknown> = {},
+) {
+  return changeGroup(req(u, "/api/groups", "PATCH", { id, action, ...rest }));
+}
+async function joinGroup(owner: User, member: User, id: string) {
+  expect(
+    (await groupAction(owner, id, "invite", { username: member.username }))
+      .status,
+  ).toBe(200);
+  expect(
+    (await groupAction(member, id, "accept", { giving: permission })).status,
+  ).toBe(200);
+}
+async function viewCalendar(viewer: User, owner?: User) {
+  return (
+    await calendar(
+      req(viewer, `/api/calendar${owner ? `?friends=${owner.id}` : ""}`),
+    )
+  ).json();
+}
+const personal = {
+  course: "TV1-PE",
+  title: "Synthetic sport",
+  start: "2026-10-20T09:00",
+  end: "2026-10-20T10:30",
+  room: "Synthetic gym",
+  color: "#158b98",
+  note: "Bring shoes",
+  repeatUntil: "2026-11-03",
+};
+describe("groups, overrides and attendance privacy", () => {
+  it("requires acceptance and applies directional group permissions", async () => {
+    const a = await user("group-a"),
+      b = await user("group-b"),
+      outsider = await user("outsider");
+    const id = await makeGroup(a);
+    await groupAction(a, id, "invite", { username: b.username });
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    const pending = await (await listGroups(req(b, "/api/groups"))).json();
+    expect(pending.groups[0].members).toEqual([]);
+    expect(
+      (await groupAction(b, id, "sharing", { giving: permission })).status,
+    ).toBe(403);
+    expect(
+      (await groupAction(outsider, id, "accept", { giving: permission }))
+        .status,
+    ).toBe(404);
+    expect(
+      (
+        await groupAction(b, id, "accept", {
+          giving: { calendar: false, plans: false },
+        })
+      ).status,
+    ).toBe(200);
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    expect((await viewCalendar(a, b)).calendars).toHaveLength(1);
+    expect(
+      (await (await plans(req(b, "/api/plans"))).json()).shared,
+    ).toHaveLength(1);
+    expect(
+      (await groupAction(b, id, "invite", { username: outsider.username }))
+        .status,
+    ).toBe(403);
+    expect((await groupAction(b, id, "delete")).status).toBe(403);
+    expect(
+      (
+        await groupAction(a, id, "override", {
+          target: outsider.id,
+          giving: permission,
+        })
+      ).status,
+    ).toBe(404);
+  });
+  it("a deny overrides multiple groups and friendship; resetting, leaving and deletion re-evaluate access", async () => {
+    const a = await user("group-a"),
+      b = await user("group-b");
+    const first = await makeGroup(a),
+      second = await makeGroup(a);
+    await joinGroup(a, b, first);
+    await joinGroup(a, b, second);
+    await requestFriend(a.id, b.id, { calendar: true, plans: true });
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", {
+        id: a.id,
+        action: "accept",
+        giving: permission,
+      }),
+    );
+    await groupAction(a, first, "override", {
+      target: b.id,
+      giving: { calendar: false, plans: false },
+    });
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    expect(
+      (await (await plans(req(b, "/api/plans"))).json()).shared,
+    ).toHaveLength(0);
+    await groupAction(a, second, "reset", { target: b.id });
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    await changeFriend(
+      req(a, "/api/friends", "PATCH", {
+        id: b.id,
+        action: "sharing",
+        giving: { calendar: false, plans: false },
+      }),
+    );
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    await groupAction(a, first, "reset", { target: b.id });
+    await changeFriend(
+      req(a, "/api/friends", "PATCH", { id: b.id, action: "remove" }),
+    );
+    await groupAction(b, first, "leave");
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    await groupAction(a, second, "delete");
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    expect(
+      (await database().select().from(tables.members)).filter(
+        (m) => m.userId === b.id,
+      ),
+    ).toHaveLength(0);
+  });
+  it("blocks group-only contacts and prevents stale explicit allows from surviving removal", async () => {
+    const a = await user("group-a"),
+      b = await user("group-b");
+    const id = await makeGroup(a);
+    await joinGroup(a, b, id);
+    await groupAction(a, id, "override", {
+      target: b.id,
+      giving: { calendar: true, plans: true },
+    });
+    expect(
+      (
+        await changeFriend(
+          req(a, "/api/friends", "PATCH", { id: b.id, action: "block" }),
+        )
+      ).status,
+    ).toBe(200);
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    expect((await viewCalendar(a, b)).calendars).toHaveLength(1);
+    await changeFriend(
+      req(a, "/api/friends", "PATCH", { id: b.id, action: "unblock" }),
+    );
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(2);
+    await groupAction(a, id, "remove", { target: b.id });
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+  });
+  it("returns only authorized matching attendees by default and clears them on revocation", async () => {
+    const a = await user("group-a"),
+      b = await user("group-b"),
+      c = await user("group-c");
+    for (const u of [a, b, c])
+      await database()
+        .insert(tables.snapshots)
+        .values({
+          userId: u.id,
+          semester,
+          window: semesterWindow(semester),
+          events: [lesson],
+        });
+    const id = await makeGroup(a);
+    await joinGroup(a, b, id);
+    const result = await viewCalendar(b);
+    expect(result.calendars).toHaveLength(1);
+    expect(
+      result.attendees[lesson.id].map((p: { id: string }) => p.id),
+    ).toEqual([a.id]);
+    expect(result.people.map((p: { id: string }) => p.id)).not.toContain(c.id);
+    await groupAction(a, id, "sharing", {
+      giving: { calendar: false, plans: true },
+    });
+    expect((await viewCalendar(b)).attendees).toEqual({});
+    expect(
+      (await (await plans(req(b, "/api/plans"))).json()).shared,
+    ).toHaveLength(1);
+  });
+  it("serializes duplicate group invitations and cascades account deletion", async () => {
+    const a = await user("group-a"),
+      b = await user("group-b");
+    const id = await makeGroup(a);
+    const replies = await Promise.all(
+      [1, 2].map(() => groupAction(a, id, "invite", { username: b.username })),
+    );
+    expect(replies.map((r) => r.status).sort()).toEqual([200, 409]);
+    await deleteMe(req(a, "/api/me", "DELETE", { confirm: "DELETE" }));
+    expect(await database().select().from(tables.groups)).toHaveLength(0);
+    expect(await database().select().from(tables.members)).toHaveLength(0);
+  });
+});
+describe("personal subjects and events", () => {
+  it("supports own CRUD, includes weekly events in authorized calendars, and denies ID tampering", async () => {
+    const a = await user("event-a"),
+      b = await user("event-b");
+    const created = await createEvent(
+      req(a, "/api/events", "POST", { semester, event: personal }),
+    );
+    expect(created.status).toBe(200);
+    const { id } = await created.json();
+    const own = await viewCalendar(a);
+    expect(own.calendars[0].events).toHaveLength(3);
+    expect(own.calendars[0].events[0]).toMatchObject({
+      course: "TV1-PE",
+      type: "personal",
+      color: "#158b98",
+    });
+    expect(
+      (await (await listEvents(req(b, "/api/events"))).json()).events,
+    ).toHaveLength(0);
+    expect(
+      (await editEvent(req(b, "/api/events", "PATCH", { id, event: personal })))
+        .status,
+    ).toBe(404);
+    expect(
+      (await deleteEvent(req(b, "/api/events", "DELETE", { id }))).status,
+    ).toBe(404);
+    const group = await makeGroup(a);
+    await joinGroup(a, b, group);
+    expect((await viewCalendar(b, a)).calendars[1].events).toHaveLength(3);
+    expect(
+      (
+        await editEvent(
+          req(a, "/api/events", "PATCH", {
+            id,
+            event: {
+              ...personal,
+              course: "TV2",
+              color: "#ff8800",
+              repeatUntil: null,
+            },
+          }),
+        )
+      ).status,
+    ).toBe(200);
+    const shared = (await viewCalendar(b, a)).calendars[1].events;
+    expect(shared).toHaveLength(1);
+    expect(shared[0].course).toBe("TV2");
+    expect(shared[0].color).toBe("#ff8800");
+    await groupAction(a, group, "override", {
+      target: b.id,
+      giving: { calendar: false, plans: false },
+    });
+    expect((await viewCalendar(b, a)).calendars).toHaveLength(1);
+    await deleteEvent(req(a, "/api/events", "DELETE", { id }));
+    expect((await viewCalendar(a)).calendars[0].events).toHaveLength(0);
+  });
+  it("rejects invalid intervals, excessive recurrence, CSS injection and cross-origin writes", async () => {
+    const a = await user("event-a");
+    for (const invalid of [
+      { end: personal.start },
+      { start: "not-a-date" },
+      { repeatUntil: "2028-01-01" },
+      { color: "url(https://example.org)" },
+      { repeatUntil: "2026-02-30" },
+    ])
+      expect(
+        (
+          await createEvent(
+            req(a, "/api/events", "POST", {
+              semester,
+              event: { ...personal, ...invalid },
+            }),
+          )
+        ).status,
+      ).toBe(400);
+    expect(
+      (
+        await createEvent(
+          req(
+            a,
+            "/api/events",
+            "POST",
+            { semester, event: personal },
+            "https://attacker.invalid",
+          ),
+        )
+      ).status,
+    ).toBe(403);
+    expect(await database().select().from(tables.personalEvents)).toHaveLength(
+      0,
+    );
+  });
+});

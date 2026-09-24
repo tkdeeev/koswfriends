@@ -13,7 +13,7 @@ export async function GET() {
         status: worker ? "ready" : "degraded",
         database: "ok",
         worker: worker ? "ok" : "stale",
-        version: process.env.APP_VERSION || "0.1.2",
+        version: process.env.APP_VERSION || "0.2.0",
         revision: process.env.APP_REVISION || "local",
       },
       worker ? 200 : 503,

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { Friend, Grant } from "@/lib/types";
 import type { Locale, Text } from "@/lib/i18n";
+import Avatar from "./Avatar";
 import s from "./Workspace.module.css";
 export type Mutate = (
   path: string,
@@ -12,14 +13,16 @@ export function Sharing({
   value,
   change,
   t,
+  legend,
 }: {
+  legend?: string;
   value: Grant;
   change: (g: Grant) => void;
   t: Text;
 }) {
   return (
     <fieldset className={s.sharing}>
-      <legend>{t.shareBefore}</legend>
+      <legend>{legend || t.shareBefore}</legend>
       <label className={s.check}>
         <input
           type="checkbox"
@@ -68,9 +71,7 @@ function FriendRow({
     <article className={s.friendRow}>
       <div className={s.rowHead}>
         <div className={s.person}>
-          <span className={s.avatar}>
-            {friend.username.slice(0, 2).toUpperCase()}
-          </span>
+          <Avatar person={friend} />
           <strong>{friend.username}</strong>
         </div>
         {friend.status === "pending" && (

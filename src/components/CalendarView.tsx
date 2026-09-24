@@ -1,41 +1,52 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { DateTime } from "luxon";
 import {
-  commonLessons,
-  daySegments,
-  semesterWindow,
-  ZONE,
-} from "@/lib/calendar";
-import type { Calendar, Choice, Friend, Lesson, Me } from "@/lib/types";
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
+import { DateTime } from "luxon";
+import { daySegments, semesterWindow, ZONE } from "@/lib/calendar";
+import type { Calendar, Choice, Lesson, Me, Person } from "@/lib/types";
 import { lessonType, type Locale, type Text } from "@/lib/i18n";
+import { lessonColor } from "@/lib/appearance";
+import { PERSONAL_COLOR } from "@/lib/personal-events";
+import Avatar, { AvatarStack } from "./Avatar";
 import s from "./Workspace.module.css";
 type Display = {
   lesson: Lesson;
-  attendees: string[];
+  attendees: Person[];
   own: boolean;
   draft: boolean;
 };
+const SCALE = 1.4;
+const colorStyle = (type: string, custom?: string) =>
+  ({ "--lesson-color": custom || lessonColor(type) }) as CSSProperties;
 export default function CalendarView({
   me,
   calendars,
-  friends,
+  people,
+  attendees,
   selected,
   setSelected,
   choices,
   locale,
   t,
   onFriends,
+  onEditEvent,
 }: {
   me: Me;
   calendars: Calendar[];
-  friends: Friend[];
+  people: Person[];
+  attendees: Record<string, Person[]>;
   selected: string[];
   setSelected: (ids: string[]) => void;
   choices: Choice[];
   locale: Locale;
   t: Text;
   onFriends: () => void;
+  onEditEvent: (id?: string) => void;
 }) {
   const [date, setDate] = useState(() => {
     const now = DateTime.now().setZone(ZONE).startOf("day");
@@ -52,39 +63,44 @@ export default function CalendarView({
   const [detail, setDetail] = useState<Display | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const week = date.startOf("week");
-  const days = Array.from({ length: 7 }, (_, i) =>
-    week.plus({ days: i }).setLocale(locale),
-  );
   const now = DateTime.now().setZone(ZONE);
   const own = calendars.find((c) => c.userId === me.id);
   const displays = useMemo(() => {
     const map = new Map<string, Display>();
-    const friendEvents = calendars
-      .filter((c) => c.userId !== me.id)
-      .flatMap((c) => c.events);
-    const common = new Set(
-      commonLessons(own?.events || [], friendEvents).map((e) => e.id),
-    );
-    for (const calendar of calendars)
+    for (const calendar of calendars) {
+      if (calendar.userId !== me.id && !selected.includes(calendar.userId))
+        continue;
       for (const event of calendar.events) {
-        if (onlyShared && !common.has(event.id)) continue;
         if (
           Date.parse(event.end) <= week.toMillis() ||
           Date.parse(event.start) >= week.plus({ days: 7 }).toMillis()
         )
           continue;
-        const prev = map.get(event.id);
-        if (prev) {
-          prev.attendees.push(calendar.username);
-          prev.own ||= calendar.userId === me.id;
-        } else
-          map.set(event.id, {
-            lesson: event,
-            attendees: [calendar.username],
-            own: calendar.userId === me.id,
-            draft: false,
-          });
+        const person = {
+          id: calendar.userId,
+          username: calendar.username,
+          name: calendar.name,
+        };
+        const item = map.get(event.id) || {
+          lesson: event,
+          attendees: [],
+          own: false,
+          draft: false,
+        };
+        item.own ||= calendar.userId === me.id;
+        if (calendar.userId === me.id) item.lesson = event;
+        const matches =
+          calendar.userId === me.id && !event.cancelled
+            ? attendees[event.id] || []
+            : [];
+        item.attendees = [
+          ...new Map(
+            [...item.attendees, person, ...matches].map((p) => [p.id, p]),
+          ).values(),
+        ];
+        map.set(event.id, item);
       }
+    }
     if (drafts && !onlyShared)
       for (const event of choices.flatMap((c) => c.events)) {
         if (
@@ -95,17 +111,21 @@ export default function CalendarView({
           continue;
         map.set(event.id, {
           lesson: event,
-          attendees: [me.username],
+          attendees: [me],
           own: true,
           draft: true,
         });
       }
-    return [...map.values()];
+    return [...map.values()].filter(
+      (item) =>
+        !onlyShared ||
+        (item.own && !item.lesson.cancelled && item.attendees.length > 1),
+    );
   }, [
     calendars,
-    own,
-    me.id,
-    me.username,
+    attendees,
+    selected,
+    me,
     choices,
     onlyShared,
     drafts,
@@ -124,6 +144,12 @@ export default function CalendarView({
   const slices = displays.flatMap((d) =>
     daySegments(d.lesson).map((segment) => ({ ...segment, display: d })),
   );
+  const days = Array.from({ length: 7 }, (_, i) =>
+    week.plus({ days: i }).setLocale(locale),
+  ).filter(
+    (d) => d.weekday <= 5 || slices.some((e) => e.date === d.toISODate()),
+  );
+  const activeDay = days.find((d) => d.hasSame(date, "day")) || days[0];
   const startHour = Math.min(
     8,
     ...slices.map((x) => Math.floor(x.startMinute / 60)),
@@ -132,70 +158,78 @@ export default function CalendarView({
     20,
     ...slices.map((x) => Math.ceil(x.endMinute / 60)),
   );
+  const time = (iso: string) =>
+    DateTime.fromISO(iso).setZone(ZONE).toFormat("HH:mm");
   const open = (item: Display) => {
     setDetail(item);
     dialog.current?.showModal();
   };
-  const time = (iso: string) =>
-    DateTime.fromISO(iso).setZone(ZONE).toFormat("HH:mm");
-  const available = friends.filter(
-    (f) => f.status === "accepted" && f.receiving.calendar,
-  );
+  const arranged = days.map((day) => {
+    const events = slices
+      .filter((e) => e.date === day.toISODate())
+      .sort((a, b) => a.startMinute - b.startMinute);
+    const placed: ((typeof events)[number] & {
+      column: number;
+      columns: number;
+    })[] = [];
+    let cluster: typeof placed = [],
+      clusterEnd = -1;
+    const finish = () => {
+      const columns = Math.max(1, ...cluster.map((x) => x.column + 1));
+      cluster.forEach((x) => (x.columns = columns));
+      cluster = [];
+    };
+    for (const event of events) {
+      if (event.startMinute >= clusterEnd) {
+        finish();
+        clusterEnd = -1;
+      }
+      const used = new Set(
+        cluster
+          .filter((x) => x.endMinute > event.startMinute)
+          .map((x) => x.column),
+      );
+      let column = 0;
+      while (used.has(column)) column++;
+      const item = { ...event, column, columns: 1 };
+      placed.push(item);
+      cluster.push(item);
+      clusterEnd = Math.max(clusterEnd, event.endMinute);
+    }
+    finish();
+    return {
+      day,
+      placed,
+      width: Math.max(180, ...placed.map((p) => p.columns * 126)),
+    };
+  });
+  const columns = `52px ${arranged.map((d) => `minmax(${d.width}px, 1fr)`).join(" ")}`;
+  const gridStyle = {
+    gridTemplateColumns: columns,
+    minWidth: 52 + arranged.reduce((n, d) => n + d.width, 0),
+  };
   const dayEvents = displays
     .filter((d) =>
-      daySegments(d.lesson).some((seg) => seg.date === date.toISODate()),
+      daySegments(d.lesson).some((seg) => seg.date === activeDay.toISODate()),
     )
     .sort((a, b) => Date.parse(a.lesson.start) - Date.parse(b.lesson.start));
+  const title = (item: Display) =>
+    `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map((p) => p.username).join(", ")}`;
   return (
-    <div className={s.workspace}>
-      <aside className={s.sidebar}>
-        <div className={s.sidebarSection}>
-          <h2>{t.yourCalendar}</h2>
-          <label className={s.check}>
-            <input type="checkbox" checked disabled />
-            <span>{me.username}</span>
-          </label>
-          <p className={s.hint}>
-            {own?.lastSuccess
-              ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
-              : t.neverSynced}
-          </p>
-        </div>
-        <div className={s.sidebarSection}>
-          <details open>
-            <summary>{t.compare}</summary>
-            <div className={s.sidebarDetails}>
-              {available.map((f) => (
-                <label className={s.check} key={f.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(f.id)}
-                    onChange={(e) =>
-                      setSelected(
-                        e.target.checked
-                          ? [...selected, f.id]
-                          : selected.filter((id) => id !== f.id),
-                      )
-                    }
-                  />
-                  <span>{f.username}</span>
-                </label>
-              ))}
-              {!available.length && <p className={s.hint}>{t.noFriendsBody}</p>}
-              <button className={s.quiet} onClick={onFriends}>
-                + {t.addFriend}
-              </button>
-            </div>
-          </details>
-        </div>
-        <div className={s.sidebarSection}>
+    <div className={s.calendarWorkspace}>
+      <section className={s.calendarFilters} aria-label={t.legend}>
+        <div className={s.filterRow}>
+          <div className={s.person}>
+            <Avatar person={me} />
+            <strong>{t.yourCalendar}</strong>
+          </div>
           <label className={s.check}>
             <input
               type="checkbox"
               checked={onlyShared}
               onChange={(e) => setOnlyShared(e.target.checked)}
             />
-            <span>{t.commonOnly}</span>
+            {t.commonOnly}
           </label>
           <label className={s.check}>
             <input
@@ -203,26 +237,59 @@ export default function CalendarView({
               checked={drafts}
               onChange={(e) => setDrafts(e.target.checked)}
             />
-            <span>{t.showDrafts}</span>
+            {t.showDrafts}
           </label>
+          <button
+            className={`${s.button} ${s.secondary} ${s.small}`}
+            onClick={() => onEditEvent()}
+          >
+            {t.personalEvents}
+          </button>
+          <span className={s.syncLabel}>
+            {own?.lastSuccess
+              ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
+              : t.neverSynced}
+          </span>
         </div>
-        <div className={s.sidebarSection}>
-          <h2>{t.legend}</h2>
-          <div className={s.legendRow}>
-            <i className={s.swatch} />
-            {t.own}
+        <details className={s.overlayPicker}>
+          <summary>
+            {t.overlay}
+            {selected.length ? ` · ${selected.length}` : ""}
+          </summary>
+          <p className={s.hint}>{t.overlayHint}</p>
+          <div className={s.filterRow}>
+            {people.map((person) => (
+              <label className={s.personChip} key={person.id}>
+                <input
+                  type="checkbox"
+                  aria-label={person.username}
+                  checked={selected.includes(person.id)}
+                  disabled={
+                    selected.length >= 30 && !selected.includes(person.id)
+                  }
+                  onChange={(e) =>
+                    setSelected(
+                      e.target.checked
+                        ? [...selected, person.id]
+                        : selected.filter((id) => id !== person.id),
+                    )
+                  }
+                />
+                <Avatar person={person} small />
+                <span>{person.username}</span>
+              </label>
+            ))}
+            {selected.length > 0 && (
+              <button className={s.quiet} onClick={() => setSelected([])}>
+                {t.clearOverlay}
+              </button>
+            )}
+            <button className={s.quiet} onClick={onFriends}>
+              + {t.addFriend}
+            </button>
           </div>
-          <div className={s.legendRow}>
-            <i className={`${s.swatch} ${s.outlineSwatch}`} />
-            {t.friend}
-          </div>
-          <div className={s.legendRow}>
-            <i className={`${s.swatch} ${s.draftSwatch}`} />
-            {t.draft}
-          </div>
-          <p className={s.hint}>{t.prague} · Europe/Prague</p>
-        </div>
-      </aside>
+        </details>
+      </section>
       <section className={s.calendarArea} aria-label={t.timetable}>
         <div className={s.calendarToolbar}>
           <h2>
@@ -252,11 +319,24 @@ export default function CalendarView({
             </button>
           </div>
         </div>
+        <div className={s.typeLegend}>
+          {["lecture", "tutorial", "laboratory", "exam"].map((type) => (
+            <span key={type}>
+              <i style={{ background: lessonColor(type) }} />
+              {lessonType(type, locale)}
+            </span>
+          ))}
+          <span>
+            <i style={{ background: PERSONAL_COLOR }} />
+            {t.personalType}
+          </span>
+          <span className={s.muted}>{t.prague}</span>
+        </div>
         <div className={s.mobileControls}>
           {days.map((d) => (
             <button
               key={d.toISODate()}
-              className={d.hasSame(date, "day") ? s.selectedDay : ""}
+              className={d.hasSame(activeDay, "day") ? s.selectedDay : ""}
               onClick={() => setDate(d)}
             >
               {d.toFormat("ccc")}
@@ -274,12 +354,13 @@ export default function CalendarView({
         )}
         {displays.length > 0 && (
           <div className={s.calendarFrame}>
-            <div className={s.dayHeaders}>
+            <div className={s.dayHeaders} style={gridStyle}>
               <div />
               {days.map((d) => (
                 <div
                   className={`${s.dayHeader} ${d.hasSame(now, "day") ? s.current : ""}`}
                   key={d.toISODate()}
+                  data-date={d.toISODate()}
                 >
                   {d.toFormat("cccc")}
                   <strong>{d.day}</strong>
@@ -288,109 +369,100 @@ export default function CalendarView({
             </div>
             <div
               className={s.gridBody}
-              style={{ height: (endHour - startHour) * 60 }}
+              style={{
+                ...gridStyle,
+                height: (endHour - startHour) * 60 * SCALE,
+              }}
             >
               <div className={s.timeColumn}>
                 {Array.from({ length: endHour - startHour }, (_, i) => (
                   <div
                     className={s.timeTick}
                     key={i}
-                    style={{ top: i * 60 + 10 }}
+                    style={{ top: i * 60 * SCALE + 10 }}
                   >
                     {String(startHour + i).padStart(2, "0")}:00
                   </div>
                 ))}
               </div>
-              {days.map((d) => {
-                const events = slices
-                  .filter((e) => e.date === d.toISODate())
-                  .sort((a, b) => a.startMinute - b.startMinute);
-                const placed: ((typeof events)[number] & {
-                  column: number;
-                  columns: number;
-                })[] = [];
-                let cluster: typeof placed = [];
-                let clusterEnd = -1;
-                const finalize = () => {
-                  const columns = Math.max(
-                    1,
-                    ...cluster.map((x) => x.column + 1),
-                  );
-                  cluster.forEach((x) => (x.columns = columns));
-                  cluster = [];
-                };
-                for (const event of events) {
-                  if (event.startMinute >= clusterEnd) finalize();
-                  const used = new Set(
-                    cluster
-                      .filter((x) => x.endMinute > event.startMinute)
-                      .map((x) => x.column),
-                  );
-                  let col = 0;
-                  while (used.has(col)) col++;
-                  const item = { ...event, column: col, columns: 1 };
-                  placed.push(item);
-                  cluster.push(item);
-                  clusterEnd = Math.max(clusterEnd, event.endMinute);
-                }
-                finalize();
-                return (
-                  <div className={s.dayColumn} key={d.toISODate()}>
-                    {placed.map(
-                      ({
-                        display: item,
-                        startMinute,
-                        endMinute,
-                        column,
-                        columns,
-                      }) => (
+              {arranged.map(({ day, placed }) => (
+                <div className={s.dayColumn} key={day.toISODate()}>
+                  {placed.map(
+                    ({
+                      display: item,
+                      startMinute,
+                      endMinute,
+                      column,
+                      columns,
+                    }) => {
+                      const height = Math.max(
+                        22,
+                        (endMinute - startMinute) * SCALE - 3,
+                      );
+                      const peers = item.attendees.filter(
+                        (p) => p.id !== me.id,
+                      );
+                      return (
                         <button
                           key={item.lesson.id}
-                          aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.join(", ")}`}
+                          aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map((p) => p.username).join(", ")}`}
+                          title={`${title(item)}\n${t.allDetails}`}
+                          data-lesson-type={item.lesson.type}
                           className={`${s.lesson} ${!item.own ? s.friendLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
                           style={{
-                            top: startMinute - startHour * 60,
-                            height: Math.max(22, endMinute - startMinute - 2),
-                            left: `calc(${(column * 100) / columns}% + 2px)`,
-                            width: `calc(${100 / columns}% - 4px)`,
+                            ...colorStyle(item.lesson.type, item.lesson.color),
+                            top: (startMinute - startHour * 60) * SCALE,
+                            height,
+                            left: `calc(${(column * 100) / columns}% + 3px)`,
+                            width: `calc(${100 / columns}% - 6px)`,
                           }}
                           onClick={() => open(item)}
                         >
                           <b>
                             {item.lesson.course || item.lesson.title[locale]}
                           </b>
-                          <span>
-                            {time(item.lesson.start)}–{time(item.lesson.end)}
-                          </span>
-                          <span>
-                            {item.lesson.room} · {item.lesson.group}
-                          </span>
-                          <span>
-                            {item.draft
-                              ? t.draft
-                              : item.attendees.length > 1
-                                ? `${t.sharedLesson} · ${item.attendees.length}`
-                                : !item.own
-                                  ? item.attendees[0]
-                                  : t.own}
-                          </span>
-                          {item.lesson.cancelled && <span>{t.cancelled}</span>}
+                          {height >= 44 && (
+                            <span className={s.lessonTime}>
+                              {time(item.lesson.start)}–{time(item.lesson.end)}
+                            </span>
+                          )}
+                          {height >= 100 && (
+                            <span className={s.lessonMeta}>
+                              {item.lesson.room}
+                              {item.lesson.group
+                                ? ` · ${item.lesson.group}`
+                                : ""}
+                            </span>
+                          )}
+                          {height >= 120 && (
+                            <span className={s.lessonKind}>
+                              {item.draft
+                                ? t.draft
+                                : lessonType(item.lesson.type, locale)}
+                              {item.lesson.cancelled ? ` · ${t.cancelled}` : ""}
+                            </span>
+                          )}
+                          {height >= 80 && peers.length > 0 && (
+                            <AvatarStack people={peers} />
+                          )}
                         </button>
-                      ),
+                      );
+                    },
+                  )}
+                  {day.hasSame(now, "day") &&
+                    now.hour >= startHour &&
+                    now.hour < endHour && (
+                      <div
+                        className={s.nowLine}
+                        style={{
+                          top:
+                            (now.hour * 60 + now.minute - startHour * 60) *
+                            SCALE,
+                        }}
+                      />
                     )}
-                    {d.hasSame(now, "day") &&
-                      now.hour >= startHour &&
-                      now.hour < endHour && (
-                        <div
-                          className={s.nowLine}
-                          style={{
-                            top: now.hour * 60 + now.minute - startHour * 60,
-                          }}
-                        />
-                      )}
-                  </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -399,6 +471,7 @@ export default function CalendarView({
             <button
               key={item.lesson.id}
               className={`${s.agendaEvent} ${!item.own ? s.agendaFriend : ""} ${item.draft ? s.agendaDraft : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
+              style={colorStyle(item.lesson.type, item.lesson.color)}
               onClick={() => open(item)}
             >
               <div className={s.agendaTime}>
@@ -409,11 +482,13 @@ export default function CalendarView({
               <div>
                 <b>{item.lesson.course || item.lesson.title[locale]}</b>
                 <span>
-                  {item.lesson.room} · {item.lesson.group}
-                  <br />
-                  {item.draft ? t.draft : item.attendees.join(", ")}
+                  {lessonType(item.lesson.type, locale)} · {item.lesson.room} ·{" "}
+                  {item.lesson.group}
                   {item.lesson.cancelled ? ` · ${t.cancelled}` : ""}
                 </span>
+                <AvatarStack
+                  people={item.attendees.filter((p) => p.id !== me.id)}
+                />
               </div>
             </button>
           ))}
@@ -424,7 +499,7 @@ export default function CalendarView({
           )}
         </div>
       </section>
-      <dialog ref={dialog}>
+      <dialog ref={dialog} onClose={() => setDetail(null)}>
         <div className={s.dialogTitle}>
           <h2>{detail?.lesson.course || t.lesson}</h2>
           <button
@@ -460,8 +535,34 @@ export default function CalendarView({
               <dt>{t.room}</dt>
               <dd>{detail.lesson.room || "—"}</dd>
               <dt>{t.attendees}</dt>
-              <dd>{detail.attendees.join(", ")}</dd>
+              <dd className={s.attendeeList}>
+                {detail.attendees.map((p) => (
+                  <span className={s.person} key={p.id}>
+                    <Avatar person={p} />
+                    <span>
+                      {p.name || p.username}
+                      {p.name && p.name !== p.username && (
+                        <small>{p.username}</small>
+                      )}
+                    </span>
+                  </span>
+                ))}
+              </dd>
             </dl>
+            {detail.lesson.note && (
+              <p className={s.eventNote}>{detail.lesson.note}</p>
+            )}
+            {detail.lesson.personalId && detail.own && (
+              <button
+                className={s.button}
+                onClick={() => {
+                  dialog.current?.close();
+                  onEditEvent(detail.lesson.personalId);
+                }}
+              >
+                {t.editPersonal}
+              </button>
+            )}
             {detail.draft && <p className={s.hint}>{t.plannerIntro}</p>}
           </>
         )}
