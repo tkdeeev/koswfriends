@@ -1,4 +1,5 @@
 "use client";
+import { displayName } from "@/lib/appearance";
 import { useState } from "react";
 import { DateTime } from "luxon";
 import type { Calendar, Choice, Lesson, Localized, Me } from "@/lib/types";
@@ -9,6 +10,7 @@ import s from "./Workspace.module.css";
 export type SharedPlan = {
   userId: string;
   username: string;
+  name: string;
   choices: Choice[];
 };
 export type Read = (path: string) => Promise<any>;
@@ -324,7 +326,7 @@ export default function PlannerView({
           )}
           {shared.map((p) => (
             <div className={s.sharedPlan} key={p.userId}>
-              <strong>{p.username}</strong>
+              <strong>{displayName(p)}</strong>
               {!p.choices.length && <p className={s.hint}>{t.noChoices}</p>}
               {p.choices.map((c) => (
                 <div className={s.sharedChoice} key={c.id}>

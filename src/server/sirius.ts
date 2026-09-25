@@ -89,6 +89,28 @@ export async function sirius(
     headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
   });
 }
+/** Keep only the signed-in person's display name, never the provider's calendar token. */
+export async function fetchPersonName(token: string, username: string) {
+  const response = await sirius(
+    token,
+    `/people/${encodeURIComponent(username)}`,
+  );
+  const parsed = z
+    .object({
+      people: z.object({
+        id: z.string(),
+        full_name: z.string().trim().min(1).max(200),
+      }),
+    })
+    .safeParse(response);
+  if (
+    !parsed.success ||
+    parsed.data.people.id.toLowerCase() !== username.toLowerCase()
+  )
+    throw new AppError("provider_format", 502);
+  return parsed.data.people.full_name.replace(/\s+/g, " ");
+}
+
 export async function resolveSemester(
   token: string,
   code: string,

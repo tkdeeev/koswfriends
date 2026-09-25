@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { Text } from "@/lib/i18n";
 import s from "./Workspace.module.css";
+import Icon from "./Icon";
 function applyTheme(dark: boolean) {
   document.documentElement.dataset.theme = dark ? "dark" : "light";
   document
@@ -46,7 +47,7 @@ export default function ThemeToggle({ t }: { t: Text }) {
         } catch {}
       }}
     >
-      <span aria-hidden>{dark ? "☀" : "☾"}</span>
+      <Icon name={dark ? "sun" : "moon"} />
     </button>
   );
 }

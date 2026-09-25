@@ -7,6 +7,7 @@ import { ZONE } from "../../src/lib/calendar";
 if (process.env.KWF_TEST_DATABASE !== "yes")
   throw new Error("Only synthetic test databases are allowed");
 import { seed } from "./fixtures";
+import { connections, addConnection, expand } from "./connections-helpers";
 test.afterAll(closeDatabase);
 test("bilingual landing page, square controls and desktop/mobile layout", async ({
   page,
@@ -73,12 +74,14 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
   const b = await seed(second);
   const pageB = await second.newPage();
   await page.goto("/");
-  await page.getByRole("button", { name: "Friends", exact: true }).click();
+  await connections(page, "Friends");
+  await addConnection(page, "Friends");
   await page.getByLabel("School username", { exact: true }).fill(b.username);
   await page.getByRole("button", { name: /Send request/ }).click();
   await expect(page.getByText("Request sent", { exact: true })).toBeVisible();
   await pageB.goto("/");
-  await pageB.getByRole("button", { name: "Friends", exact: true }).click();
+  await connections(pageB, "Friends");
+  await expand(pageB.locator("article").filter({ hasText: a.username }));
   await pageB.getByRole("button", { name: "Accept", exact: true }).click();
   await pageB.getByRole("button", { name: "Timetable", exact: true }).click();
   await expect(
@@ -104,6 +107,7 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
     .click();
   await expect(pageB.locator("dialog[open]")).toBeVisible();
   const row = page.locator("article").filter({ hasText: b.username });
+  await expand(row);
   await row.getByLabel("My timetable", { exact: true }).uncheck();
   await row.getByRole("button", { name: "Save sharing" }).click();
   await expect(
@@ -146,12 +150,18 @@ test("manual draft CRUD, conflicts, invitation creation and responsive timetable
     path: "test-results/planner-desktop.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Friends", exact: true }).click();
+  await connections(page, "Friends");
+  const add = await addConnection(page, "Friends");
+  await add
+    .locator("summary")
+    .filter({ hasText: "Invite with a link" })
+    .click();
   await page.getByRole("button", { name: "Create invite" }).click();
   await expect(page.locator('a[href*="?invite="]')).toBeVisible();
   await page.getByRole("button", { name: "Revoke link" }).click();
   await expect(page.locator('a[href*="?invite="]')).toHaveCount(0);
-  for (const tab of ["Timetable", "Friends", "Semester planner"]) {
+  await add.getByRole("button", { name: "Close", exact: true }).click();
+  for (const tab of ["Timetable", "Connections", "Semester planner"]) {
     await page.getByRole("button", { name: tab, exact: true }).click();
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
@@ -188,19 +198,22 @@ test("group invitation, personal override and leave update default attendee icon
   const b = await seed(second),
     pageB = await second.newPage();
   await page.goto("/");
-  await page.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(page, "Groups");
+  await addConnection(page, "Groups");
   await page.getByLabel("Group name", { exact: true }).fill("Study crew");
   await page.getByRole("button", { name: "Create group", exact: true }).click();
   const group = page.getByRole("region", { name: "Study crew", exact: true });
   await expect(group).toBeVisible();
+  await expand(group);
   await group.getByLabel("School username", { exact: true }).fill(b.username);
   await group.getByRole("button", { name: "Invite member" }).click();
   await pageB.goto("/");
   await expect(
     pageB.getByRole("button", { name: new RegExp(`TEST-MAT.*${a.username}`) }),
   ).toHaveCount(0);
-  await pageB.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(pageB, "Groups");
   const groupB = pageB.getByRole("region", { name: "Study crew", exact: true });
+  await expand(groupB);
   await groupB.getByRole("button", { name: "Accept", exact: true }).click();
   await pageB.getByRole("button", { name: "Timetable", exact: true }).click();
   const common = pageB
@@ -211,6 +224,7 @@ test("group invitation, personal override and leave update default attendee icon
   await common.click();
   await expect(pageB.locator("dialog[open]")).toContainText(a.username);
   const member = group.locator("article").filter({ hasText: b.username });
+  await expand(member);
   await member.getByLabel("My timetable", { exact: true }).uncheck();
   await member
     .getByRole("button", { name: "Save sharing", exact: true })
@@ -231,7 +245,8 @@ test("group invitation, personal override and leave update default attendee icon
     .locator("dialog[open]")
     .getByRole("button", { name: "Close", exact: true })
     .click();
-  await pageB.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(pageB, "Groups");
+  await expand(groupB);
   await groupB
     .getByRole("button", { name: "Leave group", exact: true })
     .click();
@@ -344,17 +359,20 @@ test("group links survive sign-in, require joining and can be copied again or re
 }) => {
   await seed(context);
   await page.goto("/");
-  await page.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(page, "Groups");
+  await addConnection(page, "Groups");
   await page.getByLabel("Group name", { exact: true }).fill("Link crew");
   await page.getByRole("button", { name: "Create group", exact: true }).click();
   const group = page.getByRole("region", { name: "Link crew", exact: true });
+  await expand(group);
   await group.getByRole("button", { name: "Create group link" }).click();
   const href = await group
     .locator('a[href*="#groupInvite="]')
     .getAttribute("href");
   expect(href).toBeTruthy();
   await page.reload();
-  await page.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(page, "Groups");
+  await expand(group);
   await expect(group.locator('a[href*="#groupInvite="]')).toHaveAttribute(
     "href",
     href!,
@@ -403,7 +421,7 @@ test("group links survive sign-in, require joining and can be copied again or re
     .getByRole("region", { name: "Group invitation", exact: true })
     .getByRole("button", { name: "Cancel" })
     .click();
-  await pageB.getByRole("button", { name: "Groups", exact: true }).click();
+  await connections(pageB, "Groups");
   await expect(
     pageB.getByRole("region", { name: "Link crew", exact: true }),
   ).toBeVisible();
@@ -608,12 +626,13 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
     .locator("dialog[open]")
     .getByRole("button", { name: "Close", exact: true })
     .click();
-  for (const tab of ["Groups", "Friends", "Semester planner"]) {
+  for (const tab of ["Connections", "Semester planner"]) {
     await page.getByRole("button", { name: tab, exact: true }).click();
-    await expect(page.locator('[class*="panel"]').first()).toHaveCSS(
-      "background-color",
-      "rgb(20, 31, 41)",
-    );
+    await expect(
+      tab === "Connections"
+        ? page.getByRole("region", { name: "Friends", exact: true })
+        : page.locator('[class*="panel"]').first(),
+    ).toHaveCSS("background-color", "rgb(20, 31, 41)");
   }
   await page.getByRole("button", { name: "Timetable", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 844 });

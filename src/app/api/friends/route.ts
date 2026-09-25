@@ -17,7 +17,7 @@ const grant = z.object({ calendar: z.boolean(), plans: z.boolean() });
 export const GET = endpoint(async (req) => {
   const { user } = await session(req);
   const blocked = await database()
-    .select({ id: users.id, username: users.username })
+    .select({ id: users.id, username: users.username, name: users.name })
     .from(blocks)
     .innerJoin(users, eq(users.id, blocks.target))
     .where(eq(blocks.owner, user.id));

@@ -8,7 +8,11 @@ import { encrypt, decrypt, hash } from "../src/server/security";
 import { accessToken, validateToken } from "../src/server/oauth";
 import { requestFriend, pair } from "../src/server/friends";
 import { synchronize } from "../src/server/sync";
-import { fetchEvents, normalizePage } from "../src/server/sirius";
+import {
+  fetchEvents,
+  fetchPersonName,
+  normalizePage,
+} from "../src/server/sirius";
 import { semesterWindow } from "../src/lib/calendar";
 import { GET as calendar } from "../src/app/api/calendar/route";
 import { GET as plans, POST as savePlan } from "../src/app/api/plans/route";
@@ -468,6 +472,103 @@ describe("Sirius synchronization", () => {
     await expect(
       fetchEvents("fake", "/people/test-a/events", semesterWindow(semester)),
     ).rejects.toMatchObject({ code: "incomplete_import" });
+  });
+  it("reads only the matching personal profile name and rejects unusable identities", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          people: {
+            id: "test-a",
+            full_name: "  Jana   Nováková  ",
+            access_token: "private-calendar-token",
+            email: "private@example.invalid",
+          },
+        }),
+      ),
+    );
+    expect(await fetchPersonName("fake", "test-a")).toBe("Jana Nováková");
+    for (const people of [
+      { id: "test-b", full_name: "Wrong person" },
+      { id: "test-a", full_name: " " },
+      { id: "test-a" },
+      { id: "test-a", full_name: 42 },
+    ]) {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () => Response.json({ people })),
+      );
+      await expect(fetchPersonName("fake", "test-a")).rejects.toMatchObject({
+        code: "provider_format",
+      });
+    }
+  });
+  it("refreshes names during personal imports and preserves them when profile lookup fails", async () => {
+    const a = await user("test-a");
+    const b = await user("test-b");
+    let unavailable = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) => {
+        const path = new URL(String(url)).pathname;
+        if (path.endsWith("/people/test-a"))
+          return unavailable
+            ? Response.json({}, { status: 403 })
+            : Response.json({
+                people: {
+                  id: a.username,
+                  full_name: "Jana Nováková",
+                  access_token: "discard-me",
+                },
+              });
+        if (path.endsWith("/semesters"))
+          return Response.json({ semesters: [], meta: { count: 0 } });
+        if (path.endsWith("/people/test-a/events"))
+          return Response.json({ events: [], meta: { count: 0 } });
+        throw Error("Unexpected profile request");
+      }),
+    );
+    expect((await synchronize(a.id, semester, true))?.ok).toBe(true);
+    expect(
+      (
+        await database()
+          .select()
+          .from(tables.users)
+          .where(eq(tables.users.id, a.id))
+      )[0].name,
+    ).toBe("Jana Nováková");
+    expect(
+      (
+        await database()
+          .select()
+          .from(tables.users)
+          .where(eq(tables.users.id, b.id))
+      )[0].name,
+    ).toBe(b.username);
+    unavailable = true;
+    await database()
+      .update(tables.snapshots)
+      .set({ lastAttempt: new Date(0) });
+    expect((await synchronize(a.id, semester, true))?.ok).toBe(true);
+    expect(
+      (
+        await database()
+          .select()
+          .from(tables.users)
+          .where(eq(tables.users.id, a.id))
+      )[0].name,
+    ).toBe("Jana Nováková");
+    expect(
+      JSON.stringify(await database().select().from(tables.snapshots)),
+    ).not.toContain("discard-me");
+    expect(
+      (
+        await database()
+          .select()
+          .from(tables.connections)
+          .where(eq(tables.connections.userId, a.id))
+      )[0].reconnect,
+    ).toBe(false);
   });
   it("keeps the last snapshot after page failure and only removes events on a complete import", async () => {
     const a = await user("test-a");

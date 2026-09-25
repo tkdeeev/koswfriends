@@ -16,11 +16,13 @@ import PersonalEvents from "./PersonalEvents";
 import Avatar from "./Avatar";
 import ThemeToggle from "./ThemeToggle";
 import GroupInvitation from "./GroupInvitation";
-import GroupsView from "./GroupsView";
+import ConnectionsView, { type ConnectionTab } from "./ConnectionsView";
+import Icon from "./Icon";
+import { displayName } from "@/lib/appearance";
 import CalendarView from "./CalendarView";
 import Logo from "./Logo";
 import InstallApp from "./InstallApp";
-import FriendsView, { Sharing, type Invite } from "./FriendsView";
+import { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
 import s from "./Workspace.module.css";
 async function request(path: string, init: RequestInit = {}) {
@@ -43,8 +45,10 @@ export default function Workspace() {
   const t = copy[locale];
   const [me, setMe] = useState<Me | null | undefined>(undefined);
   const [view, setView] = useState<
-    "timetable" | "friends" | "groups" | "planner" | "account"
+    "timetable" | "connections" | "planner" | "account"
   >("timetable");
+  const [connectionTab, setConnectionTab] = useState<ConnectionTab>("friends");
+  const [addConnection, setAddConnection] = useState(false);
   const [events, setEvents] = useState<PersonalEvent[]>([]);
   const [eventEditor, setEventEditor] = useState(false);
   const [eventId, setEventId] = useState<string>();
@@ -52,9 +56,7 @@ export default function Workspace() {
   const [people, setPeople] = useState<Person[]>([]);
   const [attendees, setAttendees] = useState<Record<string, Person[]>>({});
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [blocked, setBlocked] = useState<{ id: string; username: string }[]>(
-    [],
-  );
+  const [blocked, setBlocked] = useState<Person[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [allOverlays, setAllOverlays] = useState(true);
   const previousPeople = useRef<string[]>([]);
@@ -155,7 +157,7 @@ export default function Workspace() {
         setRevoked(true);
       }
       setError((prev) => (prev === "offline" ? "" : prev));
-      if (view === "friends") {
+      if (view === "connections") {
         const i = await request("/api/invites");
         if (ticket === generation.current) setInvites(i.invites);
       }
@@ -194,7 +196,7 @@ export default function Workspace() {
   useEffect(() => {
     if (!me || !inviteToken) return;
     request(`/api/invites?token=${encodeURIComponent(inviteToken)}`)
-      .then((d) => setInviteFrom(d.username))
+      .then((d) => setInviteFrom(displayName(d)))
       .catch((e) => setError(e.message));
   }, [me?.id, inviteToken]);
   const read = useCallback(async (path: string) => {
@@ -246,18 +248,16 @@ export default function Workspace() {
         </a>
         {me && (
           <nav className={s.navigation} aria-label="Navigation">
-            {(["timetable", "friends", "groups", "planner"] as const).map(
-              (tab) => (
-                <button
-                  key={tab}
-                  aria-current={view === tab ? "page" : undefined}
-                  className={`${s.nav} ${view === tab ? s.active : ""}`}
-                  onClick={() => setView(tab)}
-                >
-                  {t[tab]}
-                </button>
-              ),
-            )}
+            {(["timetable", "connections", "planner"] as const).map((tab) => (
+              <button
+                key={tab}
+                aria-current={view === tab ? "page" : undefined}
+                className={`${s.nav} ${view === tab ? s.active : ""}`}
+                onClick={() => setView(tab)}
+              >
+                {t[tab]}
+              </button>
+            ))}
           </nav>
         )}
         <div className={s.headerEnd}>
@@ -285,7 +285,7 @@ export default function Workspace() {
             >
               <span className={s.identity}>
                 <Avatar person={me} />
-                <span className={s.accountUsername}>{me.username}</span>
+                <span className={s.accountUsername}>{displayName(me)}</span>
               </span>
             </button>
           )}
@@ -360,6 +360,19 @@ export default function Workspace() {
                 <p className={s.subtitle}>{t.plannerIntro}</p>
               )}
             </div>
+            {view === "connections" && (
+              <button
+                className={`${s.button} ${s.addConnection}`}
+                aria-label={t.addConnection}
+                onClick={() => {
+                  setError("");
+                  setAddConnection(true);
+                }}
+              >
+                <Icon name="plus" width={28} height={28} />
+                {t.add}
+              </button>
+            )}
             {(view === "timetable" || view === "planner") && (
               <div className={s.toolbar}>
                 <label className={s.semesterLabel}>
@@ -448,7 +461,8 @@ export default function Workspace() {
               dismiss={clearGroupInvite}
               joined={() => {
                 clearGroupInvite();
-                setView("groups");
+                setConnectionTab("groups");
+                setView("connections");
               }}
               onError={setError}
             />
@@ -472,7 +486,8 @@ export default function Workspace() {
                       setInviteToken("");
                       setInviteFrom("");
                       history.replaceState(null, "", "/");
-                      setView("friends");
+                      setConnectionTab("friends");
+                      setView("connections");
                     })
                     .catch(() => {})
                 }
@@ -506,7 +521,10 @@ export default function Workspace() {
                 choices={choices}
                 locale={locale}
                 t={t}
-                onFriends={() => setView("friends")}
+                onFriends={() => {
+                  setConnectionTab("friends");
+                  setView("connections");
+                }}
                 onEditEvent={(id) => {
                   setEventId(id);
                   setEventEditor(true);
@@ -524,24 +542,22 @@ export default function Workspace() {
               t={t}
             />
           )}
-          {view === "groups" && (
-            <GroupsView
+          {view === "connections" && (
+            <ConnectionsView
+              friends={friends}
+              blocked={blocked}
               groups={groups}
+              invites={invites}
               me={me}
               mutate={mutate}
               read={read}
               locale={locale}
               t={t}
-            />
-          )}
-          {view === "friends" && (
-            <FriendsView
-              friends={friends}
-              blocked={blocked}
-              invites={invites}
-              mutate={mutate}
-              t={t}
-              locale={locale}
+              tab={connectionTab}
+              setTab={setConnectionTab}
+              error={error ? errorMessage : undefined}
+              addOpen={addConnection}
+              closeAdd={() => setAddConnection(false)}
             />
           )}
           {view === "planner" && (
@@ -559,7 +575,8 @@ export default function Workspace() {
           )}
           {view === "account" && (
             <section className={`${s.panel} ${s.accountSection}`}>
-              <h2>{me.username}</h2>
+              <h2>{displayName(me)}</h2>
+              <p className={s.hint}>@{me.username}</p>
               <p className={s.muted}>{t.privacy}</p>
               <button
                 className={`${s.button} ${s.secondary}`}

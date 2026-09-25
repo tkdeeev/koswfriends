@@ -8,12 +8,12 @@ import type { Lesson } from "../../src/lib/types";
 if (process.env.KWF_TEST_DATABASE !== "yes")
   throw new Error("Only synthetic test databases are allowed");
 let sequence = 0;
-export async function seed(context: BrowserContext) {
+export async function seed(context: BrowserContext, name?: string) {
   const username = `synthetic-${process.pid}-${++sequence}`;
   const semester = currentSemester();
   const [user] = await database()
     .insert(users)
-    .values({ username, name: username, semester })
+    .values({ username, name: name || username, semester })
     .returning();
   const token = `synthetic-session-${username}`;
   await database()

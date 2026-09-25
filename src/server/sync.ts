@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { database } from "./db";
 import { connections, snapshots, users } from "./schema";
 import { accessToken } from "./oauth";
-import { fetchEvents, resolveSemester } from "./sirius";
+import { fetchEvents, fetchPersonName, resolveSemester } from "./sirius";
 import { AppError, safeCode } from "./security";
 import { semesterWindow } from "../lib/calendar";
 export async function synchronize(
@@ -44,12 +44,18 @@ export async function synchronize(
       });
     try {
       const token = await accessToken(userId);
-      const window = await resolveSemester(token, semester);
+      const [window, name] = await Promise.all([
+        resolveSemester(token, semester),
+        // Profile availability must not prevent timetable imports or erase a known name.
+        fetchPersonName(token, user.username).catch(() => null),
+      ]);
       const events = await fetchEvents(
         token,
         `/people/${encodeURIComponent(user.username)}/events`,
         window,
       );
+      if (name && name !== user.name)
+        await tx.update(users).set({ name }).where(eq(users.id, userId));
       await tx
         .update(snapshots)
         .set({ events, window, lastSuccess: new Date(), error: null })

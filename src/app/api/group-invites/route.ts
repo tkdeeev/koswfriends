@@ -75,7 +75,7 @@ export const POST = endpoint(async (req) => {
       .select({
         id: groups.id,
         name: groups.name,
-        owner: users.username,
+        owner: users.name,
         expiresAt: groupInvites.expiresAt,
         status: members.status,
       })

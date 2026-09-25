@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
-import type { Friend, Grant } from "@/lib/types";
+import { useEffect, useState } from "react";
+import type { Friend, Grant, Person } from "@/lib/types";
 import type { Locale, Text } from "@/lib/i18n";
 import Avatar from "./Avatar";
+import Icon from "./Icon";
+import { displayName } from "@/lib/appearance";
 import s from "./Workspace.module.css";
 export type Mutate = (
   path: string,
@@ -39,7 +41,6 @@ export function Sharing({
         />
         {t.sharePlans}
       </label>
-
     </fieldset>
   );
 }
@@ -57,6 +58,15 @@ function FriendRow({
       ? friend.giving
       : { calendar: true, plans: false },
   );
+  useEffect(
+    () =>
+      setGiving(
+        friend.status === "accepted"
+          ? friend.giving
+          : { calendar: true, plans: false },
+      ),
+    [friend.status, friend.giving.calendar, friend.giving.plans],
+  );
   const [busy, setBusy] = useState(false);
   const act = async (action: string) => {
     setBusy(true);
@@ -68,119 +78,126 @@ function FriendRow({
     }
   };
   return (
-    <article className={s.friendRow}>
-      <div className={s.rowHead}>
-        <div className={s.person}>
-          <Avatar person={friend} />
-          <strong>{friend.username}</strong>
+    <article className={s.connectionRow}>
+      <details>
+        <summary
+          className={s.connectionSummary}
+          aria-label={displayName(friend)}
+        >
+          <div className={s.person}>
+            <Avatar person={friend} />
+            <strong>{displayName(friend)}</strong>
+          </div>
+          {friend.status === "pending" && (
+            <span className={s.badge}>
+              {friend.incoming ? t.incoming : t.outgoing}
+            </span>
+          )}
+          <Icon name="chevron" className={s.rowChevron} />
+        </summary>
+        <div className={s.connectionDetails}>
+          <p className={s.hint}>@{friend.username}</p>
+          {friend.status === "accepted" ? (
+            <>
+              <p className={s.hint}>
+                {t.receiving}:{" "}
+                {[
+                  friend.receiving.calendar && t.timetable,
+                  friend.receiving.plans && t.planner,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || t.nothing}
+              </p>
+              <Sharing value={giving} change={setGiving} t={t} />
+              <div className={s.actions}>
+                <button
+                  disabled={busy}
+                  className={`${s.button} ${s.small}`}
+                  onClick={() => act("sharing")}
+                >
+                  {t.saveSharing}
+                </button>
+                <button
+                  disabled={busy}
+                  className={`${s.button} ${s.secondary} ${s.small}`}
+                  onClick={() => act("remove")}
+                >
+                  {t.remove}
+                </button>
+                <button
+                  disabled={busy}
+                  className={`${s.quiet} ${s.small}`}
+                  onClick={() => act("block")}
+                >
+                  {t.block}
+                </button>
+              </div>
+            </>
+          ) : friend.incoming ? (
+            <>
+              <Sharing value={giving} change={setGiving} t={t} />
+              <div className={s.actions}>
+                <button
+                  disabled={busy}
+                  className={`${s.button} ${s.small}`}
+                  onClick={() => act("accept")}
+                >
+                  {t.accept}
+                </button>
+                <button
+                  disabled={busy}
+                  className={`${s.button} ${s.secondary} ${s.small}`}
+                  onClick={() => act("decline")}
+                >
+                  {t.decline}
+                </button>
+                <button
+                  disabled={busy}
+                  className={`${s.quiet} ${s.small}`}
+                  onClick={() => act("block")}
+                >
+                  {t.block}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={s.hint}>
+                {t.sharing}:{" "}
+                {[
+                  friend.giving.calendar && t.timetable,
+                  friend.giving.plans && t.planner,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || t.nothing}
+              </p>
+              <button
+                disabled={busy}
+                className={s.quiet}
+                onClick={() => act("remove")}
+              >
+                {t.cancelRequest}
+              </button>
+            </>
+          )}
         </div>
-        {friend.status === "pending" && (
-          <span className={s.badge}>
-            {friend.incoming ? t.incoming : t.outgoing}
-          </span>
-        )}
-      </div>
-      {friend.status === "accepted" ? (
-        <>
-          <p className={s.hint}>
-            {t.receiving}:{" "}
-            {[
-              friend.receiving.calendar && t.timetable,
-              friend.receiving.plans && t.planner,
-            ]
-              .filter(Boolean)
-              .join(" · ") || t.nothing}
-          </p>
-          <Sharing value={giving} change={setGiving} t={t} />
-          <div className={s.actions}>
-            <button
-              disabled={busy}
-              className={`${s.button} ${s.small}`}
-              onClick={() => act("sharing")}
-            >
-              {t.saveSharing}
-            </button>
-            <button
-              disabled={busy}
-              className={`${s.button} ${s.secondary} ${s.small}`}
-              onClick={() => act("remove")}
-            >
-              {t.remove}
-            </button>
-            <button
-              disabled={busy}
-              className={`${s.quiet} ${s.small}`}
-              onClick={() => act("block")}
-            >
-              {t.block}
-            </button>
-          </div>
-        </>
-      ) : friend.incoming ? (
-        <>
-          <Sharing value={giving} change={setGiving} t={t} />
-          <div className={s.actions}>
-            <button
-              disabled={busy}
-              className={`${s.button} ${s.small}`}
-              onClick={() => act("accept")}
-            >
-              {t.accept}
-            </button>
-            <button
-              disabled={busy}
-              className={`${s.button} ${s.secondary} ${s.small}`}
-              onClick={() => act("decline")}
-            >
-              {t.decline}
-            </button>
-            <button
-              disabled={busy}
-              className={`${s.quiet} ${s.small}`}
-              onClick={() => act("block")}
-            >
-              {t.block}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className={s.hint}>
-            {t.sharing}:{" "}
-            {[
-              friend.giving.calendar && t.timetable,
-              friend.giving.plans && t.planner,
-            ]
-              .filter(Boolean)
-              .join(" · ") || t.nothing}
-          </p>
-          <button
-            disabled={busy}
-            className={s.quiet}
-            onClick={() => act("remove")}
-          >
-            {t.cancelRequest}
-          </button>
-        </>
-      )}
+      </details>
     </article>
   );
 }
 export type Invite = { id: string; expiresAt: string; revoked: boolean };
-export default function FriendsView({
-  friends,
-  blocked,
+export function FriendsAdd({
   invites,
   mutate,
   t,
   locale,
+  added,
 }: {
-  friends: Friend[];
-  blocked: { id: string; username: string }[];
   invites: Invite[];
   mutate: Mutate;
   t: Text;
   locale: Locale;
+  added: () => void;
 }) {
   const [username, setUsername] = useState("");
   const [giving, setGiving] = useState<Grant>({ calendar: true, plans: false });
@@ -191,86 +208,40 @@ export default function FriendsView({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <div className={s.twoColumns}>
-      <div className={s.stack}>
-        <section className={s.panel}>
-          <h2>{t.addFriend}</h2>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setBusy(true);
-              try {
-                await mutate("/api/friends", { username, giving });
-                setUsername("");
-              } catch {
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <label className={s.field}>
-              {t.username}
-              <input
-                autoComplete="off"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                maxLength={80}
-                placeholder="username"
-              />
-            </label>
+    <div className={s.addForm}>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          try {
+            await mutate("/api/friends", { username, giving });
+            setUsername("");
+            added();
+          } catch {
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <label className={s.field}>
+          {t.username}
+          <input
+            autoComplete="off"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            maxLength={80}
+            placeholder="username"
+          />
+        </label>
 
-            <Sharing value={giving} change={setGiving} t={t} />
-            <button disabled={busy} className={s.button}>
-              {t.sendRequest} <span aria-hidden>↗</span>
-            </button>
-          </form>
-        </section>
-        <section className={s.panel}>
-          <h2>
-            {t.friends} <span className={s.muted}>/ {friends.length}</span>
-          </h2>
-          {friends.length ? (
-            friends.map((f) => (
-              <FriendRow
-                key={`${f.id}:${f.status}:${JSON.stringify(f.giving)}`}
-                friend={f}
-                mutate={mutate}
-                t={t}
-              />
-            ))
-          ) : (
-            <div className={s.empty}>
-              <h3>{t.noFriends}</h3>
-              <p>{t.noFriendsBody}</p>
-            </div>
-          )}
-        </section>
-        {blocked.length > 0 && (
-          <section className={s.panel}>
-            <h2>{t.blocked}</h2>
-            {blocked.map((b) => (
-              <div key={b.id} className={s.rowHead}>
-                <span>{b.username}</span>
-                <button
-                  className={s.quiet}
-                  onClick={() =>
-                    mutate(
-                      "/api/friends",
-                      { id: b.id, action: "unblock" },
-                      "PATCH",
-                    ).catch(() => {})
-                  }
-                >
-                  {t.unblock}
-                </button>
-              </div>
-            ))}
-          </section>
-        )}
-      </div>
-      <section className={s.panel}>
-        <h2>{t.invite}</h2>
+        <Sharing value={giving} change={setGiving} t={t} />
+        <button disabled={busy} className={s.button}>
+          {t.sendRequest} <span aria-hidden>↗</span>
+        </button>
+      </form>
+      <details className={s.inviteOptions}>
+        <summary>{t.invite}</summary>
         <p className={s.muted}>{t.inviteHint}</p>
         <Sharing value={inviteGiving} change={setInviteGiving} t={t} />
         <button
@@ -332,7 +303,59 @@ export default function FriendsView({
               </li>
             ))}
         </ul>
-      </section>
+      </details>
     </div>
+  );
+}
+export default function FriendsView({
+  friends,
+  blocked,
+  mutate,
+  t,
+}: {
+  friends: Friend[];
+  blocked: Person[];
+  mutate: Mutate;
+  t: Text;
+}) {
+  return (
+    <>
+      {friends.length ? (
+        friends.map((friend) => (
+          <FriendRow key={friend.id} friend={friend} mutate={mutate} t={t} />
+        ))
+      ) : (
+        <div className={s.empty}>
+          <h3>{t.noFriends}</h3>
+        </div>
+      )}
+      {blocked.length > 0 && (
+        <details className={s.inviteOptions}>
+          <summary>
+            {t.blocked} · {blocked.length}
+          </summary>
+          {blocked.map((person) => (
+            <div key={person.id} className={s.rowHead}>
+              <span className={s.person}>
+                <Avatar person={person} />
+                {displayName(person)}
+              </span>
+              <button
+                className={s.quiet}
+                onClick={() =>
+                  mutate(
+                    "/api/friends",
+                    { id: person.id, action: "unblock" },
+                    "PATCH",
+                  ).catch(() => {})
+                }
+              >
+                {t.unblock}
+              </button>
+            </div>
+          ))}
+        </details>
+      )}
+    </>
   );
 }

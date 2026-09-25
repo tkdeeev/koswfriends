@@ -1,4 +1,5 @@
 "use client";
+import { displayName } from "@/lib/appearance";
 import {
   useEffect,
   useMemo,
@@ -232,7 +233,7 @@ export default function CalendarView({
     )
     .sort((a, b) => Date.parse(a.lesson.start) - Date.parse(b.lesson.start));
   const title = (item: Display) =>
-    `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map((p) => p.username).join(", ")}`;
+    `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map(displayName).join(", ")}`;
   return (
     <div className={s.calendarWorkspace}>
       <section
@@ -311,7 +312,7 @@ export default function CalendarView({
                 <label className={s.personChip} key={person.id}>
                   <input
                     type="checkbox"
-                    aria-label={person.username}
+                    aria-label={displayName(person)}
                     checked={selected.includes(person.id)}
                     onChange={(e) =>
                       setSelected(
@@ -322,7 +323,7 @@ export default function CalendarView({
                     }
                   />
                   <Avatar person={person} small />
-                  <span>{person.username}</span>
+                  <span>{displayName(person)}</span>
                 </label>
               ))}
               {selected.length > 0 && (
@@ -497,7 +498,7 @@ export default function CalendarView({
                       return (
                         <button
                           key={item.lesson.id}
-                          aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map((p) => p.username).join(", ")}`}
+                          aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map(displayName).join(", ")}`}
                           title={`${title(item)}\n${t.allDetails}`}
                           data-lesson-type={item.lesson.type}
                           className={`${s.lesson} ${!item.own ? s.friendLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}

@@ -12,7 +12,11 @@ export const GET = endpoint(async (req) => {
   const token = req.nextUrl.searchParams.get("token");
   if (token) {
     const [invite] = await database()
-      .select({ username: users.username, expiresAt: invites.expiresAt })
+      .select({
+        username: users.username,
+        name: users.name,
+        expiresAt: invites.expiresAt,
+      })
       .from(invites)
       .innerJoin(users, eq(users.id, invites.owner))
       .where(
