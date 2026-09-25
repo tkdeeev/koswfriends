@@ -29,3 +29,7 @@ export const lessonColors: Record<string, string> = {
 export function lessonColor(type: string) {
   return lessonColors[type] || "#94a9ba";
 }
+
+export function displayName(person: { name?: string; username: string }) {
+  return person.name?.trim() || person.username;
+}

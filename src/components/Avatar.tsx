@@ -1,4 +1,4 @@
-import { avatarColor, initials } from "@/lib/appearance";
+import { avatarColor, initials, displayName } from "@/lib/appearance";
 import type { Person } from "@/lib/types";
 import s from "./Workspace.module.css";
 export default function Avatar({
@@ -17,7 +17,7 @@ export default function Avatar({
           ? `${person.name} (${person.username})`
           : person.username
       }
-      aria-label={person.username}
+      aria-label={displayName(person)}
     >
       {initials(person.username)}
     </span>
@@ -28,7 +28,7 @@ export function AvatarStack({ people }: { people: Person[] }) {
   return (
     <span
       className={s.avatarStack}
-      aria-label={people.map((p) => p.username).join(", ")}
+      aria-label={people.map(displayName).join(", ")}
     >
       {people.slice(0, 3).map((p) => (
         <Avatar person={p} small key={p.id} />

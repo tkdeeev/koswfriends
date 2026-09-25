@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { closeDatabase } from "../../src/server/db";
+import { database, closeDatabase } from "../../src/server/db";
 import { seed } from "./fixtures";
+import { connections, addConnection, expand } from "./connections-helpers";
 import { DateTime } from "luxon";
+import { eq } from "drizzle-orm";
+import { users } from "../../src/server/schema";
+import { requestFriend } from "../../src/server/friends";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 
@@ -61,7 +65,7 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     .tap();
   await expect(editor.getByRole("button", { name: /TV1-PE/ })).toBeVisible();
   await editor.getByRole("button", { name: "Close", exact: true }).tap();
-  for (const tab of ["Friends", "Groups", "Semester planner", "Timetable"]) {
+  for (const tab of ["Connections", "Semester planner", "Timetable"]) {
     const button = page.getByRole("button", { name: tab, exact: true });
     const box = await button.boundingBox();
     expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -76,11 +80,12 @@ test("mobile navigation, sharing controls and personal event editing fit small s
       ),
     ).toBe(true);
   }
-  await page.getByRole("button", { name: "Groups", exact: true }).tap();
+  await connections(page, "Groups");
+  await addConnection(page, "Groups");
   await page.getByLabel("Group name", { exact: true }).fill("Mobile group");
   await page.getByRole("button", { name: "Create group", exact: true }).tap();
   await expect(
-    page.getByRole("heading", { name: "Mobile group", exact: true }),
+    page.getByRole("region", { name: "Mobile group", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText(
@@ -89,7 +94,7 @@ test("mobile navigation, sharing controls and personal event editing fit small s
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Dark mode", exact: true }).tap();
   await expect(
-    page.getByRole("button", { name: "Groups", exact: true }),
+    page.getByRole("button", { name: "Connections", exact: true }),
   ).toHaveCSS("background-color", "rgb(22, 56, 76)");
   await page.screenshot({
     path: `test-results/mobile-groups-${browserName}.png`,
@@ -251,4 +256,120 @@ test("the real service worker serves its fallback when the origin is unavailable
   } finally {
     await stop();
   }
+});
+
+test("connections use names, compact expandable rows, a single add dialog and mobile switches", async ({
+  page,
+  context,
+  browser,
+  browserName,
+}) => {
+  const a = await seed(context, "Demo Student");
+  const other = await browser.newContext();
+  const b = await seed(other, "Jana Nováková");
+  await requestFriend(b.id, a.id, { calendar: true, plans: false });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await connections(page, "Friends");
+  const friends = page.getByRole("region", { name: "Friends", exact: true });
+  const groups = page.getByRole("region", { name: "Groups", exact: true });
+  await expect(groups).toBeVisible();
+  const fb = await friends.boundingBox(),
+    gb = await groups.boundingBox();
+  expect(Math.abs(fb!.width - gb!.width)).toBeLessThan(1);
+  expect(fb!.y).toBe(gb!.y);
+  const row = friends.locator("article");
+  const summary = row.locator("summary");
+  await expect(summary).toHaveText(/Jana Nováková/);
+  await expect(summary).not.toContainText(b.username);
+  await expect(summary.locator('[class*="profileAvatar"]')).toBeVisible();
+  await expect(
+    row.getByRole("button", { name: "Accept", exact: true }),
+  ).not.toBeVisible();
+  await expect(
+    page.getByLabel("School username", { exact: true }),
+  ).not.toBeVisible();
+  await summary.focus();
+  await page.keyboard.press("Enter");
+  await row.getByRole("button", { name: "Accept", exact: true }).click();
+  await expect(
+    row.getByRole("button", { name: "Save sharing", exact: true }),
+  ).toBeVisible();
+  await row.getByLabel("My semester drafts", { exact: true }).check();
+  await database()
+    .update(users)
+    .set({ name: "Jana Nováková Dvořáková" })
+    .where(eq(users.id, b.id));
+  await expect(summary).toContainText("Jana Nováková Dvořáková", {
+    timeout: 15000,
+  });
+  await expect(
+    row.getByLabel("My semester drafts", { exact: true }),
+  ).toBeChecked();
+  await summary.click();
+  await page.screenshot({
+    path: `test-results/connections-desktop-${browserName}.png`,
+    fullPage: true,
+  });
+  const add = await addConnection(page, "Groups");
+  await add.getByLabel("Group name", { exact: true }).fill("Study crew");
+  await add.getByRole("button", { name: "Create group", exact: true }).click();
+  await expect(add).not.toBeVisible();
+  const group = page.getByRole("region", { name: "Study crew", exact: true });
+  await expect(
+    group.getByRole("button", { name: "Save sharing", exact: true }),
+  ).not.toBeVisible();
+  await expand(group);
+  await group.getByLabel("School username", { exact: true }).fill(b.username);
+  await group
+    .getByRole("button", { name: "Invite member", exact: true })
+    .click();
+  await expect(group.locator("article > details > summary")).toContainText(
+    "Jana Nováková Dvořáková",
+  );
+  await group.locator(":scope > details > summary").click();
+  await page.setViewportSize({ width: 320, height: 720 });
+  const switcher = page.getByRole("group", {
+    name: "Connections",
+    exact: true,
+  });
+  await expect(switcher).toBeVisible();
+  await expect(groups).toBeVisible();
+  await expect(friends).not.toBeVisible();
+  await switcher.getByRole("button", { name: "Friends", exact: true }).tap();
+  await expect(friends).toBeVisible();
+  await expect(groups).not.toBeVisible();
+  const theme = page.getByRole("button", { name: "Dark mode", exact: true });
+  await expect(theme.locator("svg")).toHaveCount(1);
+  await expect(theme).toHaveText("");
+  await theme.tap();
+  await page.screenshot({
+    path: `test-results/connections-mobile-${browserName}.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
+  await addConnection(page, "Friends");
+  await add.getByLabel("School username", { exact: true }).fill("missing-user");
+  await add.getByRole("button", { name: "Send request", exact: true }).click();
+  await expect(add.getByRole("alert")).toBeVisible();
+  expect(await add.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
+    true,
+  );
+  await add.getByLabel("School username", { exact: true }).fill("draft-name");
+  await add.getByRole("button", { name: "Groups", exact: true }).tap();
+  await add.getByRole("button", { name: "Friends", exact: true }).tap();
+  await expect(add.getByLabel("School username", { exact: true })).toHaveValue(
+    "draft-name",
+  );
+  await page.keyboard.press("Escape");
+  await expect(add).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Add connection", exact: true }),
+  ).toBeFocused();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await other.close();
 });

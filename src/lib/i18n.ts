@@ -1,5 +1,9 @@
 export const copy = {
   cs: {
+    connections: "Kontakty",
+    addConnection: "Přidat kontakt",
+    connectionType: "Typ kontaktu",
+    add: "Přidat",
     previewAlt:
       "Ukázka aktuálního rozvrhu KOSwFriends se sdílenými hodinami a vlastní událostí",
     featureTimetables: "Váš rozvrh a rozvrhy přátel",
@@ -249,6 +253,10 @@ export const copy = {
     },
   },
   en: {
+    connections: "Connections",
+    addConnection: "Add connection",
+    connectionType: "Connection type",
+    add: "Add",
     previewAlt:
       "Current KOSwFriends timetable with shared lessons and a personal event",
     featureTimetables: "Your timetable and friends’ timetables",

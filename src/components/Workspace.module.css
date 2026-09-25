@@ -520,17 +520,6 @@
 .sharing legend {
   font-size: 13px;
 }
-.friendRow {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line);
-}
-.friendRow:first-child {
-  padding-top: 0;
-}
-.friendRow:last-child {
-  border: 0;
-  padding-bottom: 0;
-}
 .rowHead {
   display: flex;
   align-items: center;
@@ -1091,20 +1080,6 @@
   display: block;
   color: var(--muted);
 }
-.groupsLayout {
-  display: grid;
-  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.6fr);
-  gap: 26px;
-  align-items: start;
-}
-.groupMember {
-  border-top: 1px solid var(--line);
-  margin-top: 20px;
-  padding-top: 20px;
-}
-.groupsLayout form > .button {
-  margin-top: 14px;
-}
 /* Full-width calendar with compact controls above the week. */
 .calendarWorkspace {
   display: flex;
@@ -1240,9 +1215,6 @@
   background: color-mix(in srgb, var(--lesson-color) 16%, var(--surface));
 }
 @media (max-width: 760px) {
-  .groupsLayout {
-    grid-template-columns: 1fr;
-  }
   .calendarFilters {
     padding: 12px;
   }
@@ -1670,5 +1642,199 @@
   }
   .hero .button {
     margin-top: 20px;
+  }
+}
+
+/* Connections: two lists on desktop, one selected list on mobile. */
+.connectionColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  align-items: start;
+}
+.connectionColumn {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.connectionColumn > h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px;
+  font-size: 20px;
+  font-weight: 500;
+}
+.connectionColumn > h2 > span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+}
+.connectionRow {
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.connectionSummary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  min-height: 72px;
+}
+.connectionSummary::-webkit-details-marker {
+  display: none;
+}
+.connectionSummary:hover {
+  background: var(--pale);
+}
+.connectionSummary > .person {
+  flex: 1;
+  min-width: 0;
+}
+.connectionSummary strong {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.connectionSummary .badge {
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.rowChevron {
+  flex-shrink: 0;
+  color: var(--muted);
+  width: 16px;
+  height: 16px;
+}
+.connectionRow > details[open] > summary .rowChevron {
+  transform: rotate(90deg);
+}
+.connectionDetails {
+  padding: 0 20px 20px;
+}
+.connectionDetails > .hint {
+  margin-bottom: 12px;
+}
+.connectionDetails .connectionRow {
+  margin-top: 12px;
+}
+.connectionDetails .connectionSummary {
+  padding-inline: 0;
+}
+.connectionDetails .connectionDetails {
+  padding-inline: 0;
+}
+.groupAvatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: var(--soft-blue);
+  color: var(--blue);
+}
+.addConnection {
+  min-height: 56px;
+  gap: 10px;
+  padding: 12px 24px;
+}
+.connectionSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--line);
+}
+.connectionSwitch button {
+  min-height: 46px;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  padding: 10px;
+}
+.connectionSwitch button[aria-pressed="true"] {
+  background: var(--soft-blue);
+  color: var(--blue);
+  box-shadow: inset 0 -2px var(--blue);
+  font-weight: 500;
+}
+.mobileConnectionSwitch {
+  display: none;
+}
+.connectionDialog {
+  width: 520px;
+  max-height: calc(
+    100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
+  overflow-y: auto;
+}
+.connectionDialog .connectionSwitch {
+  margin-block: 20px;
+}
+.addForm form > .button {
+  margin-top: 20px;
+}
+.addForm .inviteOptions {
+  margin-top: 24px;
+}
+.inviteOptions {
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+}
+.inviteOptions > summary {
+  font-weight: 500;
+  min-height: 32px;
+}
+.inviteOptions[open] > summary {
+  margin-bottom: 16px;
+}
+.addForm .inviteOptions {
+  padding-inline: 0;
+}
+.themeToggle {
+  display: inline-grid;
+  place-items: center;
+}
+.accountUsername {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .navigation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .connectionColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mobileConnectionSwitch {
+    display: block;
+    margin-bottom: 20px;
+  }
+  .mobileConnectionHidden {
+    display: none;
+  }
+  .connectionSummary {
+    gap: 8px;
+    padding: 14px 12px;
+  }
+  .connectionDetails {
+    padding: 0 12px 16px;
+  }
+  .connectionColumn > h2 {
+    padding: 18px 12px;
+  }
+  .connectionSummary .badge {
+    max-width: 85px;
+    white-space: normal;
+    text-align: right;
+  }
+  .connectionDialog {
+    padding: 16px;
+  }
+  .addConnection {
+    padding: 10px 14px;
+    min-height: 52px;
   }
 }

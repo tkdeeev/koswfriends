@@ -42,6 +42,21 @@ The default week shows the user's timetable and all authorized shared calendars,
 
 Personal subjects and events (for example TV1-PE) have editable names, locations, notes, colors and optional weekly repetition. They are stored separately from Sirius imports, remain after synchronization and follow calendar sharing permissions. Weekly series preserve Prague wall-clock time across DST; editing or deleting changes the whole series. Their default teal color and Personal event label distinguish them from imported teaching. These entries do not perform registration in KOS. Course-only wishes without times remain available in the semester planner.
 
+## Connections and names
+
+Connections combines friends and sharing groups into two columns on desktop,
+with a Friends/Groups switch on mobile. The Add button opens friend requests,
+friend invite links, and group creation. Person and group rows expand to show
+sharing settings; member overrides remain available inside each group.
+
+Personal timetable imports also read the signed-in person's `full_name` from
+[Sirius `/people/{username}`](https://cvut.github.io/sirius/docs/api-v1.html).
+The existing personal scope is unchanged. The response must match the requested
+username; only the display name is retained, never Sirius's calendar access token.
+Names appear throughout the app. A failed or empty profile response preserves a
+known name, while users without a supplied name retain their username fallback.
+Existing users receive names on the next successful profile lookup during sync.
+
 ## Mobile and installation
 
 The app can be installed on Android through the browser install action and on
