@@ -167,9 +167,12 @@ try {
   });
   await page.goto(base, { waitUntil: "networkidle" });
   await page.locator("[data-lesson-type]").first().waitFor();
-  for (const locale of ["cs", "en"]) {
+  for (const locale of ["cs", "en", "uk"]) {
     await page
-      .getByRole("button", { name: locale === "cs" ? "CZ" : "EN", exact: true })
+      .getByRole("button", {
+        name: locale === "cs" ? "CZ" : locale === "uk" ? "UA" : "EN",
+        exact: true,
+      })
       .click();
     for (const theme of ["light", "dark"]) {
       await page.evaluate((value) => {

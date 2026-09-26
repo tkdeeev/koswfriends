@@ -1,9 +1,9 @@
-import type { CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { DateTime } from "luxon";
 import { avatarColor, displayName, lessonColor } from "@/lib/appearance";
 import { ZONE } from "@/lib/calendar";
 import { arrangeDay, joinAdjacentLessons } from "@/lib/timetable-layout";
-import { lessonType, type Locale, type Text } from "@/lib/i18n";
+import { localizedText, lessonType, type Locale, type Text } from "@/lib/i18n";
 import type { Person } from "@/lib/types";
 import type { Display } from "./CalendarView";
 import Icon from "./Icon";
@@ -29,6 +29,53 @@ export default function MobileTimetable({
   t: Text;
   open: (display: Display) => void;
 }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const viewport = scroller.current;
+    if (!viewport) return;
+    let frame = 0;
+    const measure = () => {
+      const bounds = viewport.getBoundingClientRect();
+      const left = bounds.left + viewport.clientLeft + 40;
+      const right = bounds.left + viewport.clientLeft + viewport.clientWidth;
+      // Read all geometry first. Only clipped edges need an indicator inside the viewport.
+      const cards = [
+        ...viewport.querySelectorAll<HTMLButtonElement>(
+          "button[data-event-id]",
+        ),
+      ].map((card) => ({ card, rect: card.getBoundingClientRect() }));
+      for (const { card, rect } of cards) {
+        card.dataset.clippedLeft = String(
+          rect.left < left - 1 && rect.right > left,
+        );
+        card.dataset.clippedRight = String(
+          rect.right > right + 1 && rect.left < right,
+        );
+        card.style.setProperty(
+          "--clip-left",
+          `${Math.max(0, left - rect.left)}px`,
+        );
+        card.style.setProperty(
+          "--clip-right",
+          `${Math.max(0, rect.right - right)}px`,
+        );
+      }
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(viewport);
+    if (viewport.lastElementChild) observer.observe(viewport.lastElementChild);
+    viewport.addEventListener("scroll", schedule, { passive: true });
+    measure();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      viewport.removeEventListener("scroll", schedule);
+    };
+  }, [lanes]);
   const events = lanes.flatMap((lane) => lane.events);
   const startHour = Math.min(
     8,
@@ -58,7 +105,10 @@ export default function MobileTimetable({
   if (!lanes.length) return null;
   return (
     <div
+      ref={scroller}
+      id="week-timetable"
       className={s.mobileTimetable}
+      data-layout="people"
       role="region"
       aria-label={t.comparePeople}
       tabIndex={0}
@@ -112,6 +162,8 @@ export default function MobileTimetable({
             event: { display: item, startMinute, endMinute, column, columns },
             lane,
             span,
+            continuesBefore,
+            continuesAfter,
           }) => {
             const participants = arranged.slice(lane, lane + span);
             const own = participants.some((p) => p.own);
@@ -131,12 +183,14 @@ export default function MobileTimetable({
                 data-owned={own}
                 data-shared={shared}
                 data-lane-span={span}
+                data-continues-before={continuesBefore}
+                data-continues-after={continuesAfter}
                 data-participants={participants
                   .map((p) => p.person.id)
                   .join(" ")}
                 className={`${s.lesson} ${s.mobileLesson} ${own ? "" : s.friendLesson} ${span > 1 ? s.joinedLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
-                aria-label={`${time(item.lesson.start)}–${time(item.lesson.end)} ${item.lesson.course || item.lesson.title[locale]} · ${own ? t.you + ": " : ""}${shared ? t.together + ": " : ""}${peopleLabel}`}
-                title={`${item.lesson.title[locale]} · ${item.lesson.room}${shared ? ` · ${t.together}: ${peopleLabel}` : ""}`}
+                aria-label={`${time(item.lesson.start)}–${time(item.lesson.end)} ${item.lesson.course || localizedText(item.lesson.title, locale)} · ${own ? t.you + ": " : ""}${shared ? t.together + ": " : ""}${peopleLabel}`}
+                title={`${localizedText(item.lesson.title, locale)} · ${item.lesson.room}${shared ? ` · ${t.together}: ${peopleLabel}` : ""}`}
                 style={
                   {
                     "--lesson-color":
@@ -151,7 +205,10 @@ export default function MobileTimetable({
                 onClick={() => open(item)}
               >
                 <div className={s.mobileLessonContent}>
-                  <b>{item.lesson.course || item.lesson.title[locale]}</b>
+                  <b>
+                    {item.lesson.course ||
+                      localizedText(item.lesson.title, locale)}
+                  </b>
                   {height >= 42 && (
                     <span className={s.lessonTime}>
                       {time(item.lesson.start)}–{time(item.lesson.end)}

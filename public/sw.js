@@ -1,4 +1,4 @@
-const CACHE = "koswfriends-shell-v1";
+const CACHE = "koswfriends-shell-v2";
 const OFFLINE = "/offline.html";
 const ASSETS = [
   OFFLINE,

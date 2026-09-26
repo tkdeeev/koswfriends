@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DateTime } from "luxon";
 import type { Calendar, Choice, Lesson, Localized, Me } from "@/lib/types";
 import { conflicts, ZONE } from "@/lib/calendar";
-import { groupLabel, type Locale, type Text } from "@/lib/i18n";
+import { localizedText, groupLabel, type Locale, type Text } from "@/lib/i18n";
 import type { Mutate } from "./FriendsView";
 import s from "./Workspace.module.css";
 export type SharedPlan = {
@@ -39,7 +39,7 @@ function ChoiceCard({
         </span>
       </div>
       <p className={s.choiceTitle}>
-        {choice.title[locale]}
+        {localizedText(choice.title, locale)}
         {choice.group ? ` · ${groupLabel(choice.group, locale)}` : ""}
       </p>
       <label className={s.field}>
@@ -174,7 +174,7 @@ export default function PlannerView({
               <div>
                 <b>{r.code}</b>
                 <br />
-                <span>{r.title[locale]}</span>
+                <span>{localizedText(r.title, locale)}</span>
               </div>
               <span aria-hidden>↗</span>
             </button>

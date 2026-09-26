@@ -536,6 +536,14 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await grid.evaluate((el) => {
       el.scrollLeft = el.scrollWidth;
     });
+    await expect(card).toHaveAttribute("data-clipped-left", "true");
+    await expect(card).toHaveAttribute("data-clipped-right", "false");
+    expect(
+      await card.evaluate(
+        (el) => getComputedStyle(el, "::before").borderLeftStyle,
+      ),
+    ).toBe("dashed");
+    await expect(card).toHaveCSS("border-right-style", "solid");
     const sharedTitle = await card.locator("b").boundingBox();
     expect(sharedTitle!.x).toBeGreaterThanOrEqual(
       (await grid.boundingBox())!.x + 40,
@@ -544,6 +552,14 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await grid.evaluate((el) => {
       el.scrollLeft = 0;
     });
+    await expect(card).toHaveAttribute("data-clipped-left", "false");
+    await expect(card).toHaveAttribute("data-clipped-right", "true");
+    await expect(card).toHaveCSS("border-left-style", "solid");
+    expect(
+      await card.evaluate(
+        (el) => getComputedStyle(el, "::after").borderRightStyle,
+      ),
+    ).toBe("dashed");
     // Own personal events remain left of an earlier friend's lesson on desktop too.
     await page.setViewportSize({ width: 1440, height: 1000 });
     const desktop = page.locator('[class*="calendarFrame"]');
@@ -554,6 +570,11 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
       .getByRole("button", { name: /FRIEND-0/ })
       .boundingBox();
     expect(personalRect!.x).toBeLessThan(friendRect!.x);
+    await expect(desktop.locator('[class*="lessonOwner"]')).toHaveCount(0);
+    await expect(desktop.getByRole("button", { name: /FRIEND-0/ })).toHaveCSS(
+      "border-left-style",
+      "solid",
+    );
     await page.setViewportSize({ width: 320, height: 844 });
     await filters.tap();
     await page
@@ -630,4 +651,114 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
   } finally {
     await second.close();
   }
+});
+
+test("single-day layouts persist across mobile and desktop with Ukrainian controls and source titles", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  await seed(context, "Demo Student");
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Thu/ }).click();
+  const people = page.locator('[data-layout="people"]');
+  const lessons = page.locator('[data-layout="lessons"]');
+  const filters = page.getByRole("button", { name: "Filters", exact: true });
+  await expect(people).toBeVisible();
+  const days = page.locator('[class*="dayPicker"] button');
+  const heights = await days.evaluateAll((nodes) =>
+    nodes.map((el) => el.getBoundingClientRect().height),
+  );
+  expect(Math.max(...heights)).toBeLessThanOrEqual(36);
+  await filters.click();
+  await expect(
+    page.getByRole("radio", { name: "By person", exact: true }),
+  ).toBeChecked();
+  await page.getByRole("radio", { name: "By lesson", exact: true }).check();
+  await filters.click();
+  await expect(people).toHaveCount(0);
+  await expect(lessons).toBeVisible();
+  await expect(lessons.locator("[data-day-column]")).toHaveCount(1);
+  const mat = lessons.getByRole("button", { name: /TEST-MAT/ });
+  const prg = lessons.getByRole("button", { name: /TEST-PRG/ });
+  expect(
+    (await prg.boundingBox())!.y - (await mat.boundingBox())!.y,
+  ).toBeCloseTo(45 * 1.4, 0);
+  await page.reload();
+  await page.getByRole("button", { name: /^Thu/ }).click();
+  await expect(lessons).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(lessons.locator("[data-day-column]")).toHaveCount(5);
+  await expect(
+    page.getByRole("radio", { name: "By person", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: /^Expand day: Thursday/ }).click();
+  await page.getByRole("radio", { name: "By person", exact: true }).check();
+  await expect(people).toBeVisible();
+  await expect(people.getByRole("button", { name: /TEST-MAT/ })).toBeVisible();
+  await page.getByRole("button", { name: "Back to week", exact: true }).click();
+  await expect(people).toHaveCount(0);
+  await expect(lessons.locator("[data-day-column]")).toHaveCount(5);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.getByRole("button", { name: "UA", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "uk");
+  await expect(
+    page.getByRole("heading", { name: "Розклад", exact: true }),
+  ).toBeVisible();
+  await expect(people).toBeVisible();
+  await page.getByRole("button", { name: /^чт/i }).click();
+  await people.getByRole("button", { name: /TEST-MAT/ }).click();
+  const dialog = page.locator("dialog[open]");
+  await expect(
+    dialog.getByText("Практичне заняття", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", {
+      name: "Illustrative mathematics",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Закрити", exact: true }).click();
+  await page.getByRole("button", { name: "Фільтри", exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: "За людьми", exact: true }),
+  ).toBeChecked();
+  await page.getByRole("radio", { name: "За заняттями", exact: true }).check();
+  await page
+    .getByRole("button", { name: "Власні предмети та події", exact: true })
+    .click();
+  await expect(dialog.getByLabel("Назва події", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Закрити", exact: true }).click();
+  await page.getByRole("button", { name: "Фільтри", exact: true }).click();
+  await page.getByRole("button", { name: "Контакти", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Контакти", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Друзі", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "План семестру", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "План семестру", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Розклад", exact: true }),
+  ).toBeVisible();
+  await expect(lessons).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: `test-results/uk-layout-${browserName}.png`,
+    animations: "disabled",
+  });
+  expect(errors).toEqual([]);
 });

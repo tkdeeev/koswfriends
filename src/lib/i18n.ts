@@ -1,4 +1,7 @@
+import { uk } from "./locales/uk";
+import type { Localized } from "./types";
 export const copy = {
+  uk,
   cs: {
     connections: "Kontakty",
     addConnection: "Přidat kontakt",
@@ -14,6 +17,11 @@ export const copy = {
     featureInstall: "Instalace na iPhone a Android",
 
     filters: "Filtry",
+    dayLayout: "Zobrazení dne",
+    byPerson: "Podle lidí",
+    byLesson: "Podle hodin",
+    sharedShort: "Společné",
+    draftsShort: "Návrhy",
     installApp: "Nainstalovat aplikaci",
     installApple:
       "V Safari otevřete Sdílet → Přidat na plochu → Otevřít jako webovou aplikaci.",
@@ -270,6 +278,11 @@ export const copy = {
     featureInstall: "Install on iPhone and Android",
 
     filters: "Filters",
+    dayLayout: "Day layout",
+    byPerson: "By person",
+    byLesson: "By lesson",
+    sharedShort: "Shared only",
+    draftsShort: "Drafts",
     installApp: "Install app",
     installApple:
       "In Safari, choose Share → Add to Home Screen → Open as Web App.",
@@ -516,15 +529,19 @@ export const copy = {
 };
 export type Locale = keyof typeof copy;
 export type Text = typeof copy.en;
-const lessonTypes: Record<string, { cs: string; en: string }> = {
-  personal: { cs: "Vlastní událost", en: "Personal event" },
-  lecture: { cs: "Přednáška", en: "Lecture" },
-  tutorial: { cs: "Cvičení", en: "Exercise" },
-  laboratory: { cs: "Laboratoř", en: "Laboratory" },
-  exam: { cs: "Zkouška", en: "Exam" },
-  assessment: { cs: "Zápočet", en: "Assessment" },
-  course_event: { cs: "Událost předmětu", en: "Course event" },
-  teacher_timetable_slot: { cs: "Výuka", en: "Teaching" },
+const lessonTypes: Record<string, Record<Locale, string>> = {
+  personal: { uk: "Власна подія", cs: "Vlastní událost", en: "Personal event" },
+  lecture: { uk: "Лекція", cs: "Přednáška", en: "Lecture" },
+  tutorial: { uk: "Практичне заняття", cs: "Cvičení", en: "Exercise" },
+  laboratory: { uk: "Лабораторна робота", cs: "Laboratoř", en: "Laboratory" },
+  exam: { uk: "Іспит", cs: "Zkouška", en: "Exam" },
+  assessment: { uk: "Залік", cs: "Zápočet", en: "Assessment" },
+  course_event: {
+    uk: "Подія предмета",
+    cs: "Událost předmětu",
+    en: "Course event",
+  },
+  teacher_timetable_slot: { uk: "Заняття", cs: "Výuka", en: "Teaching" },
 };
 export function lessonType(type: string, locale: Locale) {
   return lessonTypes[type]?.[locale] || type;
@@ -534,4 +551,21 @@ export function groupLabel(group: string, locale: Locale) {
   return colon < 0
     ? group
     : `${lessonType(group.slice(0, colon), locale)} · ${group.slice(colon + 1)}`;
+}
+
+/** School APIs provide Czech and English; prefer an optional Ukrainian title when available. */
+export function localizedText(value: Localized, locale: Locale) {
+  return (
+    (locale === "uk"
+      ? value.uk || value.en || value.cs
+      : value[locale] || value.cs || value.en) || ""
+  );
+}
+export function preferredLocale(
+  saved: string | null,
+  browserLanguage: string,
+): Locale {
+  if (saved === "cs" || saved === "en" || saved === "uk") return saved;
+  const language = browserLanguage.toLowerCase().split("-")[0];
+  return language === "uk" || language === "en" ? language : "cs";
 }

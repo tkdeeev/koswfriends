@@ -1780,7 +1780,7 @@
   }
 }
 
-/* Ownership is expressed by border, label and fill, including in dark mode. */
+/* Filled own lessons remain distinct from outlined overlays in both themes. */
 .lesson {
   display: flex;
   flex-direction: column;
@@ -1793,23 +1793,10 @@
 .friendLesson {
   background: var(--surface);
   border: 1px dashed var(--muted);
-  border-left: 3px dashed var(--lesson-color);
+  border-left: 5px solid var(--lesson-color);
 }
 .lesson > * {
   flex-shrink: 0;
-}
-.lesson .lessonOwner {
-  font-size: 10px;
-  font-weight: 700;
-  margin: 0 0 4px;
-  line-height: 1.2;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.lesson[data-owned="true"] .lessonOwner {
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
 }
 .draftLesson {
   border-style: dotted;
@@ -1822,7 +1809,6 @@
   margin-bottom: 16px;
 }
 .navIcon,
-.mobileTimetable,
 .shortWeek {
   display: none;
 }
@@ -1962,157 +1948,325 @@
     min-height: 44px;
     line-height: 1.45;
   }
-  .mobileTimetable {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    border: 1px solid var(--line);
-  }
-  .laneHeaders,
-  .mobileTimeGrid {
-    display: grid;
-  }
-  .laneHeader {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px;
-    min-width: 0;
-    border-left: 1px solid var(--line);
-    border-top: 3px dashed var(--person-color);
-    border-bottom: 1px solid var(--line);
-    background: var(--surface);
-    font-size: 12px;
-  }
-  .laneHeader > span:last-child {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .ownLaneHeader {
-    border-top: 3px solid var(--blue);
-    background: var(--soft-blue);
-    font-weight: 700;
-  }
-  .laneClock,
-  .mobileTimeAxis {
-    position: sticky;
-    left: 0;
-    background: var(--surface);
-    z-index: 5;
-    color: var(--muted);
-  }
-  .mobileTimeAxis {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .laneClock {
-    display: grid;
-    place-items: center;
-    text-align: center;
-    font-size: 9px;
-    line-height: 1.2;
-    border-bottom: 1px solid var(--line);
-  }
-  .mobileTimeAxis > span {
-    position: absolute;
-    right: 4px;
-    font-size: 10px;
-    line-height: 1.4;
-  }
-  .personLane {
-    position: relative;
-    border-left: 1px solid var(--line);
-    background: repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent 41px,
-        color-mix(in srgb, var(--line) 50%, transparent) 41px,
-        color-mix(in srgb, var(--line) 50%, transparent) 42px,
-        transparent 42px,
-        transparent 83px,
-        var(--line) 83px,
-        var(--line) 84px
-      )
-      var(--pale);
-  }
-  .mobileLesson {
-    position: relative;
-    align-self: start;
-    grid-row: 1;
-    padding: 5px;
-    min-height: 20px;
-    z-index: 1;
-  }
-  .mobileLesson .sharedPeople {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-    min-width: 0;
-  }
-  .sharedPeople > svg {
-    flex: 0 0 14px;
-    color: var(--blue);
-  }
-  .sharedPeople .avatarStack {
-    margin-top: 0;
-  }
-  .sharedPeople .togetherLabel {
-    display: none;
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-  }
-  .mobileLesson .compactShared {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    margin-top: 3px;
-  }
-  .mobileLessonContent {
-    max-height: 100%;
-    overflow: hidden;
-  }
-  .joinedLesson {
-    overflow: clip;
-    border-top-style: solid;
-    border-bottom-style: solid;
-    box-shadow: inset 0 3px
-      color-mix(in srgb, var(--lesson-color) 65%, var(--surface));
-  }
-  .joinedLesson .mobileLessonContent {
-    position: sticky;
-    left: 48px;
-    width: min(100%, 280px, calc(100vw - 80px));
-    align-self: flex-start;
-  }
-  .mobileNowLine {
-    position: relative;
-    grid-column: 2 / -1;
-    grid-row: 1;
-    align-self: start;
-    z-index: 2;
-  }
-  .mobileLesson b {
-    font-size: 12px;
-  }
-  .mobileLesson .lessonTime,
-  .mobileLesson .lessonMeta,
-  .mobileLesson .lessonKind {
-    font-size: 10px;
-  }
+}
+
+/* The person table is available on mobile and in an expanded desktop day. */
+.mobileTimetable {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--line);
+}
+.laneHeaders,
+.mobileTimeGrid {
+  display: grid;
+}
+.laneHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  border-top: 3px dashed var(--person-color);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 12px;
+}
+.laneHeader > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ownLaneHeader {
+  border-top: 3px solid var(--blue);
+  background: var(--soft-blue);
+  font-weight: 700;
+}
+.laneClock,
+.mobileTimeAxis {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  z-index: 5;
+  color: var(--muted);
+}
+.mobileTimeAxis {
+  grid-column: 1;
+  grid-row: 1;
+}
+.laneClock {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1.2;
+  border-bottom: 1px solid var(--line);
+}
+.mobileTimeAxis > span {
+  position: absolute;
+  right: 4px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.personLane {
+  position: relative;
+  border-left: 1px solid var(--line);
+  background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 41px,
+      color-mix(in srgb, var(--line) 50%, transparent) 41px,
+      color-mix(in srgb, var(--line) 50%, transparent) 42px,
+      transparent 42px,
+      transparent 83px,
+      var(--line) 83px,
+      var(--line) 84px
+    )
+    var(--pale);
+}
+.mobileLesson {
+  position: relative;
+  align-self: start;
+  grid-row: 1;
+  padding: 5px;
+  min-height: 20px;
+  z-index: 1;
+}
+.mobileLesson .sharedPeople {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  min-width: 0;
+}
+.sharedPeople > svg {
+  flex: 0 0 14px;
+  color: var(--blue);
+}
+.sharedPeople .avatarStack {
+  margin-top: 0;
+}
+.sharedPeople .togetherLabel {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+.mobileLesson .compactShared {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+.mobileLessonContent {
+  max-height: 100%;
+  overflow: hidden;
+}
+.joinedLesson {
+  overflow: clip;
+  border-top-style: solid;
+  border-bottom-style: solid;
+  box-shadow: inset 0 3px
+    color-mix(in srgb, var(--lesson-color) 65%, var(--surface));
+}
+.joinedLesson .mobileLessonContent {
+  position: sticky;
+  left: 56px;
+  width: min(100%, 280px, calc(100vw - 88px));
+  align-self: flex-start;
+}
+.mobileNowLine {
+  position: relative;
+  grid-column: 2 / -1;
+  grid-row: 1;
+  align-self: start;
+  z-index: 2;
+}
+.mobileLesson b {
+  font-size: 12px;
+}
+.mobileLesson .lessonTime,
+.mobileLesson .lessonMeta,
+.mobileLesson .lessonKind {
+  font-size: 10px;
 }
 
 @container (min-width: 180px) {
   .sharedPeople .togetherLabel {
     display: inline;
+  }
+}
+
+/* Shared block edges describe continuation, independently of ownership. */
+.mobileLesson {
+  border-left: 4px solid var(--lesson-color);
+  border-right: 3px solid var(--lesson-color);
+}
+.mobileLesson[data-continues-before="true"] {
+  border-left-style: dashed;
+}
+.mobileLesson[data-continues-after="true"] {
+  border-right-style: dashed;
+}
+.mobileLesson[data-clipped-left="true"]::before,
+.mobileLesson[data-clipped-right="true"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: var(--surface);
+}
+.mobileLesson[data-clipped-left="true"]::before {
+  left: var(--clip-left);
+  border-left: 3px dashed var(--lesson-color);
+}
+.mobileLesson[data-clipped-right="true"]::after {
+  right: var(--clip-right);
+  border-right: 3px dashed var(--lesson-color);
+}
+.layoutPicker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+.layoutPicker legend {
+  font-size: 12px;
+  padding: 0 0 6px;
+  color: var(--muted);
+}
+.layoutPicker label {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+}
+.layoutPicker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.layoutPicker span {
+  display: block;
+  padding: 8px 14px;
+  font-size: 13px;
+  border: 1px solid var(--input-line);
+  background: var(--surface);
+}
+.layoutPicker input:checked + span {
+  background: var(--soft-blue);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+.layoutPicker input:focus-visible + span {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.compactFilterLabel {
+  display: none;
+}
+.timeColumn {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+@media (max-width: 760px) {
+  .calendarFrame {
+    display: block;
+    border: 0;
+  }
+  .dayHeaders,
+  .expandedDayToolbar {
+    display: none;
+  }
+  .dayPicker button {
+    min-height: 34px;
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 4px 1px;
+  }
+  .dayPicker button span + span {
+    opacity: 0.8;
+  }
+  .languages button {
+    width: 30px;
+    font-size: 11px;
+    padding-inline: 2px;
+  }
+  .themeToggle,
+  .accountButton {
+    min-width: 36px;
+    padding-inline: 4px;
+  }
+  .headerEnd {
+    gap: 2px;
+  }
+  .layoutPicker {
+    margin-bottom: 8px;
+  }
+  .layoutPicker label {
+    flex: 1;
+  }
+  .layoutPicker span {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    padding: 7px 6px;
+  }
+  .filterRow {
+    gap: 4px 12px;
+  }
+  .filterRow .check,
+  .filterRow .personChip {
+    min-height: 32px;
+    gap: 5px;
+    font-size: 12px;
+  }
+  .filterRow strong {
+    font-size: 12px;
+  }
+  .filterRow > .personChip > .profileAvatar {
+    display: none;
+  }
+  .fullFilterLabel {
+    display: none;
+  }
+  .compactFilterLabel {
+    display: inline;
+  }
+  .filterRow > button {
+    min-height: 34px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  .syncLabel {
+    flex-basis: 100%;
+    margin: 4px 0;
+  }
+  .overlayPicker {
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .typeLegend {
+    gap: 6px 12px;
+    font-size: 11px;
+    margin-top: 8px;
   }
 }

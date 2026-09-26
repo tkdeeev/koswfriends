@@ -21,6 +21,7 @@
   let language = navigator.language;
   try { language = localStorage.getItem('kwf_locale') || language; document.documentElement.dataset.theme = localStorage.getItem('kwf_theme') || ''; } catch {}
   if (language.startsWith('cs')) { document.documentElement.lang = 'cs'; document.getElementById('message').textContent = 'Pro načtení rozvrhu se připojte k internetu.'; document.getElementById('retry').textContent = 'Zkusit znovu'; }
+  if (language.startsWith('uk')) { document.documentElement.lang = 'uk'; document.title = 'KOSwFriends · Немає з’єднання'; document.querySelector('h1').textContent = 'Немає з’єднання'; document.getElementById('message').textContent = 'Підключіться до інтернету, щоб завантажити розклад.'; document.getElementById('retry').textContent = 'Спробувати ще раз'; }
   document.getElementById('retry').addEventListener('click', () => location.reload());
   window.addEventListener('online', () => location.reload());
 </script></body></html>

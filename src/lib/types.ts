@@ -1,4 +1,4 @@
-export type Localized = { cs: string; en: string };
+export type Localized = { cs: string; en: string; uk?: string };
 export type Lesson = {
   id: string;
   course: string;
