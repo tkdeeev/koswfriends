@@ -10,6 +10,7 @@ import {
   members,
   snapshots,
   personalEvents,
+  plans,
 } from "../../src/server/schema";
 import { requestFriend } from "../../src/server/friends";
 import { createServer } from "node:http";
@@ -27,7 +28,24 @@ test("mobile navigation, sharing controls and personal event editing fit small s
   context,
   browserName,
 }) => {
-  await seed(context);
+  const user = await seed(context);
+  await database()
+    .insert(plans)
+    .values({
+      userId: user.id,
+      semester: user.semester,
+      choices: [
+        {
+          id: "synthetic-planner-navigation",
+          course: "TEST-PLANNER",
+          title: { cs: "Zkušební návrh", en: "Synthetic draft" },
+          group: null,
+          note: "",
+          verified: false,
+          events: [],
+        },
+      ],
+    });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
@@ -91,6 +109,10 @@ test("mobile navigation, sharing controls and personal event editing fit small s
       ),
     ).toBe(true);
   }
+  const plannerConfig = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/usage/config" && response.ok(),
+  );
   await page.goto("/?view=planner");
   await expect(
     page.getByRole("heading", {
@@ -99,6 +121,16 @@ test("mobile navigation, sharing controls and personal event editing fit small s
       exact: true,
     }),
   ).toBeVisible();
+  // The heading paints before the planner's initial data effects run. Wait
+  // for real draft data and configuration before intentionally unloading it.
+  await expect(
+    page.getByRole("heading", { name: "TEST-PLANNER", exact: true }),
+  ).toBeVisible();
+  await plannerConfig;
+  const reloadedConfig = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/usage/config" && response.ok(),
+  );
   await page.reload();
   await expect(
     page.getByRole("heading", {
@@ -107,6 +139,10 @@ test("mobile navigation, sharing controls and personal event editing fit small s
       exact: true,
     }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "TEST-PLANNER", exact: true }),
+  ).toBeVisible();
+  await reloadedConfig;
   await page.getByRole("button", { name: "Timetable", exact: true }).tap();
   await expect(page).toHaveURL("/");
   await page.goBack();
