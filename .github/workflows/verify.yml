@@ -19,7 +19,7 @@ jobs:
       - name: Verify packaged logo
         run: docker run --rm --entrypoint test koswfriends:verify -s /app/public/logo.svg
       - name: Verify packaged PWA and preview assets
-        run: docker run --rm --entrypoint sh koswfriends:verify -c 'test -s public/sw.js && test -s public/offline.html && test -s public/icons/icon-192.png && test -s public/icons/icon-512.png && test -s public/icons/maskable-512.png && test -s public/icons/apple-touch-icon.png && test -s public/preview/timetable-en-light.png && test -s public/preview/timetable-cs-dark.png'
+        run: docker run --rm --entrypoint sh koswfriends:verify -c 'test -s public/sw.js && test -s public/offline.html && test -s public/icons/icon-192.png && test -s public/icons/icon-512.png && test -s public/icons/maskable-512.png && test -s public/icons/apple-touch-icon.png && test -s public/preview/timetable-en-light.png && test -s public/preview/timetable-cs-dark.png && test -s public/preview/timetable-uk-light.png && test -s public/preview/timetable-uk-dark.png'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

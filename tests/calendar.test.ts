@@ -245,6 +245,11 @@ describe("joined shared lesson cards", () => {
       ["different", 1, 1],
       ["shared", 2, 2],
     ]);
+    expect(cards.map((c) => [c.continuesBefore, c.continuesAfter])).toEqual([
+      [false, true],
+      [false, false],
+      [true, false],
+    ]);
   });
   it("keeps room for concurrent lessons and only joins matching identities and times", () => {
     const cards = joinAdjacentLessons([
@@ -271,6 +276,12 @@ describe("joined shared lesson cards", () => {
         joinAdjacentLessons([
           [event("shared", flag)],
           [event("shared", flag)],
+        ]).every((card) => !card.continuesBefore && !card.continuesAfter),
+      ).toBe(true);
+      expect(
+        joinAdjacentLessons([
+          [event("shared", flag)],
+          [event("shared", flag)],
         ]).map((c) => c.span),
       ).toEqual([1, 1]);
     }
@@ -278,6 +289,34 @@ describe("joined shared lesson cards", () => {
       joinAdjacentLessons([[event()], [], [event()]]).map((c) => c.span),
     ).toEqual([1, 1]);
   });
+});
+
+import {
+  copy,
+  localizedText,
+  preferredLocale,
+  lessonType,
+} from "../src/lib/i18n";
+it("provides complete Ukrainian copy and preserves school titles when a translation is unavailable", () => {
+  const keys = (value: object, prefix = ""): string[] =>
+    Object.entries(value).flatMap(([key, text]) =>
+      typeof text === "object"
+        ? keys(text, `${prefix}${key}.`)
+        : [`${prefix}${key}`],
+    );
+  expect(keys(copy.uk).sort()).toEqual(keys(copy.en).sort());
+  expect(keys(copy.cs).sort()).toEqual(keys(copy.en).sort());
+  expect(preferredLocale(null, "uk-UA")).toBe("uk");
+  expect(preferredLocale("cs", "uk-UA")).toBe("cs");
+  expect(preferredLocale("unknown", "uk-UA")).toBe("uk");
+  expect(localizedText({ cs: "Matematika", en: "Mathematics" }, "uk")).toBe(
+    "Mathematics",
+  );
+  expect(
+    localizedText({ cs: "Matematika", en: "", uk: "Математика" }, "uk"),
+  ).toBe("Математика");
+  expect(localizedText({ cs: "Matematika", en: "" }, "uk")).toBe("Matematika");
+  expect(lessonType("tutorial", "uk")).toBe("Практичне заняття");
 });
 
 it("gives usernames a stable broad color range with readable white initials", () => {

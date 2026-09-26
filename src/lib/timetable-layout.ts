@@ -89,9 +89,16 @@ type JoinableSlot = TimeSlot & {
 export function joinAdjacentLessons<T extends JoinableSlot>(
   lanes: Placed<T>[][],
 ) {
-  type Card = { event: Placed<T>; lane: number; span: number };
+  type Card = {
+    event: Placed<T>;
+    lane: number;
+    span: number;
+    continuesBefore: boolean;
+    continuesAfter: boolean;
+  };
   const cards: Card[] = [];
   const previous = new Map<string, Card>();
+  const segments = new Map<string, Card[]>();
   lanes.forEach((events, lane) => {
     for (const event of events) {
       const key = JSON.stringify([
@@ -104,8 +111,24 @@ export function joinAdjacentLessons<T extends JoinableSlot>(
       if (match && match.lane + match.span === lane) {
         match.span++;
       } else {
-        const card = { event, lane, span: 1 };
+        const card = {
+          event,
+          lane,
+          span: 1,
+          continuesBefore: false,
+          continuesAfter: false,
+        };
         cards.push(card);
+        if (!event.cancelled && !event.draft) {
+          const parts = segments.get(key) || [];
+          const earlier = parts.at(-1);
+          if (earlier) {
+            earlier.continuesAfter = true;
+            card.continuesBefore = true;
+          }
+          parts.push(card);
+          segments.set(key, parts);
+        }
         if (canJoin) previous.set(key, card);
       }
     }

@@ -10,10 +10,11 @@ import {
 import { DateTime } from "luxon";
 import { daySegments, semesterWindow, ZONE } from "@/lib/calendar";
 import type { Calendar, Choice, Lesson, Me, Person } from "@/lib/types";
-import { lessonType, type Locale, type Text } from "@/lib/i18n";
+import { localizedText, lessonType, type Locale, type Text } from "@/lib/i18n";
 import { lessonColor } from "@/lib/appearance";
 import { arrangeDay } from "@/lib/timetable-layout";
 import { PERSONAL_COLOR } from "@/lib/personal-events";
+import { useMobile } from "@/lib/use-mobile";
 import MobileTimetable from "./MobileTimetable";
 import Icon from "./Icon";
 import Avatar, { AvatarStack } from "./Avatar";
@@ -67,6 +68,15 @@ export default function CalendarView({
       : DateTime.fromISO(window.from).setZone(ZONE).startOf("day");
   });
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const mobile = useMobile();
+  const [dayLayout, setDayLayout] = useState<"people" | "lessons" | null>(null);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("kwf_day_layout");
+      if (saved === "people" || saved === "lessons") setDayLayout(saved);
+    } catch {}
+  }, []);
+  const layout = dayLayout || (mobile ? "people" : "lessons");
   const dayButtons = useRef(new Map<string, HTMLButtonElement>());
   const navigateDate = (next: DateTime) => {
     setDate(next);
@@ -204,7 +214,8 @@ export default function CalendarView({
     setDetail(item);
   };
   const expandedDay = days.find((day) => day.toISODate() === expandedDate);
-  const arranged = (expandedDay ? [expandedDay] : days).map((day) => {
+  const singleDay = mobile ? activeDay : expandedDay;
+  const arranged = (singleDay ? [singleDay] : days).map((day) => {
     const events = slices
       .filter((e) => e.date === day.toISODate())
       .map((e) => ({
@@ -217,20 +228,19 @@ export default function CalendarView({
           Number(a.display.draft) - Number(b.display.draft) ||
           a.display.lesson.id.localeCompare(b.display.lesson.id),
       );
-    const { visible, overflow } = arrangeDay(
-      events,
-      expandedDay ? Infinity : 3,
-    );
+    const { visible, overflow } = arrangeDay(events, singleDay ? Infinity : 3);
     return { day, placed: visible, overflow };
   });
   const weekGrid = {
     gridTemplateColumns: `52px repeat(${days.length}, minmax(0, 1fr))`,
   };
-  const gridStyle = expandedDay
+  const gridStyle = singleDay
     ? {
         gridTemplateColumns: "52px minmax(0, 1fr)",
         minWidth:
-          52 + Math.max(1, ...arranged[0].placed.map((p) => p.columns)) * 150,
+          52 +
+          Math.max(1, ...arranged[0].placed.map((p) => p.columns)) *
+            (mobile ? 116 : 150),
       }
     : weekGrid;
   const mobileLanes = [
@@ -245,7 +255,7 @@ export default function CalendarView({
       own: person.id === me.id,
       events: slices.filter(
         (slice) =>
-          slice.date === activeDay.toISODate() &&
+          slice.date === (singleDay || activeDay).toISODate() &&
           (ids.has(slice.display.lesson.id) ||
             (person.id === me.id && slice.display.draft)),
       ),
@@ -310,6 +320,28 @@ export default function CalendarView({
           aria-label={t.legend}
         >
           <div id="calendar-filters" className={s.filterContent}>
+            {singleDay && (
+              <fieldset className={s.layoutPicker}>
+                <legend>{t.dayLayout}</legend>
+                {(["people", "lessons"] as const).map((value) => (
+                  <label key={value}>
+                    <input
+                      type="radio"
+                      name="day-layout"
+                      value={value}
+                      checked={layout === value}
+                      onChange={() => {
+                        setDayLayout(value);
+                        try {
+                          localStorage.setItem("kwf_day_layout", value);
+                        } catch {}
+                      }}
+                    />
+                    <span>{value === "people" ? t.byPerson : t.byLesson}</span>
+                  </label>
+                ))}
+              </fieldset>
+            )}
             <div className={s.filterRow}>
               <label className={s.personChip}>
                 <input
@@ -319,7 +351,10 @@ export default function CalendarView({
                   onChange={(e) => setShowOwn(e.target.checked)}
                 />
                 <Avatar person={me} small />
-                <strong>{t.yourCalendar}</strong>
+                <strong className={s.fullFilterLabel}>{t.yourCalendar}</strong>
+                <strong className={s.compactFilterLabel} aria-hidden>
+                  {t.own}
+                </strong>
               </label>
               <label className={s.check}>
                 <input
@@ -343,19 +378,27 @@ export default function CalendarView({
               <label className={s.check}>
                 <input
                   type="checkbox"
+                  aria-label={t.commonOnly}
                   checked={onlyShared}
                   onChange={(e) => setOnlyShared(e.target.checked)}
                 />
-                {t.commonOnly}
+                <span className={s.fullFilterLabel}>{t.commonOnly}</span>
+                <span className={s.compactFilterLabel} aria-hidden>
+                  {t.sharedShort}
+                </span>
               </label>
               <label className={s.check}>
                 <input
                   type="checkbox"
+                  aria-label={t.showDrafts}
                   checked={drafts}
                   disabled={!showOwn}
                   onChange={(e) => setDrafts(e.target.checked)}
                 />
-                {t.showDrafts}
+                <span className={s.fullFilterLabel}>{t.showDrafts}</span>
+                <span className={s.compactFilterLabel} aria-hidden>
+                  {t.draftsShort}
+                </span>
               </label>
               <button
                 className={`${s.button} ${s.secondary} ${s.small}`}
@@ -430,9 +473,7 @@ export default function CalendarView({
               className={d.hasSame(activeDay, "day") ? s.selectedDay : ""}
               onClick={() => navigateDate(d)}
             >
-              {d.toFormat("ccc")}
-              <br />
-              {d.day}
+              <span>{d.toFormat("ccc")}</span> <span>{d.day}</span>
             </button>
           ))}
         </div>
@@ -492,149 +533,152 @@ export default function CalendarView({
               </button>
             </div>
           )}
-          <div className={s.dayScroll}>
-            <div
-              id="week-timetable"
-              className={s.gridBody}
-              style={{
-                ...gridStyle,
-                height: (endHour - startHour) * 60 * SCALE,
-              }}
-            >
-              <div className={s.timeColumn}>
-                {Array.from({ length: endHour - startHour }, (_, i) => (
+          {singleDay && layout === "people" ? (
+            <MobileTimetable
+              lanes={mobileLanes}
+              me={me}
+              day={singleDay}
+              locale={locale}
+              t={t}
+              open={open}
+            />
+          ) : (
+            <div className={s.dayScroll} data-layout="lessons">
+              <div
+                id="week-timetable"
+                className={s.gridBody}
+                style={{
+                  ...gridStyle,
+                  height: (endHour - startHour) * 60 * SCALE,
+                }}
+              >
+                <div className={s.timeColumn}>
+                  {Array.from({ length: endHour - startHour }, (_, i) => (
+                    <div
+                      className={s.timeTick}
+                      key={i}
+                      style={{ top: i * 60 * SCALE + 10 }}
+                    >
+                      {String(startHour + i).padStart(2, "0")}:00
+                    </div>
+                  ))}
+                </div>
+                {arranged.map(({ day, placed, overflow }) => (
                   <div
-                    className={s.timeTick}
-                    key={i}
-                    style={{ top: i * 60 * SCALE + 10 }}
+                    className={s.dayColumn}
+                    key={day.toISODate()}
+                    data-day-column={day.toISODate()}
                   >
-                    {String(startHour + i).padStart(2, "0")}:00
+                    {placed.map(
+                      ({
+                        display: item,
+                        startMinute,
+                        endMinute,
+                        column,
+                        columns,
+                      }) => {
+                        const height = Math.max(
+                          22,
+                          (endMinute - startMinute) * SCALE - 3,
+                        );
+                        const peers = item.attendees.filter(
+                          (p) => p.id !== me.id,
+                        );
+                        return (
+                          <button
+                            key={item.lesson.id}
+                            aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map(displayName).join(", ")}`}
+                            title={`${title(item)}\n${t.allDetails}`}
+                            data-lesson-type={item.lesson.type}
+                            data-owned={item.own}
+                            data-event-id={item.lesson.id}
+                            className={`${s.lesson} ${!item.own ? s.friendLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
+                            style={{
+                              ...colorStyle(
+                                item.lesson.type,
+                                item.lesson.color,
+                              ),
+                              top: (startMinute - startHour * 60) * SCALE,
+                              height,
+                              left: `calc(${(column * 100) / columns}% + 3px)`,
+                              width: `calc(${100 / columns}% - 6px)`,
+                            }}
+                            onClick={() => open(item)}
+                          >
+                            <b>
+                              {item.lesson.course ||
+                                localizedText(item.lesson.title, locale)}
+                            </b>
+                            {height >= 44 && (
+                              <span className={s.lessonTime}>
+                                {time(item.lesson.start)}–
+                                {time(item.lesson.end)}
+                              </span>
+                            )}
+                            {height >= 100 && (
+                              <span className={s.lessonMeta}>
+                                {item.lesson.room}
+                                {item.lesson.group
+                                  ? ` · ${item.lesson.group}`
+                                  : ""}
+                              </span>
+                            )}
+                            {height >= 145 && (
+                              <span className={s.lessonKind}>
+                                {item.draft
+                                  ? t.draft
+                                  : lessonType(item.lesson.type, locale)}
+                                {item.lesson.cancelled
+                                  ? ` · ${t.cancelled}`
+                                  : ""}
+                              </span>
+                            )}
+                            {height >= 80 && peers.length > 0 && (
+                              <AvatarStack people={peers} />
+                            )}
+                          </button>
+                        );
+                      },
+                    )}
+                    {overflow.map((more) => (
+                      <button
+                        key={more.startMinute}
+                        className={s.lessonOverflow}
+                        aria-label={`${t.expandDay}: ${day.toFormat("cccc d. LLL")} · ${more.count} ${t.moreLessons}`}
+                        title={`${more.count} ${t.moreLessons} · ${t.expandDay}`}
+                        style={{
+                          top: (more.startMinute - startHour * 60) * SCALE,
+                          height: Math.max(
+                            22,
+                            (more.endMinute - more.startMinute) * SCALE - 3,
+                          ),
+                          left: `calc(${(more.column * 100) / more.columns}% + 3px)`,
+                          width: `calc(${100 / more.columns}% - 6px)`,
+                        }}
+                        onClick={() => expandDay(day.toISODate()!)}
+                      >
+                        <strong>+{more.count}</strong>
+                        <span>{t.moreLessons}</span>
+                      </button>
+                    ))}
+                    {day.hasSame(now, "day") &&
+                      now.hour >= startHour &&
+                      now.hour < endHour && (
+                        <div
+                          className={s.nowLine}
+                          style={{
+                            top:
+                              (now.hour * 60 + now.minute - startHour * 60) *
+                              SCALE,
+                          }}
+                        />
+                      )}
                   </div>
                 ))}
               </div>
-              {arranged.map(({ day, placed, overflow }) => (
-                <div
-                  className={s.dayColumn}
-                  key={day.toISODate()}
-                  data-day-column={day.toISODate()}
-                >
-                  {placed.map(
-                    ({
-                      display: item,
-                      startMinute,
-                      endMinute,
-                      column,
-                      columns,
-                    }) => {
-                      const height = Math.max(
-                        22,
-                        (endMinute - startMinute) * SCALE - 3,
-                      );
-                      const peers = item.attendees.filter(
-                        (p) => p.id !== me.id,
-                      );
-                      return (
-                        <button
-                          key={item.lesson.id}
-                          aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map(displayName).join(", ")}`}
-                          title={`${title(item)}\n${t.allDetails}`}
-                          data-lesson-type={item.lesson.type}
-                          data-owned={item.own}
-                          data-event-id={item.lesson.id}
-                          className={`${s.lesson} ${!item.own ? s.friendLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
-                          style={{
-                            ...colorStyle(item.lesson.type, item.lesson.color),
-                            top: (startMinute - startHour * 60) * SCALE,
-                            height,
-                            left: `calc(${(column * 100) / columns}% + 3px)`,
-                            width: `calc(${100 / columns}% - 6px)`,
-                          }}
-                          onClick={() => open(item)}
-                        >
-                          {height >= 70 && (
-                            <span className={s.lessonOwner}>
-                              {item.own
-                                ? t.you
-                                : item.attendees.map(displayName).join(", ")}
-                            </span>
-                          )}
-                          <b>
-                            {item.lesson.course || item.lesson.title[locale]}
-                          </b>
-                          {height >= 44 && (
-                            <span className={s.lessonTime}>
-                              {time(item.lesson.start)}–{time(item.lesson.end)}
-                            </span>
-                          )}
-                          {height >= 100 && (
-                            <span className={s.lessonMeta}>
-                              {item.lesson.room}
-                              {item.lesson.group
-                                ? ` · ${item.lesson.group}`
-                                : ""}
-                            </span>
-                          )}
-                          {height >= 145 && (
-                            <span className={s.lessonKind}>
-                              {item.draft
-                                ? t.draft
-                                : lessonType(item.lesson.type, locale)}
-                              {item.lesson.cancelled ? ` · ${t.cancelled}` : ""}
-                            </span>
-                          )}
-                          {height >= 80 && peers.length > 0 && (
-                            <AvatarStack people={peers} />
-                          )}
-                        </button>
-                      );
-                    },
-                  )}
-                  {overflow.map((more) => (
-                    <button
-                      key={more.startMinute}
-                      className={s.lessonOverflow}
-                      aria-label={`${t.expandDay}: ${day.toFormat("cccc d. LLL")} · ${more.count} ${t.moreLessons}`}
-                      title={`${more.count} ${t.moreLessons} · ${t.expandDay}`}
-                      style={{
-                        top: (more.startMinute - startHour * 60) * SCALE,
-                        height: Math.max(
-                          22,
-                          (more.endMinute - more.startMinute) * SCALE - 3,
-                        ),
-                        left: `calc(${(more.column * 100) / more.columns}% + 3px)`,
-                        width: `calc(${100 / more.columns}% - 6px)`,
-                      }}
-                      onClick={() => expandDay(day.toISODate()!)}
-                    >
-                      <strong>+{more.count}</strong>
-                      <span>{t.moreLessons}</span>
-                    </button>
-                  ))}
-                  {day.hasSame(now, "day") &&
-                    now.hour >= startHour &&
-                    now.hour < endHour && (
-                      <div
-                        className={s.nowLine}
-                        style={{
-                          top:
-                            (now.hour * 60 + now.minute - startHour * 60) *
-                            SCALE,
-                        }}
-                      />
-                    )}
-                </div>
-              ))}
             </div>
-          </div>
+          )}
         </div>
-        <MobileTimetable
-          lanes={mobileLanes}
-          me={me}
-          day={activeDay}
-          locale={locale}
-          t={t}
-          open={open}
-        />
       </section>
       <dialog
         ref={dialog}
@@ -662,7 +706,8 @@ export default function CalendarView({
                 </button>
               </div>
               <h2 id="lesson-title">
-                {detail.lesson.course || detail.lesson.title[locale]}
+                {detail.lesson.course ||
+                  localizedText(detail.lesson.title, locale)}
               </h2>
               <div className={s.lessonDialogTime} title={t.prague}>
                 {time(detail.lesson.start)}–{time(detail.lesson.end)}
@@ -701,8 +746,9 @@ export default function CalendarView({
             </header>
             <div className={s.lessonDialogBody}>
               {detail.lesson.course &&
-                detail.lesson.title[locale] !== detail.lesson.course && (
-                  <h3>{detail.lesson.title[locale]}</h3>
+                localizedText(detail.lesson.title, locale) !==
+                  detail.lesson.course && (
+                  <h3>{localizedText(detail.lesson.title, locale)}</h3>
                 )}
               {(detail.lesson.room || detail.lesson.group) && (
                 <dl className={s.lessonFacts}>

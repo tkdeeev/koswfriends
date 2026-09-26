@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { copy, type Locale } from "@/lib/i18n";
+import { copy, preferredLocale, type Locale } from "@/lib/i18n";
 import type {
   Calendar,
   Choice,
@@ -76,13 +76,7 @@ export default function Workspace() {
   const generation = useRef(0);
   useEffect(() => {
     const saved = localStorage.getItem("kwf_locale");
-    setLocale(
-      saved === "en" || saved === "cs"
-        ? saved
-        : navigator.language.startsWith("en")
-          ? "en"
-          : "cs",
-    );
+    setLocale(preferredLocale(saved, navigator.language));
     const captureInvite = () => {
       const incoming = new URLSearchParams(location.hash.slice(1)).get(
         "groupInvite",
@@ -275,7 +269,7 @@ export default function Workspace() {
         <div className={s.headerEnd}>
           <ThemeToggle t={t} />
           <div className={s.languages} aria-label="Language">
-            {(["cs", "en"] as const).map((l) => (
+            {(["cs", "en", "uk"] as const).map((l) => (
               <button
                 key={l}
                 className={locale === l ? s.chosen : ""}
@@ -285,7 +279,7 @@ export default function Workspace() {
                   localStorage.setItem("kwf_locale", l);
                 }}
               >
-                {l === "cs" ? "CZ" : "EN"}
+                {l === "cs" ? "CZ" : l === "uk" ? "UA" : "EN"}
               </button>
             ))}
           </div>
