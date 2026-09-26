@@ -14,34 +14,43 @@ export type Overflow = TimeSlot & {
 export function arrangeDay<T extends TimeSlot>(events: T[], limit = 3) {
   const visible: Placed<T>[] = [];
   const overflow: Overflow[] = [];
-  let cluster: Placed<T>[] = [],
+  let cluster: T[] = [],
     end = -1;
   const finish = () => {
     if (!cluster.length) return;
-    const columns = Math.max(...cluster.map((x) => x.column + 1));
-    const crowded = columns > limit;
-    const shown: Placed<T>[] = [];
-    if (crowded) {
-      // Keep the user's lessons first, including those starting after overlays.
-      // Packing the compact lanes again avoids hiding them behind earlier friends.
-      for (const event of [...cluster].sort(
-        (a, b) => (a.priority || 0) - (b.priority || 0),
-      )) {
-        let column = 0;
-        while (
-          column < limit - 1 &&
-          shown.some(
+    // Pack by ownership before start time, so later personal lessons also stay
+    // left of earlier friends. Test every interval: priority order is not temporal.
+    const packed: Placed<T>[] = [];
+    for (const event of [...cluster].sort(
+      (a, b) => (a.priority || 0) - (b.priority || 0),
+    )) {
+      let column = Math.max(
+        0,
+        ...packed
+          .filter(
             (x) =>
-              x.column === column &&
+              (x.priority || 0) < (event.priority || 0) &&
               x.startMinute < event.endMinute &&
               event.startMinute < x.endMinute,
           )
+          .map((x) => x.column + 1),
+      );
+      while (
+        packed.some(
+          (x) =>
+            x.column === column &&
+            x.startMinute < event.endMinute &&
+            event.startMinute < x.endMinute,
         )
-          column++;
-        if (column < limit - 1) shown.push({ ...event, column });
-      }
-      shown.sort((a, b) => a.startMinute - b.startMinute);
-    } else shown.push(...cluster);
+      )
+        column++;
+      packed.push({ ...event, column, columns: 1 });
+    }
+    const columns = Math.max(...packed.map((x) => x.column + 1));
+    const crowded = columns > limit;
+    const shown = packed
+      .filter((x) => !crowded || x.column < limit - 1)
+      .sort((a, b) => a.startMinute - b.startMinute);
     visible.push(
       ...shown.map((x) => ({ ...x, columns: Math.min(columns, limit) })),
     );
@@ -63,14 +72,7 @@ export function arrangeDay<T extends TimeSlot>(events: T[], limit = 3) {
       finish();
       end = -1;
     }
-    const used = new Set(
-      cluster
-        .filter((x) => x.endMinute > event.startMinute)
-        .map((x) => x.column),
-    );
-    let column = 0;
-    while (used.has(column)) column++;
-    cluster.push({ ...event, column, columns: 1 });
+    cluster.push(event);
     end = Math.max(end, event.endMinute);
   }
   finish();

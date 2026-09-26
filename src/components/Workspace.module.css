@@ -462,9 +462,6 @@
   font-weight: 400;
   margin-bottom: 16px;
 }
-.mobileAgenda {
-  display: none;
-}
 .mobileControls {
   display: none;
 }
@@ -926,9 +923,6 @@
   .calendarFrame {
     display: none;
   }
-  .mobileAgenda {
-    display: block;
-  }
   .mobileControls {
     display: flex;
     gap: 6px;
@@ -947,42 +941,6 @@
     background: var(--accent);
     color: white;
     border-color: var(--blue);
-  }
-  .agendaEvent {
-    border-left: 4px solid var(--blue);
-    padding: 14px;
-    margin: 12px 0;
-    background: var(--soft-blue);
-    width: 100%;
-    display: flex;
-    gap: 18px;
-    text-align: left;
-    border-top: 1px solid var(--line);
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    color: var(--dark);
-  }
-  .agendaTime {
-    font-size: 12px;
-    min-width: 48px;
-    color: var(--blue);
-  }
-  .agendaEvent b {
-    font-size: 15px;
-    display: block;
-  }
-  .agendaEvent span {
-    font-size: 12px;
-  }
-  .agendaFriend {
-    background: var(--surface);
-    border: 1px solid var(--blue);
-    border-left-width: 4px;
-  }
-  .agendaDraft {
-    border: 1px dashed var(--blue);
-    border-left-width: 4px;
-    background: var(--soft-blue);
   }
   .twoColumns {
     grid-template-columns: 1fr;
@@ -1210,10 +1168,6 @@
   z-index: 3;
   filter: brightness(0.98);
 }
-.agendaEvent {
-  border-left-color: var(--lesson-color);
-  background: color-mix(in srgb, var(--lesson-color) 16%, var(--surface));
-}
 @media (max-width: 760px) {
   .calendarFilters {
     padding: 12px;
@@ -1237,12 +1191,6 @@
   }
   .typeLegend {
     gap: 8px 14px;
-  }
-  .agendaEvent .avatarStack {
-    display: flex;
-  }
-  .agendaEvent .profileAvatar {
-    font-size: 10px;
   }
 }
 .eventDialog {
@@ -1553,13 +1501,6 @@
     z-index: 3;
     padding-top: 6px;
   }
-  .agendaEvent {
-    gap: 12px;
-  }
-  .agendaEvent > div:last-child {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
   .eventDialog,
   .installDialog {
     max-height: calc(100dvh - 24px);
@@ -1836,5 +1777,267 @@
   .addConnection {
     padding: 10px 14px;
     min-height: 52px;
+  }
+}
+
+/* Ownership is expressed by border, label and fill, including in dark mode. */
+.lesson {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border-width: 2px;
+  border-left-width: 5px;
+  background: color-mix(in srgb, var(--lesson-color) 24%, var(--surface));
+}
+.friendLesson {
+  background: var(--surface);
+  border: 1px dashed var(--muted);
+  border-left: 3px dashed var(--lesson-color);
+}
+.lesson > * {
+  flex-shrink: 0;
+}
+.lesson .lessonOwner {
+  font-size: 10px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lesson[data-owned="true"] .lessonOwner {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.draftLesson {
+  border-style: dotted;
+  background: var(--soft-blue);
+}
+.typeLegend {
+  margin: 12px 0 0;
+}
+.calendarFilters {
+  margin-bottom: 16px;
+}
+.navIcon,
+.mobileTimetable,
+.shortWeek {
+  display: none;
+}
+@media (max-width: 760px) {
+  .signedIn {
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
+  }
+  .signedIn .header {
+    min-height: 56px;
+    padding-block: calc(4px + env(safe-area-inset-top)) 4px;
+    flex-wrap: nowrap;
+  }
+  .signedIn .brand {
+    width: 80px;
+    height: 30px;
+    flex-basis: 80px;
+  }
+  .navigation {
+    height: calc(48px + env(safe-area-inset-bottom));
+    padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+    bottom: 0;
+    margin: 0;
+  }
+  .nav {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    min-height: 48px;
+  }
+  .navIcon {
+    display: block;
+    width: 23px;
+    height: 23px;
+  }
+  .navText,
+  .timetableTitle .semesterLabel > span,
+  .timetableTitle .refreshText,
+  .longWeek {
+    display: none;
+  }
+  .shortWeek {
+    display: inline;
+  }
+  .main {
+    padding-top: 8px;
+  }
+  .timetableTitle {
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .timetableTitle h1 {
+    font-size: 20px;
+    letter-spacing: -0.3px;
+  }
+  .timetableTitle .toolbar {
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .timetableTitle .semesterLabel {
+    gap: 0;
+  }
+  .timetableTitle .semesterLabel select {
+    font-size: 13px;
+    padding: 6px;
+    background: var(--pale);
+    border: 0;
+  }
+  .timetableTitle .toolbar > button {
+    width: 44px;
+    padding: 0;
+    border: 0;
+  }
+  .calendarWorkspace {
+    gap: 0;
+  }
+  .calendarToolbar {
+    flex-wrap: nowrap;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .calendarToolbar h2 {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .calendarToolbar .toolbar {
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+  .calendarToolbar .iconButton,
+  .calendarToolbar .small {
+    padding: 4px 8px;
+    min-width: 36px;
+    border: 0;
+    background: var(--pale);
+  }
+  .calendarToolbar .small {
+    font-size: 12px;
+  }
+  .filterToggle {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    min-width: 40px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--blue);
+    background: var(--pale);
+  }
+  .filterToggle[aria-expanded="true"] {
+    background: var(--soft-blue);
+    box-shadow: inset 0 -2px var(--blue);
+  }
+  .filtersCollapsed {
+    display: none;
+  }
+  .calendarFilters {
+    padding: 8px 12px;
+    margin: 0 0 8px;
+  }
+  .filterContent {
+    padding-bottom: 4px;
+  }
+  .dayPicker {
+    gap: 2px;
+    padding: 0 0 4px;
+  }
+  .dayPicker button {
+    padding: 3px 2px;
+    min-height: 44px;
+    line-height: 1.45;
+  }
+  .mobileTimetable {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border: 1px solid var(--line);
+  }
+  .laneHeaders,
+  .mobileTimeGrid {
+    display: grid;
+  }
+  .laneHeader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    min-width: 0;
+    border-left: 1px solid var(--line);
+    border-top: 3px dashed var(--person-color);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 12px;
+  }
+  .laneHeader > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ownLaneHeader {
+    border-top: 3px solid var(--blue);
+    background: var(--soft-blue);
+    font-weight: 700;
+  }
+  .laneClock,
+  .mobileTimeAxis {
+    position: sticky;
+    left: 0;
+    background: var(--surface);
+    z-index: 2;
+    color: var(--muted);
+  }
+  .laneClock {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    font-size: 9px;
+    line-height: 1.2;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobileTimeAxis > span {
+    position: absolute;
+    right: 4px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .personLane {
+    position: relative;
+    border-left: 1px solid var(--line);
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 41px,
+        color-mix(in srgb, var(--line) 50%, transparent) 41px,
+        color-mix(in srgb, var(--line) 50%, transparent) 42px,
+        transparent 42px,
+        transparent 83px,
+        var(--line) 83px,
+        var(--line) 84px
+      )
+      var(--pale);
+  }
+  .mobileLesson {
+    padding: 5px;
+    min-height: 20px;
+  }
+  .mobileLesson b {
+    font-size: 12px;
+  }
+  .mobileLesson .lessonTime,
+  .mobileLesson .lessonMeta,
+  .mobileLesson .lessonKind {
+    font-size: 10px;
   }
 }

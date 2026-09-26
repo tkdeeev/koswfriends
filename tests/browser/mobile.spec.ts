@@ -4,7 +4,13 @@ import { seed } from "./fixtures";
 import { connections, addConnection, expand } from "./connections-helpers";
 import { DateTime } from "luxon";
 import { eq } from "drizzle-orm";
-import { users } from "../../src/server/schema";
+import {
+  users,
+  groups,
+  members,
+  snapshots,
+  personalEvents,
+} from "../../src/server/schema";
 import { requestFriend } from "../../src/server/friends";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -372,4 +378,208 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     ),
   ).toBe(true);
   await other.close();
+});
+
+test("mobile time lanes preserve gaps, default to own lessons and compare friends without self", async ({
+  page,
+  context,
+  browser,
+  browserName,
+}) => {
+  const a = await seed(context, "Demo Student");
+  const second = await browser.newContext();
+  try {
+    const b = await seed(second, "Demo Friend One"),
+      c = await seed(second, "Demo Friend Two");
+    const [group] = await database()
+      .insert(groups)
+      .values({ owner: a.id, name: "Lane comparison" })
+      .returning();
+    await database()
+      .insert(members)
+      .values(
+        [a, b, c].map((u) => ({
+          groupId: group.id,
+          userId: u.id,
+          status: "accepted" as const,
+          calendar: true,
+          plans: false,
+        })),
+      );
+    const [snapshot] = await database()
+      .select()
+      .from(snapshots)
+      .where(eq(snapshots.userId, a.id));
+    const common = snapshot.events[0];
+    const start = DateTime.fromISO(common.start);
+    await database()
+      .update(snapshots)
+      .set({ events: [common] })
+      .where(eq(snapshots.userId, a.id));
+    await database()
+      .insert(personalEvents)
+      .values({
+        owner: a.id,
+        semester: a.semester,
+        details: {
+          course: "TV1-PE",
+          title: "Swimming",
+          start: start.plus({ hours: 2 }).toISO()!,
+          end: start.plus({ hours: 3 }).toISO()!,
+          room: "Pool",
+          color: "#158b98",
+          note: "",
+          repeatUntil: null,
+        },
+      });
+    for (const [i, user] of [b, c].entries()) {
+      await database()
+        .update(snapshots)
+        .set({
+          events: [
+            common,
+            {
+              ...common,
+              id: `lane-friend-${i}`,
+              course: `FRIEND-${i}`,
+              start: start.plus({ minutes: 90 }).toISO()!,
+              end: start.plus({ hours: 4 }).toISO()!,
+            },
+          ],
+        })
+        .where(eq(snapshots.userId, user.id));
+    }
+    await page.goto("/");
+    await page.getByRole("button", { name: /^Thu/ }).tap();
+    const grid = page.getByRole("region", {
+      name: "Compare timetables",
+      exact: true,
+    });
+    const own = grid.locator(`[data-person-lane="${a.id}"]`);
+    const card = own.getByRole("button", { name: /TEST-MAT/ });
+    await expect(card).toBeVisible();
+    await expect(card.locator('[class*="profileAvatar"]')).toHaveCount(2);
+    await expect(grid.locator("[data-person-lane]")).toHaveCount(1);
+    await expect(grid.getByRole("button", { name: /FRIEND-/ })).toHaveCount(0);
+    const personal = own.getByRole("button", { name: /TV1-PE/ });
+    const firstRect = await card.boundingBox(),
+      nextRect = await personal.boundingBox();
+    expect(nextRect!.y - firstRect!.y).toBeCloseTo(120 * 1.4, 0);
+    expect(firstRect!.height).toBeCloseTo(90 * 1.4 - 3, 0);
+    expect(nextRect!.y - firstRect!.y - firstRect!.height).toBeGreaterThan(40);
+    // This DB-only fixture has no school token and correctly shows a reconnect banner.
+    const bannersHeight = await page
+      .locator('main [class*="banner"]')
+      .evaluateAll((nodes) =>
+        nodes.reduce(
+          (sum, node) =>
+            sum +
+            node.getBoundingClientRect().height +
+            parseFloat(getComputedStyle(node).marginBottom),
+          0,
+        ),
+      );
+    expect((await grid.boundingBox())!.y - bannersHeight).toBeLessThan(250);
+    const nav = page.getByRole("navigation", { name: "Navigation" });
+    const navRect = await nav.boundingBox();
+    expect(navRect!.y + navRect!.height).toBe(page.viewportSize()!.height);
+    await expect(nav.locator("button svg")).toHaveCount(3);
+    const filters = page.getByRole("button", { name: "Filters", exact: true });
+    await filters.tap();
+    const all = page.getByRole("checkbox", {
+      name: "All friends",
+      exact: true,
+    });
+    await expect(all).not.toBeChecked();
+    await all.check();
+    await filters.tap();
+    await expect(grid.locator("[data-person-lane]")).toHaveCount(3);
+    await expect(grid.getByRole("button", { name: /FRIEND-0/ })).toHaveCount(1);
+    expect(await grid.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
+      true,
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    // Own personal events remain left of an earlier friend's lesson on desktop too.
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const desktop = page.locator('[class*="calendarFrame"]');
+    const personalRect = await desktop
+      .getByRole("button", { name: /TV1-PE/ })
+      .boundingBox();
+    const friendRect = await desktop
+      .getByRole("button", { name: /FRIEND-0/ })
+      .boundingBox();
+    expect(personalRect!.x).toBeLessThan(friendRect!.x);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await filters.tap();
+    await page
+      .getByRole("checkbox", { name: "Your timetable", exact: true })
+      .uncheck();
+    await filters.tap();
+    await expect(own).toHaveCount(0);
+    await expect(grid.getByRole("button", { name: /TV1-PE/ })).toHaveCount(0);
+    await expect(grid.locator("[data-person-lane]")).toHaveCount(2);
+    const laneRects = await grid
+      .locator("[data-person-lane]")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          x: node.getBoundingClientRect().x,
+          width: node.getBoundingClientRect().width,
+        })),
+      );
+    expect(laneRects[0].width).toBeCloseTo(laneRects[1].width, 0);
+    expect(laneRects[1].x + laneRects[1].width).toBeLessThanOrEqual(320);
+    const sameTime = await grid
+      .getByRole("button", { name: /FRIEND-/ })
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().y),
+      );
+    expect(sameTime[0]).toBe(sameTime[1]);
+    for (const theme of ["dark", "light"]) {
+      const toggle = page.getByRole("button", {
+        name: "Dark mode",
+        exact: true,
+      });
+      if (
+        (await toggle.getAttribute("aria-pressed")) !== String(theme === "dark")
+      )
+        await toggle.tap();
+      await expect(grid.getByRole("button", { name: /FRIEND-0/ })).toHaveCSS(
+        "border-top-style",
+        "dashed",
+      );
+      await page.screenshot({
+        path: `test-results/time-lanes-${theme}-${browserName}.png`,
+      });
+    }
+    // Shared-only still compares the two selected friends while self is hidden.
+    await filters.tap();
+    await page
+      .getByRole("checkbox", { name: "Shared lessons only", exact: true })
+      .check();
+    await filters.tap();
+    await expect(grid.getByRole("button", { name: /FRIEND-/ })).toHaveCount(0);
+    await expect(grid.getByRole("button", { name: /TEST-MAT/ })).toHaveCount(2);
+    await grid
+      .getByRole("button", { name: /TEST-MAT/ })
+      .first()
+      .tap();
+    await expect(page.locator("dialog[open]")).toBeVisible();
+    await database()
+      .update(members)
+      .set({ calendar: false })
+      .where(eq(members.userId, b.id));
+    await expect(grid.locator(`[data-person-lane="${b.id}"]`)).toHaveCount(0, {
+      timeout: 15000,
+    });
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    await page.reload();
+    await expect(grid.locator("[data-person-lane]")).toHaveCount(1);
+    await expect(own).toBeVisible();
+  } finally {
+    await second.close();
+  }
 });

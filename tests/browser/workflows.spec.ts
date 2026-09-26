@@ -428,7 +428,7 @@ test("group links survive sign-in, require joining and can be copied again or re
   await second.close();
 });
 
-test("all shared overlays start enabled and support bulk and individual switches", async ({
+test("shared overlays start off and support bulk, individual and own timetable switches", async ({
   page,
   context,
   browser,
@@ -479,10 +479,7 @@ test("all shared overlays start enabled and support bulk and individual switches
   const all = page.getByRole("checkbox", { name: "All friends", exact: true });
   const first = page.getByRole("button", { name: /FRIEND-0/ }).first();
   const next = page.getByRole("button", { name: /FRIEND-1/ }).first();
-  await expect(all).toBeChecked();
-  await expect(first).toBeVisible();
-  await expect(next).toBeVisible();
-  await all.uncheck();
+  await expect(all).not.toBeChecked();
   await expect(first).toHaveCount(0);
   await expect(next).toHaveCount(0);
   await expect(
@@ -500,6 +497,20 @@ test("all shared overlays start enabled and support bulk and individual switches
   );
   await all.check();
   await expect(first).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: "Your timetable", exact: true })
+    .uncheck();
+  await expect(page.locator('[data-owned="true"]')).toHaveCount(0);
+  await expect(next).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: "Your timetable", exact: true })
+    .check();
+  await expect(
+    page.getByRole("button", { name: /TEST-MAT/ }).first(),
+  ).toBeVisible();
+  await all.uncheck();
+  await expect(first).toHaveCount(0);
+  await expect(next).toHaveCount(0);
   await second.close();
 });
 
@@ -637,7 +648,7 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
   await page.getByRole("button", { name: "Timetable", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 844 });
   await page.getByRole("button", { name: /^Thu/ }).click();
-  const mobileCard = page.locator('[class*="agendaEvent"]').first();
+  const mobileCard = page.locator('[class*="mobileLesson"]').first();
   await expect(mobileCard).toBeVisible();
   expect(
     await page.evaluate(
@@ -703,6 +714,9 @@ test("equal week columns cap crowded lessons and expand a complete day without l
     .set({ events: crowded })
     .where(eq(snapshots.userId, b.id));
   await page.goto("/");
+  await page
+    .getByRole("checkbox", { name: "All friends", exact: true })
+    .check();
   const frame = page.locator('[class*="calendarFrame"]');
   const headers = page.locator("[data-date]");
   const columns = page.locator("[data-day-column]");
@@ -827,7 +841,7 @@ test("equal week columns cap crowded lessons and expand a complete day without l
   expect(right).toBeLessThanOrEqual(320);
   await picker.getByRole("button", { name: /^Sun/ }).click();
   await expect(
-    page.locator('[class*="agendaEvent"]').filter({ hasText: "WEEKEND-1" }),
+    page.locator('[class*="mobileLesson"]').filter({ hasText: "WEEKEND-1" }),
   ).toBeVisible();
   await page.screenshot({
     path: "test-results/seven-day-mobile.png",
