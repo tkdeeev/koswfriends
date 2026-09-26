@@ -215,6 +215,24 @@ test("PWA metadata, install guidance and private offline fallback", async ({
     "href",
     "/icons/apple-touch-icon.png",
   );
+  for (const path of ["/favicon.ico?v=1", "/icons/favicon-32.png?v=1"]) {
+    await expect(
+      page.locator(`head link[rel="icon"][href="${path}"]`),
+    ).toHaveCount(1);
+    const response = await page.request.get(path);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toMatch(/^image\//);
+    // Decode the served file in each browser, not just its filename or headers.
+    const dimensions = await page.evaluate(async (src) => {
+      const icon = new Image();
+      icon.src = src;
+      await icon.decode();
+      return [icon.naturalWidth, icon.naturalHeight];
+    }, path);
+    expect(dimensions[0]).toBeGreaterThanOrEqual(16);
+    expect(dimensions[0]).toBe(dimensions[1]);
+    if (path.includes(".png")) expect(dimensions).toEqual([32, 32]);
+  }
   const worker = await page.request.get("/sw.js");
   expect(worker.headers()["cache-control"]).toContain("no-store");
   await page.getByRole("button", { name: "Install app", exact: true }).tap();
