@@ -501,17 +501,17 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
       8,
     );
     await filters.tap();
-    const all = page.getByRole("checkbox", {
-      name: "All friends",
-      exact: true,
-    });
-    await expect(all).not.toBeChecked();
-    await all.check();
+    const all = page
+      .getByRole("button", { name: "All friends", exact: true })
+      .last();
+    await expect(all).toHaveAttribute("aria-pressed", "false");
+    await all.click();
     await filters.tap();
     await expect(grid.locator("[data-person-lane]")).toHaveCount(3);
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute("data-lane-span", "3");
-    await expect(card.getByText("Together · 3", { exact: true })).toBeVisible();
+    await expect(card.getByText(/Together/)).toHaveCount(0);
+    await expect(card.locator("svg")).toHaveCount(0);
     const joinedBounds = await card.boundingBox();
     const allLaneBounds = await grid
       .locator("[data-person-lane]")
@@ -536,33 +536,46 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await grid.evaluate((el) => {
       el.scrollLeft = el.scrollWidth;
     });
-    await expect(card).toHaveAttribute("data-clipped-left", "true");
-    await expect(card).toHaveAttribute("data-clipped-right", "false");
+    const clock = page.locator('[class*="fixedClock"]');
+    const clockBounds = (await clock.boundingBox())!;
+    expect(clockBounds.width).toBe(44);
+    const scrollBounds = (await grid.boundingBox())!;
+    const leftEdge = card.locator('[class*="lessonEdgeLeft"]');
+    const rightEdge = card.locator('[class*="lessonEdgeRight"]');
+    await expect
+      .poll(async () => (await leftEdge.boundingBox())!.x)
+      .toBeCloseTo(scrollBounds.x, 0);
     expect(
       await card.evaluate(
-        (el) => getComputedStyle(el, "::before").borderLeftStyle,
+        (el) => getComputedStyle(el, "::after").backgroundImage,
       ),
-    ).toBe("dashed");
-    await expect(card).toHaveCSS("border-right-style", "solid");
-    const sharedTitle = await card.locator("b").boundingBox();
-    expect(sharedTitle!.x).toBeGreaterThanOrEqual(
-      (await grid.boundingBox())!.x + 40,
-    );
-    expect(sharedTitle!.x + sharedTitle!.width).toBeLessThanOrEqual(320);
+    ).toBe("none");
+    const sharedTitle = (await card.locator("b").boundingBox())!;
+    expect(sharedTitle.x).toBeGreaterThanOrEqual(scrollBounds.x + 8);
+    expect(sharedTitle.x + sharedTitle.width).toBeLessThanOrEqual(320);
     await grid.evaluate((el) => {
       el.scrollLeft = 0;
     });
-    await expect(card).toHaveAttribute("data-clipped-left", "false");
-    await expect(card).toHaveAttribute("data-clipped-right", "true");
-    await expect(card).toHaveCSS("border-left-style", "solid");
+    await expect
+      .poll(async () => {
+        const edge = (await rightEdge.boundingBox())!;
+        return edge.x + edge.width;
+      })
+      .toBeCloseTo(scrollBounds.x + scrollBounds.width, 0);
     expect(
       await card.evaluate(
-        (el) => getComputedStyle(el, "::after").borderRightStyle,
+        (el) => getComputedStyle(el, "::before").backgroundImage,
       ),
-    ).toBe("dashed");
+    ).toBe("none");
+    expect((await clock.boundingBox())!.x).toBe(clockBounds.x);
+    await expect(clock.getByText("08:00", { exact: true })).toHaveCSS(
+      "white-space",
+      "nowrap",
+    );
     // Own personal events remain left of an earlier friend's lesson on desktop too.
     await page.setViewportSize({ width: 1440, height: 1000 });
     const desktop = page.locator('[class*="calendarFrame"]');
+    await expect(desktop.locator("[data-day-column]")).toHaveCount(5);
     const personalRect = await desktop
       .getByRole("button", { name: /TV1-PE/ })
       .boundingBox();
@@ -578,8 +591,8 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await page.setViewportSize({ width: 320, height: 844 });
     await filters.tap();
     await page
-      .getByRole("checkbox", { name: "Your timetable", exact: true })
-      .uncheck();
+      .getByRole("button", { name: "Your timetable", exact: true })
+      .click();
     await filters.tap();
     await expect(own).toHaveCount(0);
     await expect(grid.getByRole("button", { name: /TV1-PE/ })).toHaveCount(0);
@@ -587,9 +600,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute("data-lane-span", "2");
     await expect(card.locator('[class*="profileAvatar"]')).toHaveCount(2);
-    await expect(card).toHaveAccessibleName(
-      /Together.*Demo Friend One.*Demo Friend Two/,
-    );
+    await expect(card).toHaveAccessibleName(/Demo Friend One.*Demo Friend Two/);
     const laneRects = await grid
       .locator("[data-person-lane]")
       .evaluateAll((nodes) =>
@@ -627,8 +638,8 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     // Shared-only still compares the two selected friends while self is hidden.
     await filters.tap();
     await page
-      .getByRole("checkbox", { name: "Shared lessons only", exact: true })
-      .check();
+      .getByRole("button", { name: "Shared lessons only", exact: true })
+      .click();
     await filters.tap();
     await expect(grid.getByRole("button", { name: /FRIEND-/ })).toHaveCount(0);
     await expect(grid.getByRole("button", { name: /TEST-MAT/ })).toHaveCount(1);
@@ -673,11 +684,41 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
     nodes.map((el) => el.getBoundingClientRect().height),
   );
   expect(Math.max(...heights)).toBeLessThanOrEqual(36);
+  const quick = page.getByRole("group", {
+    name: "Timetable controls",
+    exact: true,
+  });
+  await quick.getByRole("radio", { name: "By lesson", exact: true }).check();
+  await expect(lessons).toBeVisible();
+  await quick.getByRole("radio", { name: "By person", exact: true }).check();
+  await expect(people).toBeVisible();
   await filters.click();
+  const compactOptions = page.locator('[class*="filterToggles"] button');
+  const optionRects = await compactOptions.evaluateAll((nodes) =>
+    nodes.map((n) => {
+      const r = n.getBoundingClientRect();
+      return { y: r.y, height: r.height };
+    }),
+  );
+  expect(new Set(optionRects.map((r) => r.y)).size).toBe(1);
+  expect(Math.max(...optionRects.map((r) => r.height))).toBeLessThanOrEqual(34);
   await expect(
-    page.getByRole("radio", { name: "By person", exact: true }),
+    page.locator('#calendar-filters input[type="checkbox"]'),
+  ).toHaveCount(0);
+  await expect(page.getByText("Prague time", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole("radio", { name: "By person", exact: true }).last(),
   ).toBeChecked();
-  await page.getByRole("radio", { name: "By lesson", exact: true }).check();
+  await page
+    .getByRole("radio", { name: "By lesson", exact: true })
+    .last()
+    .check();
+  await expect(
+    quick.getByRole("radio", { name: "By lesson", exact: true }),
+  ).toBeChecked();
+  await expect(
+    quick.getByRole("radio", { name: "By person", exact: true }),
+  ).not.toBeChecked();
   await filters.click();
   await expect(people).toHaveCount(0);
   await expect(lessons).toBeVisible();
@@ -693,10 +734,13 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expect(lessons.locator("[data-day-column]")).toHaveCount(5);
   await expect(
-    page.getByRole("radio", { name: "By person", exact: true }),
+    page.getByRole("radio", { name: "By person", exact: true }).last(),
   ).toHaveCount(0);
   await page.getByRole("button", { name: /^Expand day: Thursday/ }).click();
-  await page.getByRole("radio", { name: "By person", exact: true }).check();
+  await page
+    .getByRole("radio", { name: "By person", exact: true })
+    .last()
+    .check();
   await expect(people).toBeVisible();
   await expect(people.getByRole("button", { name: /TEST-MAT/ })).toBeVisible();
   await page.getByRole("button", { name: "Back to week", exact: true }).click();
@@ -724,9 +768,12 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
   await page.getByRole("button", { name: "Закрити", exact: true }).click();
   await page.getByRole("button", { name: "Фільтри", exact: true }).click();
   await expect(
-    page.getByRole("radio", { name: "За людьми", exact: true }),
+    page.getByRole("radio", { name: "За людьми", exact: true }).last(),
   ).toBeChecked();
-  await page.getByRole("radio", { name: "За заняттями", exact: true }).check();
+  await page
+    .getByRole("radio", { name: "За заняттями", exact: true })
+    .last()
+    .check();
   await page
     .getByRole("button", { name: "Власні предмети та події", exact: true })
     .click();
@@ -761,4 +808,160 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
     animations: "disabled",
   });
   expect(errors).toEqual([]);
+});
+
+test.describe("synthetic wide-table rendering", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("wide person tables keep the clock and continuation edges fixed without delayed scroll updates", async ({
+    page,
+    browserName,
+  }) => {
+    const week = DateTime.now().setZone("Europe/Prague").startOf("week");
+    const me = {
+      id: "synthetic-self",
+      username: "syntheticself",
+      name: "Demo Student",
+      semester: "B261",
+      csrf: "demo",
+      reconnect: false,
+    };
+    const people = Array.from({ length: 9 }, (_, i) => ({
+      id: `synthetic-${i}`,
+      username: `synthetic${i}`,
+      name: `Demo Person ${i}`,
+    }));
+    const lesson = {
+      id: "wide-shared",
+      course: "DEMO-101",
+      title: { en: "Synthetic shared lesson", cs: "Ukázková hodina" },
+      type: "lecture",
+      room: "DEMO",
+      group: "101",
+      cancelled: false,
+      start: week.plus({ hours: 9 }).toISO(),
+      end: week.plus({ hours: 10.5 }).toISO(),
+    };
+    const calendar = (person: {
+      id: string;
+      username: string;
+      name: string;
+    }) => ({
+      userId: person.id,
+      username: person.username,
+      name: person.name,
+      events: [lesson],
+      lastSuccess: week.toISO(),
+      error: null,
+      semester: {
+        code: "B261",
+        from: week.toISO(),
+        to: week.plus({ weeks: 1 }).toISO(),
+        verified: true,
+      },
+    });
+    const responses: Record<string, unknown> = {
+      me,
+      friends: { friends: [], blocked: [] },
+      groups: { groups: [] },
+      events: { events: [] },
+      plans: { choices: [], shared: [] },
+      calendar: {
+        people,
+        attendees: { [lesson.id]: people },
+        revoked: [],
+        calendars: [me, ...people].map(calendar),
+      },
+    };
+    await page.route("**/api/**", async (route) => {
+      expect(route.request().method()).toBe("GET");
+      const key = new URL(route.request().url()).pathname.split("/").at(-1)!;
+      expect(key in responses).toBe(true);
+      await route.fulfill({ json: responses[key] });
+    });
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.goto("/");
+    await page.getByRole("button", { name: /^Mon/ }).click();
+    const quick = page.getByRole("group", { name: "Timetable controls" });
+    await quick
+      .getByRole("button", { name: "All friends", exact: true })
+      .click();
+    const grid = page.getByRole("region", { name: "Compare timetables" });
+    const card = grid.getByRole("button", { name: /DEMO-101/ });
+    await expect(card).toHaveAttribute("data-lane-span", "10");
+    await expect(
+      page.locator('[class*="accountButton"] [class*="profileAvatar"]'),
+    ).toHaveText("DS");
+    const clock = page.locator('[class*="fixedClock"]');
+    const initialClock = (await clock.boundingBox())!;
+    for (const offset of [0, 121, 467, 9999, 0]) {
+      // Measure in the same task as the scroll: no animation frame or JS listener may be required.
+      const bounds = await grid.evaluate((el, offset) => {
+        el.scrollLeft = offset;
+        const card = el.querySelector('[data-event-id="wide-shared"]')!;
+        const left = card
+          .querySelector('[class*="lessonEdgeLeft"]')!
+          .getBoundingClientRect();
+        const right = card
+          .querySelector('[class*="lessonEdgeRight"]')!
+          .getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
+        return {
+          left: left.x,
+          right: right.right,
+          viewportLeft: rect.x,
+          viewportRight: rect.right,
+          offset: el.scrollLeft,
+          max: el.scrollWidth - el.clientWidth,
+        };
+      }, offset);
+      if (bounds.offset > 3)
+        expect(bounds.left).toBeCloseTo(bounds.viewportLeft, 0);
+      if (bounds.offset < bounds.max - 3)
+        expect(bounds.right).toBeCloseTo(bounds.viewportRight, 0);
+      expect((await clock.boundingBox())!.x).toBe(initialClock.x);
+      expect((await clock.boundingBox())!.width).toBe(44);
+      const times = await clock.locator("span").evaluateAll((nodes) =>
+        nodes.map((n) => ({
+          width: n.getBoundingClientRect().width,
+          height: n.getBoundingClientRect().height,
+        })),
+      );
+      expect(times.every((r) => r.width > 20 && r.height < 16)).toBe(true);
+      if (offset === 467)
+        await page.screenshot({
+          path: `test-results/wide-scroll-${browserName}.png`,
+          animations: "disabled",
+        });
+    }
+    expect(
+      await card.evaluate(
+        (el) => getComputedStyle(el, "::before").backgroundImage,
+      ),
+    ).toBe("none");
+    expect(
+      await card.evaluate(
+        (el) => getComputedStyle(el, "::after").backgroundImage,
+      ),
+    ).toBe("none");
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const all = page
+      .locator("#calendar-filters")
+      .getByRole("button", { name: "All friends", exact: true });
+    await expect(all).toHaveAttribute("aria-pressed", "true");
+    await page.screenshot({
+      path: `test-results/compact-options-${browserName}.png`,
+      animations: "disabled",
+    });
+    await all.click();
+    await expect(
+      quick.getByRole("button", { name: "All friends", exact: true }),
+    ).toHaveAttribute("aria-pressed", "false");
+    await expect(grid.locator("[data-person-lane]")).toHaveCount(1);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
 });

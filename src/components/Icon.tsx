@@ -14,6 +14,8 @@ export default function Icon({
     | "planner"
     | "refresh"
     | "filters"
+    | "peopleLayout"
+    | "lessonLayout"
     | "link";
 }) {
   return (
@@ -30,6 +32,18 @@ export default function Icon({
       focusable="false"
       {...props}
     >
+      {name === "peopleLayout" && (
+        <>
+          <rect x="3" y="3" width="18" height="18" rx="1" />
+          <path d="M3 8h18M9 3v18M15 3v18M4 12h10m-4 5h10" />
+        </>
+      )}
+      {name === "lessonLayout" && (
+        <>
+          <rect x="3" y="3" width="18" height="18" rx="1" />
+          <path d="M3 8h18M3 14h18M12 8v6M8 14v7" />
+        </>
+      )}
       {name === "calendar" && (
         <>
           <rect x="3" y="5" width="18" height="16" rx="2" />

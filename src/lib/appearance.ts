@@ -1,5 +1,13 @@
-/** CTU username SSSSSFFF: initial of surname, then first name. */
-export function initials(username: string) {
+/** First and last display-name words; CTU username initials when no name is known. */
+export function initials(username: string, name?: string) {
+  const display = name?.normalize("NFC").trim();
+  if (display && display.toLowerCase() !== username.trim().toLowerCase()) {
+    const words = display.split(/\s+/u);
+    return (
+      Array.from(words[0])[0] +
+      (words.length > 1 ? Array.from(words.at(-1)!)[0] : "")
+    ).toUpperCase();
+  }
   const letters = Array.from(username.trim());
   return `${letters[0] || "?"}${letters[5] || letters[1] || ""}`.toUpperCase();
 }

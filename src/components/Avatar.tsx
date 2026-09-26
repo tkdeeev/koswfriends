@@ -19,7 +19,7 @@ export default function Avatar({
       }
       aria-label={displayName(person)}
     >
-      {initials(person.username)}
+      {initials(person.username, person.name)}
     </span>
   );
 }

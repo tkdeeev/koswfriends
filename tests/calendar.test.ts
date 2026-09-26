@@ -96,6 +96,16 @@ it("uses the first and sixth CTU username letters for profile initials", () => {
   expect(initials("ab")).toBe("AB");
 });
 
+it("prefers the first and last display-name initials, with a username fallback", () => {
+  expect(initials("novakjan", "Jan Novák")).toBe("JN");
+  expect(initials("novakjan", "  Jan   Pavel Novák  ")).toBe("JN");
+  expect(initials("testuser", "Олена Ковальчук")).toBe("ОК");
+  expect(initials("testuser", "Šimon")).toBe("Š");
+  expect(initials("novakjan", "NOVAKJAN")).toBe("NJ");
+  expect(initials("novakjan", "  ")).toBe("NJ");
+  expect(initials("", "")).toBe("?");
+});
+
 import { arrangeDay, joinAdjacentLessons } from "../src/lib/timetable-layout";
 describe("bounded weekly lesson layout", () => {
   const slot = (id: string, startMinute: number, endMinute: number) => ({

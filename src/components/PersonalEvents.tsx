@@ -221,9 +221,7 @@ export default function PersonalEvents({
               onChange={(e) => change("note", e.target.value)}
             />
           </label>
-          <p className={s.hint}>
-            {t.personalEditHint} · {t.prague}
-          </p>
+          <p className={s.hint}>{t.personalEditHint}</p>
           {failed && (
             <p role="alert" className={`${s.banner} ${s.error}`}>
               {t.eventSaveError}

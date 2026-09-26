@@ -13,6 +13,7 @@ export const uk = {
   featureTheme: "Світла й темна теми",
   featureInstall: "Встановлення на iPhone та Android",
   filters: "Фільтри",
+  quickControls: "Керування розкладом",
   dayLayout: "Вигляд дня",
   byPerson: "За людьми",
   byLesson: "За заняттями",
