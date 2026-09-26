@@ -2,7 +2,10 @@ x-app-env: &app-env
   NODE_ENV: production
   APP_URL: https://kos.deeev.cz
   APP_REVISION: ${APP_REVISION:?set revision}
-  APP_VERSION: 0.7.1
+  APP_VERSION: 0.8.0
+  UMAMI_ENABLED: ${UMAMI_ENABLED:-false}
+  UMAMI_URL: ${UMAMI_URL:-}
+  UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
   DATABASE_URL: postgres://koswfriends:${POSTGRES_PASSWORD:?set database password}@postgres:5432/koswfriends
   TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:?set encryption key}
   SCHOOL_OAUTH_CLIENT_ID: ${SCHOOL_OAUTH_CLIENT_ID:?set client id}

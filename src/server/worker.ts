@@ -10,7 +10,9 @@ import {
   workerStatus,
 } from "./schema";
 import { synchronize } from "./sync";
+import { applyRetention, RETENTION_INTERVAL_MS } from "./retention";
 let stopping = false;
+let nextRetentionAt = 0;
 async function heartbeat() {
   try {
     await database()
@@ -32,6 +34,10 @@ for (const signal of ["SIGTERM", "SIGINT"])
 await heartbeat();
 while (!stopping) {
   try {
+    if (Date.now() >= nextRetentionAt) {
+      await applyRetention();
+      nextRetentionAt = Date.now() + RETENTION_INTERVAL_MS;
+    }
     const accounts = await database()
       .select({ id: users.id, semester: users.semester })
       .from(users)

@@ -25,6 +25,7 @@ import {
   DELETE as revokeInvite,
 } from "../src/app/api/invites/route";
 import { DELETE as deleteMe } from "../src/app/api/me/route";
+import { GET as downloadExport } from "../src/app/api/me/export/route";
 import { GET as login } from "../src/app/auth/login/route";
 import { GET as callback } from "../src/app/callback/route";
 vi.mock("next/server", async (original) => ({
@@ -311,7 +312,236 @@ describe("privacy and database transactions", () => {
     ).toHaveLength(0);
   });
 });
+describe("account data export", () => {
+  it("requires a current authenticated session", async () => {
+    const response = await downloadExport(
+      new NextRequest("http://localhost:3100/api/me/export"),
+    );
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.headers.has("content-disposition")).toBe(false);
+    const a = await user("export-expired");
+    await database()
+      .update(tables.sessions)
+      .set({ expiresAt: new Date(0) })
+      .where(eq(tables.sessions.userId, a.id));
+    expect((await downloadExport(req(a, "/api/me/export"))).status).toBe(401);
+  });
+  it("exports only the signed-in account across semesters and omits all credentials and peer private content", async () => {
+    const a = await user("export-a"),
+      b = await user("export-b"),
+      c = await user("export-c");
+    for (const person of [a, b]) {
+      const marker = `${person.username}-private-content`;
+      await database()
+        .insert(tables.snapshots)
+        .values({
+          userId: person.id,
+          semester,
+          events: [{ ...lesson, course: marker }],
+          window: semesterWindow(semester),
+        });
+      await database()
+        .insert(tables.plans)
+        .values({
+          userId: person.id,
+          semester,
+          choices: [
+            {
+              id: randomUUID(),
+              course: marker,
+              title: { cs: marker, en: marker },
+              group: null,
+              note: marker,
+              verified: false,
+              events: [],
+            },
+          ],
+        });
+      await database()
+        .insert(tables.personalEvents)
+        .values({
+          owner: person.id,
+          semester,
+          details: { ...personal, note: marker },
+        });
+    }
+    await database()
+      .insert(tables.snapshots)
+      .values({
+        userId: a.id,
+        semester: "B252",
+        events: [],
+        window: semesterWindow("B252"),
+      });
+    await requestFriend(a.id, b.id, { calendar: true, plans: true });
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", {
+        id: a.id,
+        action: "accept",
+        giving: { calendar: true, plans: true },
+      }),
+    );
+    await database()
+      .insert(tables.overrides)
+      .values([
+        { owner: a.id, viewer: b.id, calendar: true, plans: false },
+        { owner: b.id, viewer: a.id, calendar: false, plans: true },
+      ]);
+    await database()
+      .insert(tables.blocks)
+      .values([
+        { owner: a.id, target: c.id },
+        { owner: c.id, target: b.id },
+      ]);
+    const owned = await makeGroup(a),
+      invited = await makeGroup(b),
+      unrelated = await makeGroup(c);
+    await groupAction(b, invited, "invite", { username: a.username });
+    await database()
+      .insert(tables.invites)
+      .values({
+        owner: a.id,
+        hash: "private-invite-hash",
+        calendar: true,
+        plans: false,
+        expiresAt: new Date(Date.now() + 60000),
+      });
+    await database()
+      .insert(tables.groupInvites)
+      .values({
+        groupId: owned,
+        hash: "private-group-invite-hash",
+        token: encrypt("private-group-token"),
+        expiresAt: new Date(Date.now() + 60000),
+      });
+    await database()
+      .insert(tables.attempts)
+      .values({
+        hash: "private-oauth-hash",
+        browserHash: "private-browser-hash",
+        expiresAt: new Date(Date.now() + 60000),
+      });
+
+    const response = await downloadExport(
+      req(a, `/api/me/export?userId=${b.id}`),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe(
+      "private, no-store, max-age=0",
+    );
+    expect(response.headers.get("cdn-cache-control")).toBe("no-store");
+    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(response.headers.get("content-type")).toContain("application/json");
+    expect(response.headers.get("content-disposition")).toMatch(
+      /^attachment; filename="koswfriends-data-\d{4}-\d{2}-\d{2}\.json"$/,
+    );
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    const data = await response.json(),
+      serialized = JSON.stringify(data);
+    expect(data).toMatchObject({
+      format: "koswfriends-account-export",
+      schemaVersion: 1,
+      profile: { id: a.id, username: a.username },
+    });
+    expect(
+      data.timetableSnapshots
+        .map((row: { semester: string }) => row.semester)
+        .sort(),
+    ).toEqual(["B252", semester]);
+    expect(data.personalEvents).toHaveLength(1);
+    expect(data.draftPlans).toHaveLength(1);
+    expect(data.sharing).toEqual({
+      grants: [{ viewerId: b.id, calendar: true, plans: true }],
+      overrides: [{ viewerId: b.id, calendar: true, plans: false }],
+      blocked: [{ targetId: c.id }],
+    });
+    expect(data.friendships).toEqual([
+      expect.objectContaining({
+        otherUserId: b.id,
+        requestedByMe: true,
+        status: "accepted",
+      }),
+    ]);
+    expect(
+      data.groupMemberships
+        .map((row: { groupId: string }) => row.groupId)
+        .sort(),
+    ).toEqual([owned, invited].sort());
+    expect(
+      data.groupMemberships.find(
+        (row: { groupId: string }) => row.groupId === invited,
+      ),
+    ).toMatchObject({ status: "pending", calendar: false, plans: false });
+    expect(data.ownedGroups.map((row: { id: string }) => row.id)).toEqual([
+      owned,
+    ]);
+    expect(serialized).toContain("export-a-private-content");
+    for (const value of [
+      "export-b-private-content",
+      unrelated,
+      a.token,
+      a.csrf,
+      hash(a.token),
+      "test-access-export-a",
+      "test-refresh-export-a",
+      "private-invite-hash",
+      "private-group-invite-hash",
+      "private-group-token",
+      "private-oauth-hash",
+      "private-browser-hash",
+    ])
+      expect(serialized).not.toContain(value);
+    const secretRecords = [
+      ...(await database().select().from(tables.connections)),
+      ...(await database().select().from(tables.groupInvites)),
+    ];
+    for (const record of secretRecords) {
+      for (const [key, value] of Object.entries(record)) {
+        if (
+          ["access", "refresh", "token"].includes(key) &&
+          typeof value === "string"
+        )
+          expect(serialized).not.toContain(value);
+      }
+    }
+    expect(Object.keys(data).sort()).toEqual([
+      "draftPlans",
+      "exportedAt",
+      "format",
+      "friendships",
+      "groupMemberships",
+      "ownedGroups",
+      "personalEvents",
+      "profile",
+      "schemaVersion",
+      "sharing",
+      "timetableSnapshots",
+    ]);
+  });
+});
 describe("OAuth and encrypted connections", () => {
+  it("preserves the hidden planner destination without allowing arbitrary OAuth return URLs", async () => {
+    const invite = "a".repeat(43);
+    for (const [query, expected] of [
+      ["?view=planner", "/?view=planner"],
+      [`?invite=${invite}&view=planner`, `/?invite=${invite}&view=planner`],
+      ["?view=https://untrusted.example&returnTo=//untrusted.example", "/"],
+      ["?invite=invalid&view=planner", "/?view=planner"],
+    ]) {
+      const response = await login(
+        new NextRequest(`http://localhost:3100/auth/login${query}`),
+      );
+      const state = new URL(response.headers.get("location")!).searchParams.get(
+        "state",
+      )!;
+      const [attempt] = await database()
+        .select()
+        .from(tables.attempts)
+        .where(eq(tables.attempts.hash, hash(state)));
+      expect(attempt.returnTo).toBe(expected);
+    }
+  });
   it("encrypts with a unique authenticated nonce and detects tampering", () => {
     const one = encrypt("sensitive");
     const two = encrypt("sensitive");

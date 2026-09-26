@@ -1,0 +1,66 @@
+.settings {
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  text-decoration: underline;
+}
+.banner {
+  position: fixed;
+  z-index: 80;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 16px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 18px;
+  border: 1px solid var(--input-line);
+  background: var(--surface);
+  color: var(--dark);
+  box-shadow: 0 4px 24px #0003;
+}
+.banner h2,
+.dialog h2 {
+  font-size: 18px;
+}
+.banner p,
+.dialog p {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.actions button,
+.close {
+  padding: 8px 14px;
+  border: 1px solid var(--input-line);
+  background: var(--surface);
+  color: var(--dark);
+  font-weight: 500;
+}
+.actions button:hover,
+.close:hover {
+  background: var(--pale);
+}
+.actions button:disabled {
+  cursor: default;
+}
+.dialog {
+  width: 460px;
+  padding: 24px;
+}
+.close {
+  width: 100%;
+  margin-top: 10px;
+}
+@media (max-width: 700px) {
+  .banner {
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    padding: 14px;
+  }
+}

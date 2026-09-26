@@ -6,7 +6,11 @@ export default defineConfig({
     { name: "chromium", use: { browserName: "chromium" } },
     {
       name: "webkit",
-      testMatch: "**/mobile.spec.ts",
+      testMatch: [
+        "**/mobile.spec.ts",
+        "**/analytics.spec.ts",
+        "**/legal.spec.ts",
+      ],
       use: {
         browserName: "webkit",
         userAgent:

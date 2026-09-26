@@ -21,10 +21,12 @@ import Icon from "./Icon";
 import { displayName } from "@/lib/appearance";
 import CalendarView from "./CalendarView";
 import Logo from "./Logo";
-import InstallApp from "./InstallApp";
+import SiteFooter from "./SiteFooter";
+import AnalyticsConsent from "./AnalyticsConsent";
 import { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
 import s from "./Workspace.module.css";
+type WorkspaceView = "timetable" | "connections" | "planner" | "account";
 async function request(path: string, init: RequestInit = {}) {
   let response: Response;
   try {
@@ -44,9 +46,15 @@ export default function Workspace() {
   const [locale, setLocale] = useState<Locale>("cs");
   const t = copy[locale];
   const [me, setMe] = useState<Me | null | undefined>(undefined);
-  const [view, setView] = useState<
-    "timetable" | "connections" | "planner" | "account"
-  >("timetable");
+  const [view, setView] = useState<WorkspaceView>("timetable");
+  const navigateView = (next: WorkspaceView) => {
+    const url = new URL(location.href);
+    if (next === "timetable") url.searchParams.delete("view");
+    else url.searchParams.set("view", next);
+    if (url.href !== location.href)
+      history.pushState(null, "", url.pathname + url.search + url.hash);
+    setView(next);
+  };
   const [connectionTab, setConnectionTab] = useState<ConnectionTab>("friends");
   const [addConnection, setAddConnection] = useState(false);
   const [events, setEvents] = useState<PersonalEvent[]>([]);
@@ -74,6 +82,21 @@ export default function Workspace() {
   const [giving, setGiving] = useState<Grant>({ calendar: true, plans: false });
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const generation = useRef(0);
+  useEffect(() => {
+    const readView = () => {
+      const requested = new URLSearchParams(location.search).get("view");
+      setView(
+        requested === "planner" ||
+          requested === "connections" ||
+          requested === "account"
+          ? requested
+          : "timetable",
+      );
+    };
+    readView();
+    window.addEventListener("popstate", readView);
+    return () => window.removeEventListener("popstate", readView);
+  }, []);
   useEffect(() => {
     const saved = localStorage.getItem("kwf_locale");
     setLocale(preferredLocale(saved, navigator.language));
@@ -228,7 +251,10 @@ export default function Workspace() {
       sessionStorage.removeItem("kwf_group_invite");
     } catch {}
   };
-  const signIn = `/auth/login${inviteToken ? `?invite=${encodeURIComponent(inviteToken)}` : ""}`;
+  const signInParams = new URLSearchParams();
+  if (inviteToken) signInParams.set("invite", inviteToken);
+  if (view === "planner") signInParams.set("view", "planner");
+  const signIn = `/auth/login${signInParams.size ? `?${signInParams}` : ""}`;
   const errorMessage =
     error === "offline"
       ? t.offline
@@ -242,23 +268,17 @@ export default function Workspace() {
         </a>
         {me && (
           <nav className={s.navigation} aria-label="Navigation">
-            {(["timetable", "connections", "planner"] as const).map((tab) => (
+            {(["timetable", "connections"] as const).map((tab) => (
               <button
                 key={tab}
                 aria-current={view === tab ? "page" : undefined}
                 className={`${s.nav} ${view === tab ? s.active : ""}`}
                 aria-label={t[tab]}
                 title={t[tab]}
-                onClick={() => setView(tab)}
+                onClick={() => navigateView(tab)}
               >
                 <Icon
-                  name={
-                    tab === "timetable"
-                      ? "calendar"
-                      : tab === "connections"
-                        ? "users"
-                        : "planner"
-                  }
+                  name={tab === "timetable" ? "calendar" : "users"}
                   className={s.navIcon}
                 />
                 <span className={s.navText}>{t[tab]}</span>
@@ -286,7 +306,7 @@ export default function Workspace() {
           {me && (
             <button
               className={`${s.quiet} ${s.accountButton}`}
-              onClick={() => setView("account")}
+              onClick={() => navigateView("account")}
               aria-label={t.account}
             >
               <span className={s.identity}>
@@ -325,12 +345,16 @@ export default function Workspace() {
               <a className={s.button} href={signIn}>
                 {t.signIn} <span aria-hidden>↗</span>
               </a>
+              <p className={s.signInLegal}>
+                {t.signInLegal}{" "}
+                <a href={`/terms?lang=${locale}`}>{t.termsOfUse}</a> ·{" "}
+                <a href={`/privacy?lang=${locale}`}>{t.privacyNotice}</a>
+              </p>
               <ul className={s.featureList}>
                 {[
                   t.featureTimetables,
                   t.featureGroups,
                   t.featureEvents,
-                  t.featurePlanner,
                   t.featureTheme,
                   t.featureInstall,
                 ].map((feature) => (
@@ -476,7 +500,7 @@ export default function Workspace() {
               joined={() => {
                 clearGroupInvite();
                 setConnectionTab("groups");
-                setView("connections");
+                navigateView("connections");
               }}
               onError={setError}
             />
@@ -501,7 +525,7 @@ export default function Workspace() {
                       setInviteFrom("");
                       history.replaceState(null, "", "/");
                       setConnectionTab("friends");
-                      setView("connections");
+                      navigateView("connections");
                     })
                     .catch(() => {})
                 }
@@ -537,7 +561,7 @@ export default function Workspace() {
                 t={t}
                 onFriends={() => {
                   setConnectionTab("friends");
-                  setView("connections");
+                  navigateView("connections");
                 }}
                 onEditEvent={(id) => {
                   setEventId(id);
@@ -592,6 +616,16 @@ export default function Workspace() {
               <h2>{displayName(me)}</h2>
               <p className={s.hint}>@{me.username}</p>
               <p className={s.muted}>{t.privacy}</p>
+              <p className={s.hint}>{t.retentionHint}</p>
+              <p>
+                <a
+                  className={`${s.button} ${s.secondary}`}
+                  href="/api/me/export"
+                  download
+                >
+                  {t.downloadData}
+                </a>
+              </p>
               <button
                 className={`${s.button} ${s.secondary}`}
                 onClick={async () => {
@@ -641,22 +675,10 @@ export default function Workspace() {
           </dialog>
         </main>
       )}
-      <footer className={s.footer}>
-        <div className={s.footerCredits}>
-          <span>
-            {t.credits} <span aria-hidden>·</span>{" "}
-            <a
-              href="https://github.com/tkdeeev/koswfriends"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t.githubSource}
-            </a>
-          </span>
-        </div>
-        <span>{t.independent}</span>
-        <InstallApp t={t} />
-      </footer>
+      <SiteFooter locale={locale} />
+      {me !== undefined && (
+        <AnalyticsConsent locale={locale} page={me ? view : "home"} />
+      )}
       {toast && (
         <div role="status" className={s.toast}>
           {toast}

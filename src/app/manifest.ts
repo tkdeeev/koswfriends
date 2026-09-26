@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "KOSwFriends",
     short_name: "KOS++",
-    description: "ČVUT timetables, friends and semester plans.",
+    description: "ČVUT timetables, friends, groups and personal events.",
     start_url: "/",
     scope: "/",
     display: "standalone",
