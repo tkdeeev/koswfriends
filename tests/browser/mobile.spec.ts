@@ -456,12 +456,12 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
       exact: true,
     });
     const own = grid.locator(`[data-person-lane="${a.id}"]`);
-    const card = own.getByRole("button", { name: /TEST-MAT/ });
+    const card = grid.getByRole("button", { name: /TEST-MAT/ });
     await expect(card).toBeVisible();
     await expect(card.locator('[class*="profileAvatar"]')).toHaveCount(2);
     await expect(grid.locator("[data-person-lane]")).toHaveCount(1);
     await expect(grid.getByRole("button", { name: /FRIEND-/ })).toHaveCount(0);
-    const personal = own.getByRole("button", { name: /TV1-PE/ });
+    const personal = grid.getByRole("button", { name: /TV1-PE/ });
     const firstRect = await card.boundingBox(),
       nextRect = await personal.boundingBox();
     expect(nextRect!.y - firstRect!.y).toBeCloseTo(120 * 1.4, 0);
@@ -485,6 +485,21 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     expect(navRect!.y + navRect!.height).toBe(page.viewportSize()!.height);
     await expect(nav.locator("button svg")).toHaveCount(3);
     const filters = page.getByRole("button", { name: "Filters", exact: true });
+    const iconBounds = await filters.evaluate((el) => {
+      const button = el.getBoundingClientRect(),
+        icon = el.querySelector("svg")!.getBoundingClientRect();
+      return {
+        offset: Math.abs(
+          button.x + button.width / 2 - (icon.x + icon.width / 2),
+        ),
+        left: icon.x - button.x,
+        right: button.right - icon.right,
+      };
+    });
+    expect(iconBounds.offset).toBeLessThan(1);
+    expect(Math.min(iconBounds.left, iconBounds.right)).toBeGreaterThanOrEqual(
+      8,
+    );
     await filters.tap();
     const all = page.getByRole("checkbox", {
       name: "All friends",
@@ -494,6 +509,19 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await all.check();
     await filters.tap();
     await expect(grid.locator("[data-person-lane]")).toHaveCount(3);
+    await expect(card).toHaveCount(1);
+    await expect(card).toHaveAttribute("data-lane-span", "3");
+    await expect(card.getByText("Together · 3", { exact: true })).toBeVisible();
+    const joinedBounds = await card.boundingBox();
+    const allLaneBounds = await grid
+      .locator("[data-person-lane]")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().width),
+      );
+    expect(joinedBounds!.width).toBeCloseTo(
+      allLaneBounds.reduce((sum, width) => sum + width, 0) - 6,
+      0,
+    );
     await expect(grid.getByRole("button", { name: /FRIEND-0/ })).toHaveCount(1);
     expect(await grid.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
       true,
@@ -503,6 +531,19 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    // Wide shared cards keep their title and people visible while comparing later columns.
+    await page.setViewportSize({ width: 320, height: 844 });
+    await grid.evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    const sharedTitle = await card.locator("b").boundingBox();
+    expect(sharedTitle!.x).toBeGreaterThanOrEqual(
+      (await grid.boundingBox())!.x + 40,
+    );
+    expect(sharedTitle!.x + sharedTitle!.width).toBeLessThanOrEqual(320);
+    await grid.evaluate((el) => {
+      el.scrollLeft = 0;
+    });
     // Own personal events remain left of an earlier friend's lesson on desktop too.
     await page.setViewportSize({ width: 1440, height: 1000 });
     const desktop = page.locator('[class*="calendarFrame"]');
@@ -522,6 +563,12 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     await expect(own).toHaveCount(0);
     await expect(grid.getByRole("button", { name: /TV1-PE/ })).toHaveCount(0);
     await expect(grid.locator("[data-person-lane]")).toHaveCount(2);
+    await expect(card).toHaveCount(1);
+    await expect(card).toHaveAttribute("data-lane-span", "2");
+    await expect(card.locator('[class*="profileAvatar"]')).toHaveCount(2);
+    await expect(card).toHaveAccessibleName(
+      /Together.*Demo Friend One.*Demo Friend Two/,
+    );
     const laneRects = await grid
       .locator("[data-person-lane]")
       .evaluateAll((nodes) =>
@@ -553,6 +600,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
       );
       await page.screenshot({
         path: `test-results/time-lanes-${theme}-${browserName}.png`,
+        animations: "disabled",
       });
     }
     // Shared-only still compares the two selected friends while self is hidden.
@@ -562,7 +610,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
       .check();
     await filters.tap();
     await expect(grid.getByRole("button", { name: /FRIEND-/ })).toHaveCount(0);
-    await expect(grid.getByRole("button", { name: /TEST-MAT/ })).toHaveCount(2);
+    await expect(grid.getByRole("button", { name: /TEST-MAT/ })).toHaveCount(1);
     await grid
       .getByRole("button", { name: /TEST-MAT/ })
       .first()

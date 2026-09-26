@@ -3,18 +3,39 @@ export function initials(username: string) {
   const letters = Array.from(username.trim());
   return `${letters[0] || "?"}${letters[5] || letters[1] || ""}`.toUpperCase();
 }
-const avatarPalette = [
-  "#326d9c",
-  "#83639b",
-  "#387869",
-  "#a95b40",
-  "#8b6930",
-  "#8e526f",
-];
+/** Stable per-username colors across the full hue range, with contrast for white initials. */
 export function avatarColor(username: string) {
-  let hash = 0;
-  for (const char of username) hash = (hash * 31 + char.charCodeAt(0)) | 0;
-  return avatarPalette[(hash >>> 0) % avatarPalette.length];
+  let hash = 2166136261;
+  for (const char of username.trim().toLowerCase())
+    hash = Math.imul(hash ^ char.codePointAt(0)!, 16777619) >>> 0;
+  const hue = hash % 360;
+  const saturation = (52 + ((hash >>> 9) % 25)) / 100;
+  let lightness = (34 + ((hash >>> 17) % 10)) / 100;
+  const rgb = (light: number) => {
+    const a = saturation * Math.min(light, 1 - light);
+    return [0, 8, 4].map((offset) => {
+      const k = (offset + hue / 30) % 12;
+      return Math.round(
+        255 * (light - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))),
+      );
+    });
+  };
+  const luminance = (channels: number[]) =>
+    channels.reduce((sum, channel, i) => {
+      const value = channel / 255;
+      return (
+        sum +
+        [0.2126, 0.7152, 0.0722][i] *
+          (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+      );
+    }, 0);
+  let channels = rgb(lightness);
+  // 4.5:1 minimum, with a small margin for rounding. Yellow/green need a darker base.
+  while (luminance(channels) > 0.175 && lightness > 0.2) {
+    lightness -= 0.01;
+    channels = rgb(lightness);
+  }
+  return `#${channels.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
 }
 // Fittable's published palette, with dark text to keep small labels readable.
 export const lessonColors: Record<string, string> = {

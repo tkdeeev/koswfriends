@@ -78,3 +78,37 @@ export function arrangeDay<T extends TimeSlot>(events: T[], limit = 3) {
   finish();
   return { visible, overflow };
 }
+
+type JoinableSlot = TimeSlot & {
+  id: string;
+  cancelled?: boolean;
+  draft?: boolean;
+};
+/** Join only identical, unobstructed lessons in adjacent people columns.
+ * Separated people and concurrent lessons retain individual cards and their avatars. */
+export function joinAdjacentLessons<T extends JoinableSlot>(
+  lanes: Placed<T>[][],
+) {
+  type Card = { event: Placed<T>; lane: number; span: number };
+  const cards: Card[] = [];
+  const previous = new Map<string, Card>();
+  lanes.forEach((events, lane) => {
+    for (const event of events) {
+      const key = JSON.stringify([
+        event.id,
+        event.startMinute,
+        event.endMinute,
+      ]);
+      const canJoin = event.columns === 1 && !event.cancelled && !event.draft;
+      const match = canJoin ? previous.get(key) : undefined;
+      if (match && match.lane + match.span === lane) {
+        match.span++;
+      } else {
+        const card = { event, lane, span: 1 };
+        cards.push(card);
+        if (canJoin) previous.set(key, card);
+      }
+    }
+  });
+  return cards;
+}

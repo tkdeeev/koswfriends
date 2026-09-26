@@ -65,7 +65,7 @@ describe("actual lesson identity and intervals", () => {
 });
 
 import { expandPersonalEvents } from "../src/lib/personal-events";
-import { initials } from "../src/lib/appearance";
+import { initials, avatarColor } from "../src/lib/appearance";
 it("keeps weekly personal events at the same Prague time through DST", () => {
   const events = expandPersonalEvents([
     {
@@ -96,7 +96,7 @@ it("uses the first and sixth CTU username letters for profile initials", () => {
   expect(initials("ab")).toBe("AB");
 });
 
-import { arrangeDay } from "../src/lib/timetable-layout";
+import { arrangeDay, joinAdjacentLessons } from "../src/lib/timetable-layout";
 describe("bounded weekly lesson layout", () => {
   const slot = (id: string, startMinute: number, endMinute: number) => ({
     id,
@@ -211,4 +211,89 @@ it("does not reuse a gap to the left of an overlapping higher-priority lesson", 
   expect(visible.find((e) => e.id === "friend")!.column).toBeGreaterThan(
     visible.find((e) => e.id === "personal")!.column,
   );
+});
+
+describe("joined shared lesson cards", () => {
+  const event = (id = "shared", extra = {}) => ({
+    id,
+    startMinute: 540,
+    endMinute: 630,
+    column: 0,
+    columns: 1,
+    ...extra,
+  });
+  it("joins one common lesson across adjacent people while keeping their other lessons", () => {
+    const cards = joinAdjacentLessons([
+      [event()],
+      [event(), event("other", { startMinute: 660, endMinute: 720 })],
+      [event()],
+    ]);
+    expect(cards.map((c) => [c.event.id, c.lane, c.span])).toEqual([
+      ["shared", 0, 3],
+      ["other", 1, 1],
+    ]);
+  });
+  it("does not imply attendance in an intervening person's column", () => {
+    const cards = joinAdjacentLessons([
+      [event()],
+      [event("different")],
+      [event()],
+      [event()],
+    ]);
+    expect(cards.map((c) => [c.event.id, c.lane, c.span])).toEqual([
+      ["shared", 0, 1],
+      ["different", 1, 1],
+      ["shared", 2, 2],
+    ]);
+  });
+  it("keeps room for concurrent lessons and only joins matching identities and times", () => {
+    const cards = joinAdjacentLessons([
+      [
+        event("shared", { columns: 2 }),
+        event("conflict", { column: 1, columns: 2 }),
+      ],
+      [event()],
+      [event()],
+      [event("shared", { endMinute: 660 })],
+      [event("different")],
+    ]);
+    expect(cards.map((c) => [c.event.id, c.lane, c.span])).toEqual([
+      ["shared", 0, 1],
+      ["conflict", 0, 1],
+      ["shared", 1, 2],
+      ["shared", 3, 1],
+      ["different", 4, 1],
+    ]);
+  });
+  it("does not join cancelled lessons, drafts or across an empty lane", () => {
+    for (const flag of [{ cancelled: true }, { draft: true }]) {
+      expect(
+        joinAdjacentLessons([
+          [event("shared", flag)],
+          [event("shared", flag)],
+        ]).map((c) => c.span),
+      ).toEqual([1, 1]);
+    }
+    expect(
+      joinAdjacentLessons([[event()], [], [event()]]).map((c) => c.span),
+    ).toEqual([1, 1]);
+  });
+});
+
+it("gives usernames a stable broad color range with readable white initials", () => {
+  expect(avatarColor(" NovakJan ")).toBe(avatarColor("novakjan"));
+  const colors = Array.from({ length: 1000 }, (_, i) =>
+    avatarColor(`person-${i}`),
+  );
+  expect(new Set(colors).size).toBeGreaterThan(950);
+  for (const color of colors) {
+    expect(color).toMatch(/^#[0-9a-f]{6}$/);
+    const luminance = [1, 3, 5]
+      .map((offset) => parseInt(color.slice(offset, offset + 2), 16) / 255)
+      .map((value) =>
+        value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4,
+      )
+      .reduce((sum, value, i) => sum + value * [0.2126, 0.7152, 0.0722][i], 0);
+    expect(1.05 / (luminance + 0.05)).toBeGreaterThanOrEqual(4.5);
+  }
 });
