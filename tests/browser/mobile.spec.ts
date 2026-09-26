@@ -10,6 +10,7 @@ import {
   members,
   snapshots,
   personalEvents,
+  plans,
 } from "../../src/server/schema";
 import { requestFriend } from "../../src/server/friends";
 import { createServer } from "node:http";
@@ -27,7 +28,24 @@ test("mobile navigation, sharing controls and personal event editing fit small s
   context,
   browserName,
 }) => {
-  await seed(context);
+  const user = await seed(context);
+  await database()
+    .insert(plans)
+    .values({
+      userId: user.id,
+      semester: user.semester,
+      choices: [
+        {
+          id: "synthetic-planner-navigation",
+          course: "TEST-PLANNER",
+          title: { cs: "Zkušební návrh", en: "Synthetic draft" },
+          group: null,
+          note: "",
+          verified: false,
+          events: [],
+        },
+      ],
+    });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
@@ -71,7 +89,12 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     .tap();
   await expect(editor.getByRole("button", { name: /TV1-PE/ })).toBeVisible();
   await editor.getByRole("button", { name: "Close", exact: true }).tap();
-  for (const tab of ["Connections", "Semester planner", "Timetable"]) {
+  await expect(
+    page
+      .getByRole("navigation", { name: "Navigation", exact: true })
+      .getByRole("button", { name: "Semester planner", exact: true }),
+  ).toHaveCount(0);
+  for (const tab of ["Connections", "Timetable"]) {
     const button = page.getByRole("button", { name: tab, exact: true });
     const box = await button.boundingBox();
     expect(box!.height).toBeGreaterThanOrEqual(44);
@@ -86,6 +109,54 @@ test("mobile navigation, sharing controls and personal event editing fit small s
       ),
     ).toBe(true);
   }
+  const plannerConfig = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/usage/config" && response.ok(),
+  );
+  await page.goto("/?view=planner");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Semester planner",
+      exact: true,
+    }),
+  ).toBeVisible();
+  // The heading paints before the planner's initial data effects run. Wait
+  // for real draft data and configuration before intentionally unloading it.
+  await expect(
+    page.getByRole("heading", { name: "TEST-PLANNER", exact: true }),
+  ).toBeVisible();
+  await plannerConfig;
+  const reloadedConfig = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/usage/config" && response.ok(),
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Semester planner",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "TEST-PLANNER", exact: true }),
+  ).toBeVisible();
+  await reloadedConfig;
+  await page.getByRole("button", { name: "Timetable", exact: true }).tap();
+  await expect(page).toHaveURL("/");
+  await page.goBack();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Semester planner",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.goForward();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Timetable", exact: true }),
+  ).toBeVisible();
   await connections(page, "Groups");
   await addConnection(page, "Groups");
   await page.getByLabel("Group name", { exact: true }).fill("Mobile group");
@@ -483,7 +554,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     const nav = page.getByRole("navigation", { name: "Navigation" });
     const navRect = await nav.boundingBox();
     expect(navRect!.y + navRect!.height).toBe(page.viewportSize()!.height);
-    await expect(nav.locator("button svg")).toHaveCount(3);
+    await expect(nav.locator("button svg")).toHaveCount(2);
     const filters = page.getByRole("button", { name: "Filters", exact: true });
     const iconBounds = await filters.evaluate((el) => {
       const button = el.getBoundingClientRect(),
@@ -787,12 +858,11 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
   await expect(
     page.getByRole("button", { name: "Друзі", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "План семестру", exact: true })
-    .click();
+  await page.goto("/?view=planner");
   await expect(
     page.getByRole("heading", { name: "План семестру", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Розклад", exact: true }).click();
   await page.reload();
   await expect(
     page.getByRole("heading", { name: "Розклад", exact: true }),
@@ -861,6 +931,7 @@ test.describe("synthetic wide-table rendering", () => {
       },
     });
     const responses: Record<string, unknown> = {
+      config: { enabled: false },
       me,
       friends: { friends: [], blocked: [] },
       groups: { groups: [] },

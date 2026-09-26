@@ -21,6 +21,9 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
   await expect(
     page.getByText("Groups, invites and per-person sharing", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByText("Semester planning with conflict checks", { exact: true }),
+  ).toHaveCount(0);
   const preview = page.locator("figure img:visible");
   await expect(preview).toHaveAttribute(
     "src",
@@ -33,6 +36,13 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
     path: "test-results/landing-desktop.png",
     fullPage: true,
   });
+  await page.goto("/?view=planner");
+  await expect(
+    page.getByRole("link", { name: /Sign in with your school/ }),
+  ).toHaveAttribute("href", "/auth/login?view=planner");
+  await expect(
+    page.getByRole("navigation", { name: "Navigation", exact: true }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "CZ", exact: true }).click();
   await expect(
     page.getByRole("link", { name: /Přihlásit školním/ }),
@@ -136,9 +146,12 @@ test("manual draft CRUD, conflicts, invitation creation and responsive timetable
     path: "test-results/timetable-desktop.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Semester planner", exact: true })
-    .click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Navigation", exact: true })
+      .getByRole("button", { name: "Semester planner", exact: true }),
+  ).toHaveCount(0);
+  await page.goto("/?view=planner");
   await page.getByLabel("Course code", { exact: true }).fill("TEST-NEW");
   await page.getByLabel("Note", { exact: true }).fill("Consider next semester");
   await page.getByRole("button", { name: "Add to draft", exact: true }).click();
@@ -164,7 +177,8 @@ test("manual draft CRUD, conflicts, invitation creation and responsive timetable
   await expect(page.locator('a[href*="?invite="]')).toHaveCount(0);
   await add.getByRole("button", { name: "Close", exact: true }).click();
   for (const tab of ["Timetable", "Connections", "Semester planner"]) {
-    await page.getByRole("button", { name: tab, exact: true }).click();
+    if (tab === "Semester planner") await page.goto("/?view=planner");
+    else await page.getByRole("button", { name: tab, exact: true }).click();
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       expect(
@@ -180,9 +194,7 @@ test("manual draft CRUD, conflicts, invitation creation and responsive timetable
     path: "test-results/timetable-mobile.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Semester planner", exact: true })
-    .click();
+  await page.goto("/?view=planner");
   await page.getByRole("button", { name: "Remove", exact: true }).click();
   await expect(page.getByRole("heading", { name: "TEST-NEW" })).toHaveCount(0);
 });
@@ -640,7 +652,8 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
     .getByRole("button", { name: "Close", exact: true })
     .click();
   for (const tab of ["Connections", "Semester planner"]) {
-    await page.getByRole("button", { name: tab, exact: true }).click();
+    if (tab === "Semester planner") await page.goto("/?view=planner");
+    else await page.getByRole("button", { name: tab, exact: true }).click();
     await expect(
       tab === "Connections"
         ? page.getByRole("region", { name: "Friends", exact: true })

@@ -1,0 +1,92 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 4%;
+  border-bottom: 1px solid var(--line);
+}
+.header > a {
+  display: block;
+  width: 112px;
+  flex-shrink: 0;
+  background: #172d3b;
+}
+.header > a svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.controls button {
+  min-width: 38px;
+  padding: 6px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+}
+.controls button[aria-pressed="true"] {
+  color: var(--blue);
+  background: var(--soft-blue);
+}
+.content {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.content h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  margin: 24px 0 12px;
+}
+.content .date {
+  color: var(--muted);
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.content p {
+  margin: 12px 0;
+  line-height: 1.75;
+}
+.content section {
+  margin-top: 32px;
+}
+.content h2 {
+  font-size: 21px;
+  margin: 0 0 12px;
+}
+.content ul {
+  padding-left: 22px;
+}
+.content li {
+  margin: 12px 0;
+  line-height: 1.75;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .header {
+    padding: 12px;
+  }
+  .content {
+    padding: 24px 16px 40px;
+  }
+  .header > a {
+    width: 92px;
+  }
+}

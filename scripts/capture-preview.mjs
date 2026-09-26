@@ -121,6 +121,7 @@ const calendar = (person, lessons) => ({
   },
 });
 const responses = {
+  config: { enabled: false },
   me,
   friends: { friends: [], blocked: [] },
   groups: { groups: [] },

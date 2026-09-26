@@ -5,7 +5,7 @@ import "@fontsource/roboto/700.css";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "KOSwFriends",
-  description: "School timetables, friends and shared draft semester plans.",
+  description: "School timetables, friends, groups and personal events.",
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: "KOS++", statusBarStyle: "default" },
   icons: {

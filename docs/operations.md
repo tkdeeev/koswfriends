@@ -43,3 +43,7 @@ Migrations 0001 and 0002 add sharing groups, memberships, per-person overrides a
 ## Version 0.3 migration
 
 Migration 0003 adds one expiring invite-link record per sharing group. It stores the random token encrypted and its lookup hash, and cascades when a group is deleted. Existing data and grants remain unchanged. Take and verify a fresh backup before deploying. Prefer a forward fix over 0.2 rollback while group links are active: old membership-removal code does not revoke links.
+
+## Privacy operations
+
+See [privacy-operations.md](privacy-operations.md) for processing, retention, rights and restore requirements, [analytics.md](analytics.md) for optional consented page counts, and [proxy-privacy.md](proxy-privacy.md) for the two dedicated hosts' access-log opt-out. These are scoped to KOSwFriends; do not change global logging or unrelated applications. Verify the file-provider router service names after any domain reconfiguration.

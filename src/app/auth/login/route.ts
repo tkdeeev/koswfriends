@@ -10,8 +10,12 @@ export const GET = endpoint(async (req: NextRequest) => {
   const state = randomToken();
   const browser = randomToken();
   const invite = req.nextUrl.searchParams.get("invite");
-  const returnTo =
-    invite && /^[A-Za-z0-9_-]{43}$/.test(invite) ? `/?invite=${invite}` : "/";
+  const returnParams = new URLSearchParams();
+  if (invite && /^[A-Za-z0-9_-]{43}$/.test(invite))
+    returnParams.set("invite", invite);
+  if (req.nextUrl.searchParams.get("view") === "planner")
+    returnParams.set("view", "planner");
+  const returnTo = returnParams.size ? `/?${returnParams}` : "/";
   await database()
     .insert(attempts)
     .values({
