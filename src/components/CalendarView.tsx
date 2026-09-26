@@ -14,9 +14,11 @@ import { lessonType, type Locale, type Text } from "@/lib/i18n";
 import { lessonColor } from "@/lib/appearance";
 import { arrangeDay } from "@/lib/timetable-layout";
 import { PERSONAL_COLOR } from "@/lib/personal-events";
+import MobileTimetable from "./MobileTimetable";
+import Icon from "./Icon";
 import Avatar, { AvatarStack } from "./Avatar";
 import s from "./Workspace.module.css";
-type Display = {
+export type Display = {
   lesson: Lesson;
   attendees: Person[];
   own: boolean;
@@ -78,6 +80,7 @@ export default function CalendarView({
     if (expandedDate) dayButtons.current.get(expandedDate)?.focus();
     setExpandedDate(null);
   };
+  const [showOwn, setShowOwn] = useState(true);
   const [onlyShared, setOnlyShared] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [drafts, setDrafts] = useState(false);
@@ -96,7 +99,11 @@ export default function CalendarView({
   const displays = useMemo(() => {
     const map = new Map<string, Display>();
     for (const calendar of calendars) {
-      if (calendar.userId !== me.id && !selected.includes(calendar.userId))
+      if (
+        calendar.userId === me.id
+          ? !showOwn
+          : !selected.includes(calendar.userId)
+      )
         continue;
       for (const event of calendar.events) {
         if (
@@ -129,7 +136,7 @@ export default function CalendarView({
         map.set(event.id, item);
       }
     }
-    if (drafts && !onlyShared)
+    if (showOwn && drafts && !onlyShared)
       for (const event of choices.flatMap((c) => c.events)) {
         if (
           map.has(event.id) ||
@@ -147,7 +154,11 @@ export default function CalendarView({
     return [...map.values()].filter(
       (item) =>
         !onlyShared ||
-        (item.own && !item.lesson.cancelled && item.attendees.length > 1),
+        (!item.lesson.cancelled &&
+          (showOwn
+            ? item.own && item.attendees.length > 1
+            : item.attendees.filter((p) => selected.includes(p.id)).length >
+              1)),
     );
   }, [
     calendars,
@@ -156,6 +167,7 @@ export default function CalendarView({
     me,
     choices,
     onlyShared,
+    showOwn,
     drafts,
     week.toMillis(),
   ]);
@@ -197,13 +209,7 @@ export default function CalendarView({
       .filter((e) => e.date === day.toISODate())
       .map((e) => ({
         ...e,
-        priority: e.display.lesson.cancelled
-          ? 3
-          : e.display.draft
-            ? 2
-            : e.display.own
-              ? 0
-              : 1,
+        priority: e.display.own ? (e.display.draft ? 1 : 0) : 2,
       }))
       .sort(
         (a, b) =>
@@ -227,124 +233,55 @@ export default function CalendarView({
           52 + Math.max(1, ...arranged[0].placed.map((p) => p.columns)) * 150,
       }
     : weekGrid;
-  const dayEvents = displays
-    .filter((d) =>
-      daySegments(d.lesson).some((seg) => seg.date === activeDay.toISODate()),
-    )
-    .sort((a, b) => Date.parse(a.lesson.start) - Date.parse(b.lesson.start));
+  const mobileLanes = [
+    ...(showOwn ? [me] : []),
+    ...people.filter((person) => selected.includes(person.id)),
+  ].map((person) => {
+    const ids = new Set(
+      calendars.find((c) => c.userId === person.id)?.events.map((e) => e.id),
+    );
+    return {
+      person,
+      own: person.id === me.id,
+      events: slices.filter(
+        (slice) =>
+          slice.date === activeDay.toISODate() &&
+          (ids.has(slice.display.lesson.id) ||
+            (person.id === me.id && slice.display.draft)),
+      ),
+    };
+  });
   const title = (item: Display) =>
     `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map(displayName).join(", ")}`;
   return (
     <div className={s.calendarWorkspace}>
-      <section
-        className={`${s.calendarFilters} ${filtersOpen ? "" : s.filtersCollapsed}`}
-        aria-label={t.legend}
-      >
-        <button
-          className={s.filterToggle}
-          aria-expanded={filtersOpen}
-          aria-controls="calendar-filters"
-          onClick={() => setFiltersOpen(!filtersOpen)}
-        >
-          {t.filters}
-          <span aria-hidden>{filtersOpen ? "−" : "+"}</span>
-        </button>
-        <div id="calendar-filters" className={s.filterContent}>
-          <div className={s.filterRow}>
-            <div className={s.person}>
-              <Avatar person={me} />
-              <strong>{t.yourCalendar}</strong>
-            </div>
-            <label className={s.check}>
-              <input
-                type="checkbox"
-                checked={
-                  allOverlays ||
-                  (people.length > 0 &&
-                    people.every((p) => selected.includes(p.id)))
-                }
-                ref={(el) => {
-                  if (el)
-                    el.indeterminate =
-                      !allOverlays &&
-                      selected.length > 0 &&
-                      !people.every((p) => selected.includes(p.id));
-                }}
-                onChange={(e) => toggleAll(e.target.checked)}
-              />
-              {t.allOverlays}
-            </label>
-            <label className={s.check}>
-              <input
-                type="checkbox"
-                checked={onlyShared}
-                onChange={(e) => setOnlyShared(e.target.checked)}
-              />
-              {t.commonOnly}
-            </label>
-            <label className={s.check}>
-              <input
-                type="checkbox"
-                checked={drafts}
-                onChange={(e) => setDrafts(e.target.checked)}
-              />
-              {t.showDrafts}
-            </label>
-            <button
-              className={`${s.button} ${s.secondary} ${s.small}`}
-              onClick={() => onEditEvent()}
-            >
-              {t.personalEvents}
-            </button>
-            <span className={s.syncLabel}>
-              {own?.lastSuccess
-                ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
-                : t.neverSynced}
-            </span>
-          </div>
-          <details className={s.overlayPicker}>
-            <summary>
-              <span>{t.overlay}</span>
-              {selected.length ? ` · ${selected.length}` : ""}
-            </summary>
-            <div className={s.filterRow}>
-              {people.map((person) => (
-                <label className={s.personChip} key={person.id}>
-                  <input
-                    type="checkbox"
-                    aria-label={displayName(person)}
-                    checked={selected.includes(person.id)}
-                    onChange={(e) =>
-                      setSelected(
-                        e.target.checked
-                          ? [...selected, person.id]
-                          : selected.filter((id) => id !== person.id),
-                      )
-                    }
-                  />
-                  <Avatar person={person} small />
-                  <span>{displayName(person)}</span>
-                </label>
-              ))}
-              {selected.length > 0 && (
-                <button className={s.quiet} onClick={() => setSelected([])}>
-                  {t.clearOverlay}
-                </button>
-              )}
-              <button className={s.quiet} onClick={onFriends}>
-                + {t.addFriend}
-              </button>
-            </div>
-          </details>
-        </div>
-      </section>
       <section className={s.calendarArea} aria-label={t.timetable}>
         <div className={s.calendarToolbar}>
           <h2>
-            {week.setLocale(locale).toFormat("d. LLL")} –{" "}
-            {week.plus({ days: 6 }).setLocale(locale).toFormat("d. LLL yyyy")}
+            <span className={s.longWeek}>
+              {week.setLocale(locale).toFormat("d. LLL")} –{" "}
+              {week.plus({ days: 6 }).setLocale(locale).toFormat("d. LLL yyyy")}
+            </span>
+            <span className={s.shortWeek}>
+              {week
+                .setLocale(locale)
+                .toFormat(
+                  week.month === week.plus({ days: 6 }).month ? "d" : "d. LLL",
+                )}
+              –{week.plus({ days: 6 }).setLocale(locale).toFormat("d. LLL")}
+            </span>
           </h2>
           <div className={s.toolbar}>
+            <button
+              className={s.filterToggle}
+              aria-label={t.filters}
+              title={t.filters}
+              aria-expanded={filtersOpen}
+              aria-controls="calendar-filters"
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              <Icon name="filters" />
+            </button>
             <button
               aria-label={t.previous}
               className={s.iconButton}
@@ -367,19 +304,120 @@ export default function CalendarView({
             </button>
           </div>
         </div>
-        <div className={s.typeLegend}>
-          {["lecture", "tutorial", "laboratory", "exam"].map((type) => (
-            <span key={type}>
-              <i style={{ background: lessonColor(type) }} />
-              {lessonType(type, locale)}
-            </span>
-          ))}
-          <span>
-            <i style={{ background: PERSONAL_COLOR }} />
-            {t.personalType}
-          </span>
-          <span className={s.muted}>{t.prague}</span>
-        </div>
+
+        <section
+          className={`${s.calendarFilters} ${filtersOpen ? "" : s.filtersCollapsed}`}
+          aria-label={t.legend}
+        >
+          <div id="calendar-filters" className={s.filterContent}>
+            <div className={s.filterRow}>
+              <label className={s.personChip}>
+                <input
+                  type="checkbox"
+                  aria-label={t.yourCalendar}
+                  checked={showOwn}
+                  onChange={(e) => setShowOwn(e.target.checked)}
+                />
+                <Avatar person={me} small />
+                <strong>{t.yourCalendar}</strong>
+              </label>
+              <label className={s.check}>
+                <input
+                  type="checkbox"
+                  checked={
+                    allOverlays ||
+                    (people.length > 0 &&
+                      people.every((p) => selected.includes(p.id)))
+                  }
+                  ref={(el) => {
+                    if (el)
+                      el.indeterminate =
+                        !allOverlays &&
+                        selected.length > 0 &&
+                        !people.every((p) => selected.includes(p.id));
+                  }}
+                  onChange={(e) => toggleAll(e.target.checked)}
+                />
+                {t.allOverlays}
+              </label>
+              <label className={s.check}>
+                <input
+                  type="checkbox"
+                  checked={onlyShared}
+                  onChange={(e) => setOnlyShared(e.target.checked)}
+                />
+                {t.commonOnly}
+              </label>
+              <label className={s.check}>
+                <input
+                  type="checkbox"
+                  checked={drafts}
+                  disabled={!showOwn}
+                  onChange={(e) => setDrafts(e.target.checked)}
+                />
+                {t.showDrafts}
+              </label>
+              <button
+                className={`${s.button} ${s.secondary} ${s.small}`}
+                onClick={() => onEditEvent()}
+              >
+                {t.personalEvents}
+              </button>
+              <span className={s.syncLabel}>
+                {own?.lastSuccess
+                  ? `${t.synced}: ${DateTime.fromISO(own.lastSuccess).setZone(ZONE).setLocale(locale).toLocaleString(DateTime.DATETIME_SHORT)}`
+                  : t.neverSynced}
+              </span>
+            </div>
+            <details className={s.overlayPicker}>
+              <summary>
+                <span>{t.overlay}</span>
+                {selected.length ? ` · ${selected.length}` : ""}
+              </summary>
+              <div className={s.filterRow}>
+                {people.map((person) => (
+                  <label className={s.personChip} key={person.id}>
+                    <input
+                      type="checkbox"
+                      aria-label={displayName(person)}
+                      checked={selected.includes(person.id)}
+                      onChange={(e) =>
+                        setSelected(
+                          e.target.checked
+                            ? [...selected, person.id]
+                            : selected.filter((id) => id !== person.id),
+                        )
+                      }
+                    />
+                    <Avatar person={person} small />
+                    <span>{displayName(person)}</span>
+                  </label>
+                ))}
+                {selected.length > 0 && (
+                  <button className={s.quiet} onClick={() => setSelected([])}>
+                    {t.clearOverlay}
+                  </button>
+                )}
+                <button className={s.quiet} onClick={onFriends}>
+                  + {t.addFriend}
+                </button>
+              </div>
+            </details>
+            <div className={s.typeLegend}>
+              {["lecture", "tutorial", "laboratory", "exam"].map((type) => (
+                <span key={type}>
+                  <i style={{ background: lessonColor(type) }} />
+                  {lessonType(type, locale)}
+                </span>
+              ))}
+              <span>
+                <i style={{ background: PERSONAL_COLOR }} />
+                {t.personalType}
+              </span>
+              <span className={s.muted}>{t.prague}</span>
+            </div>
+          </div>
+        </section>
         <div
           className={`${s.mobileControls} ${s.dayPicker}`}
           style={{
@@ -501,6 +539,8 @@ export default function CalendarView({
                           aria-label={`${item.lesson.course} ${time(item.lesson.start)} ${item.attendees.map(displayName).join(", ")}`}
                           title={`${title(item)}\n${t.allDetails}`}
                           data-lesson-type={item.lesson.type}
+                          data-owned={item.own}
+                          data-event-id={item.lesson.id}
                           className={`${s.lesson} ${!item.own ? s.friendLesson : ""} ${item.draft ? s.draftLesson : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
                           style={{
                             ...colorStyle(item.lesson.type, item.lesson.color),
@@ -511,6 +551,13 @@ export default function CalendarView({
                           }}
                           onClick={() => open(item)}
                         >
+                          {height >= 70 && (
+                            <span className={s.lessonOwner}>
+                              {item.own
+                                ? t.you
+                                : item.attendees.map(displayName).join(", ")}
+                            </span>
+                          )}
                           <b>
                             {item.lesson.course || item.lesson.title[locale]}
                           </b>
@@ -527,7 +574,7 @@ export default function CalendarView({
                                 : ""}
                             </span>
                           )}
-                          {height >= 120 && (
+                          {height >= 145 && (
                             <span className={s.lessonKind}>
                               {item.draft
                                 ? t.draft
@@ -580,38 +627,14 @@ export default function CalendarView({
             </div>
           </div>
         </div>
-        <div className={s.mobileAgenda}>
-          {dayEvents.map((item) => (
-            <button
-              key={item.lesson.id}
-              className={`${s.agendaEvent} ${!item.own ? s.agendaFriend : ""} ${item.draft ? s.agendaDraft : ""} ${item.lesson.cancelled ? s.cancelled : ""}`}
-              style={colorStyle(item.lesson.type, item.lesson.color)}
-              onClick={() => open(item)}
-            >
-              <div className={s.agendaTime}>
-                {time(item.lesson.start)}
-                <br />
-                {time(item.lesson.end)}
-              </div>
-              <div>
-                <b>{item.lesson.course || item.lesson.title[locale]}</b>
-                <span>
-                  {lessonType(item.lesson.type, locale)} · {item.lesson.room} ·{" "}
-                  {item.lesson.group}
-                  {item.lesson.cancelled ? ` · ${t.cancelled}` : ""}
-                </span>
-                <AvatarStack
-                  people={item.attendees.filter((p) => p.id !== me.id)}
-                />
-              </div>
-            </button>
-          ))}
-          {displays.length > 0 && !dayEvents.length && (
-            <div className={s.empty}>
-              <p>{t.noLessons}</p>
-            </div>
-          )}
-        </div>
+        <MobileTimetable
+          lanes={mobileLanes}
+          me={me}
+          day={activeDay}
+          locale={locale}
+          t={t}
+          open={open}
+        />
       </section>
       <dialog
         ref={dialog}

@@ -4,7 +4,16 @@ export default function Icon({
   name,
   ...props
 }: SVGProps<SVGSVGElement> & {
-  name: "sun" | "moon" | "plus" | "chevron" | "users";
+  name:
+    | "sun"
+    | "moon"
+    | "plus"
+    | "chevron"
+    | "users"
+    | "calendar"
+    | "planner"
+    | "refresh"
+    | "filters";
 }) {
   return (
     <svg
@@ -20,6 +29,30 @@ export default function Icon({
       focusable="false"
       {...props}
     >
+      {name === "calendar" && (
+        <>
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M16 3v4M8 3v4M3 11h18M7 15h3m4 0h3m-10 3h3" />
+        </>
+      )}
+      {name === "planner" && (
+        <>
+          <path d="M9 5H5v16h14V5h-4" />
+          <rect x="9" y="3" width="6" height="4" rx="1" />
+          <path d="m8 12 1 1 2-2m2 1h3m-8 5 1 1 2-2m2 1h3" />
+        </>
+      )}
+      {name === "refresh" && (
+        <>
+          <path d="M20 7v5h-5M4 17v-5h5" />
+          <path d="M6 7a7 7 0 0 1 11-1l3 6M4 12l3 6a7 7 0 0 0 11-1" />
+        </>
+      )}
+      {name === "filters" && (
+        <>
+          <path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6" />
+        </>
+      )}
       {name === "sun" && (
         <>
           <circle cx="12" cy="12" r="4" />

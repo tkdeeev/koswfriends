@@ -58,7 +58,7 @@ export default function Workspace() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [blocked, setBlocked] = useState<Person[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
-  const [allOverlays, setAllOverlays] = useState(true);
+  const [allOverlays, setAllOverlays] = useState(false);
   const previousPeople = useRef<string[]>([]);
   const [groupInviteToken, setGroupInviteToken] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -253,9 +253,21 @@ export default function Workspace() {
                 key={tab}
                 aria-current={view === tab ? "page" : undefined}
                 className={`${s.nav} ${view === tab ? s.active : ""}`}
+                aria-label={t[tab]}
+                title={t[tab]}
                 onClick={() => setView(tab)}
               >
-                {t[tab]}
+                <Icon
+                  name={
+                    tab === "timetable"
+                      ? "calendar"
+                      : tab === "connections"
+                        ? "users"
+                        : "planner"
+                  }
+                  className={s.navIcon}
+                />
+                <span className={s.navText}>{t[tab]}</span>
               </button>
             ))}
           </nav>
@@ -353,7 +365,9 @@ export default function Workspace() {
         </>
       ) : (
         <main className={s.main}>
-          <div className={s.titleRow}>
+          <div
+            className={`${s.titleRow} ${view === "timetable" ? s.timetableTitle : ""}`}
+          >
             <div>
               <h1>{t[view]}</h1>
               {view === "planner" && (
@@ -376,8 +390,9 @@ export default function Workspace() {
             {(view === "timetable" || view === "planner") && (
               <div className={s.toolbar}>
                 <label className={s.semesterLabel}>
-                  {t.semester}
+                  <span>{t.semester}</span>
                   <select
+                    aria-label={t.semester}
                     value={me.semester}
                     onChange={async (e) => {
                       const semester = e.target.value;
@@ -404,6 +419,8 @@ export default function Workspace() {
                 <button
                   className={`${s.button} ${s.secondary} ${s.small}`}
                   disabled={busy}
+                  aria-label={busy ? t.syncing : t.refresh}
+                  title={busy ? t.syncing : t.refresh}
                   onClick={async () => {
                     setBusy(true);
                     try {
@@ -414,7 +431,10 @@ export default function Workspace() {
                     }
                   }}
                 >
-                  {busy ? t.syncing : `↻ ${t.refresh}`}
+                  <Icon name="refresh" />
+                  <span className={s.refreshText}>
+                    {busy ? t.syncing : t.refresh}
+                  </span>
                 </button>
               </div>
             )}

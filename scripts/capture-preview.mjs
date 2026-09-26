@@ -157,6 +157,7 @@ try {
     viewport: { width: 1280, height: 940 },
     deviceScaleFactor: 1,
     locale: "en-GB",
+    serviceWorkers: "block",
   });
   await page.route("**/api/**", async (route) => {
     const key = new URL(route.request().url()).pathname.split("/").at(-1);

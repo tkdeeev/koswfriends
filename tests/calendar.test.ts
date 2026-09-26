@@ -181,3 +181,34 @@ it("prioritizes later own lessons over earlier overlays in a crowded day", () =>
   expect(result.visible).toHaveLength(2);
   expect(result.overflow[0].count).toBe(4);
 });
+
+it("keeps later personal and imported own lessons left in compact and expanded days", () => {
+  const events = [
+    { id: "friend", startMinute: 540, endMinute: 720, priority: 2 },
+    { id: "personal", startMinute: 570, endMinute: 630, priority: 0 },
+    { id: "school", startMinute: 630, endMinute: 690, priority: 0 },
+  ];
+  for (const limit of [3, Infinity]) {
+    const { visible, overflow } = arrangeDay(events, limit);
+    expect(overflow).toEqual([]);
+    expect(visible.find((e) => e.id === "friend")?.column).toBe(1);
+    expect(
+      visible.filter((e) => e.id !== "friend").map((e) => e.column),
+    ).toEqual([0, 0]);
+    expect(visible.every((e) => e.columns === 2)).toBe(true);
+  }
+});
+
+it("does not reuse a gap to the left of an overlapping higher-priority lesson", () => {
+  const { visible } = arrangeDay(
+    [
+      { id: "school", startMinute: 540, endMinute: 600, priority: 0 },
+      { id: "personal", startMinute: 570, endMinute: 660, priority: 0 },
+      { id: "friend", startMinute: 600, endMinute: 690, priority: 2 },
+    ],
+    Infinity,
+  );
+  expect(visible.find((e) => e.id === "friend")!.column).toBeGreaterThan(
+    visible.find((e) => e.id === "personal")!.column,
+  );
+});
