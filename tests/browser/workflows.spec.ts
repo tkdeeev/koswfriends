@@ -648,7 +648,7 @@ test("dark mode covers lessons, custom colors, dialogs and mobile and persists a
   await page.getByRole("button", { name: "Timetable", exact: true }).click();
   await page.setViewportSize({ width: 320, height: 844 });
   await page.getByRole("button", { name: /^Thu/ }).click();
-  const mobileCard = page.locator('[class*="mobileLesson"]').first();
+  const mobileCard = page.locator('button[class*="mobileLesson"]').first();
   await expect(mobileCard).toBeVisible();
   expect(
     await page.evaluate(
@@ -841,7 +841,9 @@ test("equal week columns cap crowded lessons and expand a complete day without l
   expect(right).toBeLessThanOrEqual(320);
   await picker.getByRole("button", { name: /^Sun/ }).click();
   await expect(
-    page.locator('[class*="mobileLesson"]').filter({ hasText: "WEEKEND-1" }),
+    page
+      .locator('button[class*="mobileLesson"]')
+      .filter({ hasText: "WEEKEND-1" }),
   ).toBeVisible();
   await page.screenshot({
     path: "test-results/seven-day-mobile.png",

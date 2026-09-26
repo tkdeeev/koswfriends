@@ -13,7 +13,8 @@ export default function Icon({
     | "calendar"
     | "planner"
     | "refresh"
-    | "filters";
+    | "filters"
+    | "link";
 }) {
   return (
     <svg
@@ -50,7 +51,15 @@ export default function Icon({
       )}
       {name === "filters" && (
         <>
-          <path d="M3 6h5m4 0h9M3 12h11m4 0h3M3 18h3m4 0h11M8 3v6m6 0v6M6 15v6" />
+          <path d="M3 6h3m4 0h11M3 12h11m4 0h3M3 18h5m4 0h9" />
+          <circle cx="8" cy="6" r="2" />
+          <circle cx="16" cy="12" r="2" />
+          <circle cx="10" cy="18" r="2" />
+        </>
+      )}
+      {name === "link" && (
+        <>
+          <path d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l2-2" />
         </>
       )}
       {name === "sun" && (

@@ -23,19 +23,25 @@ export default function Avatar({
     </span>
   );
 }
-export function AvatarStack({ people }: { people: Person[] }) {
+export function AvatarStack({
+  people,
+  limit = 3,
+}: {
+  people: Person[];
+  limit?: number;
+}) {
   if (!people.length) return null;
   return (
     <span
       className={s.avatarStack}
       aria-label={people.map(displayName).join(", ")}
     >
-      {people.slice(0, 3).map((p) => (
+      {people.slice(0, limit).map((p) => (
         <Avatar person={p} small key={p.id} />
       ))}
-      {people.length > 3 && (
+      {people.length > limit && (
         <span className={`${s.profileAvatar} ${s.smallAvatar} ${s.avatarMore}`}>
-          +{people.length - 3}
+          +{people.length - limit}
         </span>
       )}
     </span>

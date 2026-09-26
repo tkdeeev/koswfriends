@@ -1926,12 +1926,18 @@
   .filterToggle {
     display: grid;
     place-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     width: 40px;
     min-width: 40px;
     min-height: 44px;
     padding: 0;
     color: var(--blue);
     background: var(--pale);
+  }
+  .filterToggle svg {
+    display: block;
+    flex-shrink: 0;
   }
   .filterToggle[aria-expanded="true"] {
     background: var(--soft-blue);
@@ -1995,8 +2001,12 @@
     position: sticky;
     left: 0;
     background: var(--surface);
-    z-index: 2;
+    z-index: 5;
     color: var(--muted);
+  }
+  .mobileTimeAxis {
+    grid-column: 1;
+    grid-row: 1;
   }
   .laneClock {
     display: grid;
@@ -2029,8 +2039,67 @@
       var(--pale);
   }
   .mobileLesson {
+    position: relative;
+    align-self: start;
+    grid-row: 1;
     padding: 5px;
     min-height: 20px;
+    z-index: 1;
+  }
+  .mobileLesson .sharedPeople {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+    min-width: 0;
+  }
+  .sharedPeople > svg {
+    flex: 0 0 14px;
+    color: var(--blue);
+  }
+  .sharedPeople .avatarStack {
+    margin-top: 0;
+  }
+  .sharedPeople .togetherLabel {
+    display: none;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+  }
+  .mobileLesson .compactShared {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+  .mobileLessonContent {
+    max-height: 100%;
+    overflow: hidden;
+  }
+  .joinedLesson {
+    overflow: clip;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    box-shadow: inset 0 3px
+      color-mix(in srgb, var(--lesson-color) 65%, var(--surface));
+  }
+  .joinedLesson .mobileLessonContent {
+    position: sticky;
+    left: 48px;
+    width: min(100%, 280px, calc(100vw - 80px));
+    align-self: flex-start;
+  }
+  .mobileNowLine {
+    position: relative;
+    grid-column: 2 / -1;
+    grid-row: 1;
+    align-self: start;
+    z-index: 2;
   }
   .mobileLesson b {
     font-size: 12px;
@@ -2039,5 +2108,11 @@
   .mobileLesson .lessonMeta,
   .mobileLesson .lessonKind {
     font-size: 10px;
+  }
+}
+
+@container (min-width: 180px) {
+  .sharedPeople .togetherLabel {
+    display: inline;
   }
 }
