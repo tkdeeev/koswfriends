@@ -2,7 +2,7 @@ x-app-env: &app-env
   NODE_ENV: production
   APP_URL: https://kos.deeev.cz
   APP_REVISION: ${APP_REVISION:?set revision}
-  APP_VERSION: 0.8.0
+  APP_VERSION: 0.8.1
   UMAMI_ENABLED: ${UMAMI_ENABLED:-false}
   UMAMI_URL: ${UMAMI_URL:-}
   UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
