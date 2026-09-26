@@ -16,6 +16,7 @@ import { arrangeDay } from "@/lib/timetable-layout";
 import { PERSONAL_COLOR } from "@/lib/personal-events";
 import { useMobile } from "@/lib/use-mobile";
 import MobileTimetable from "./MobileTimetable";
+import DayLayoutToggle, { type DayLayout } from "./DayLayoutToggle";
 import Icon from "./Icon";
 import Avatar, { AvatarStack } from "./Avatar";
 import s from "./Workspace.module.css";
@@ -77,6 +78,17 @@ export default function CalendarView({
     } catch {}
   }, []);
   const layout = dayLayout || (mobile ? "people" : "lessons");
+  const changeLayout = (value: DayLayout) => {
+    setDayLayout(value);
+    try {
+      localStorage.setItem("kwf_day_layout", value);
+    } catch {}
+  };
+  const allFriends =
+    allOverlays ||
+    (people.length > 0 && people.every((p) => selected.includes(p.id)));
+  const friendsPressed =
+    !allFriends && selected.length > 0 ? "mixed" : allFriends;
   const dayButtons = useRef(new Map<string, HTMLButtonElement>());
   const navigateDate = (next: DateTime) => {
     setDate(next);
@@ -282,36 +294,61 @@ export default function CalendarView({
             </span>
           </h2>
           <div className={s.toolbar}>
-            <button
-              className={s.filterToggle}
-              aria-label={t.filters}
-              title={t.filters}
-              aria-expanded={filtersOpen}
-              aria-controls="calendar-filters"
-              onClick={() => setFiltersOpen(!filtersOpen)}
+            <div className={s.calendarNavigation}>
+              <button
+                aria-label={t.previous}
+                className={s.iconButton}
+                onClick={() => navigateDate(date.minus({ weeks: 1 }))}
+              >
+                ‹
+              </button>
+              <button
+                className={`${s.button} ${s.secondary} ${s.small}`}
+                onClick={() => navigateDate(now.startOf("day"))}
+              >
+                {t.today}
+              </button>
+              <button
+                aria-label={t.next}
+                className={s.iconButton}
+                onClick={() => navigateDate(date.plus({ weeks: 1 }))}
+              >
+                ›
+              </button>
+            </div>
+            <div
+              className={s.quickActions}
+              role="group"
+              aria-label={t.quickControls}
             >
-              <Icon name="filters" />
-            </button>
-            <button
-              aria-label={t.previous}
-              className={s.iconButton}
-              onClick={() => navigateDate(date.minus({ weeks: 1 }))}
-            >
-              ‹
-            </button>
-            <button
-              className={`${s.button} ${s.secondary} ${s.small}`}
-              onClick={() => navigateDate(now.startOf("day"))}
-            >
-              {t.today}
-            </button>
-            <button
-              aria-label={t.next}
-              className={s.iconButton}
-              onClick={() => navigateDate(date.plus({ weeks: 1 }))}
-            >
-              ›
-            </button>
+              <button
+                className={s.quickToggle}
+                aria-label={t.allOverlays}
+                title={t.allOverlays}
+                aria-pressed={friendsPressed}
+                onClick={() => toggleAll(!allFriends)}
+              >
+                <Icon name="users" />
+              </button>
+              {singleDay && (
+                <DayLayoutToggle
+                  value={layout}
+                  change={changeLayout}
+                  t={t}
+                  compact
+                />
+              )}
+              <button
+                className={s.filterToggle}
+                aria-label={t.filters}
+                title={t.filters}
+                aria-expanded={filtersOpen}
+                aria-controls="calendar-filters"
+                onClick={() => setFiltersOpen(!filtersOpen)}
+              >
+                <Icon name="filters" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -321,85 +358,48 @@ export default function CalendarView({
         >
           <div id="calendar-filters" className={s.filterContent}>
             {singleDay && (
-              <fieldset className={s.layoutPicker}>
-                <legend>{t.dayLayout}</legend>
-                {(["people", "lessons"] as const).map((value) => (
-                  <label key={value}>
-                    <input
-                      type="radio"
-                      name="day-layout"
-                      value={value}
-                      checked={layout === value}
-                      onChange={() => {
-                        setDayLayout(value);
-                        try {
-                          localStorage.setItem("kwf_day_layout", value);
-                        } catch {}
-                      }}
-                    />
-                    <span>{value === "people" ? t.byPerson : t.byLesson}</span>
-                  </label>
-                ))}
-              </fieldset>
+              <DayLayoutToggle value={layout} change={changeLayout} t={t} />
             )}
-            <div className={s.filterRow}>
-              <label className={s.personChip}>
-                <input
-                  type="checkbox"
-                  aria-label={t.yourCalendar}
-                  checked={showOwn}
-                  onChange={(e) => setShowOwn(e.target.checked)}
-                />
-                <Avatar person={me} small />
-                <strong className={s.fullFilterLabel}>{t.yourCalendar}</strong>
-                <strong className={s.compactFilterLabel} aria-hidden>
-                  {t.own}
-                </strong>
-              </label>
-              <label className={s.check}>
-                <input
-                  type="checkbox"
-                  checked={
-                    allOverlays ||
-                    (people.length > 0 &&
-                      people.every((p) => selected.includes(p.id)))
-                  }
-                  ref={(el) => {
-                    if (el)
-                      el.indeterminate =
-                        !allOverlays &&
-                        selected.length > 0 &&
-                        !people.every((p) => selected.includes(p.id));
-                  }}
-                  onChange={(e) => toggleAll(e.target.checked)}
-                />
-                {t.allOverlays}
-              </label>
-              <label className={s.check}>
-                <input
-                  type="checkbox"
-                  aria-label={t.commonOnly}
-                  checked={onlyShared}
-                  onChange={(e) => setOnlyShared(e.target.checked)}
-                />
+            <div className={s.filterToggles}>
+              <button
+                className={s.optionToggle}
+                aria-label={t.yourCalendar}
+                aria-pressed={showOwn}
+                onClick={() => setShowOwn(!showOwn)}
+              >
+                <span className={s.fullFilterLabel}>{t.yourCalendar}</span>
+                <span className={s.compactFilterLabel}>{t.you}</span>
+              </button>
+              <button
+                className={s.optionToggle}
+                aria-label={t.allOverlays}
+                aria-pressed={friendsPressed}
+                onClick={() => toggleAll(!allFriends)}
+              >
+                <span className={s.fullFilterLabel}>{t.allOverlays}</span>
+                <span className={s.compactFilterLabel}>{t.friends}</span>
+              </button>
+              <button
+                className={s.optionToggle}
+                aria-label={t.commonOnly}
+                aria-pressed={onlyShared}
+                onClick={() => setOnlyShared(!onlyShared)}
+              >
                 <span className={s.fullFilterLabel}>{t.commonOnly}</span>
-                <span className={s.compactFilterLabel} aria-hidden>
-                  {t.sharedShort}
-                </span>
-              </label>
-              <label className={s.check}>
-                <input
-                  type="checkbox"
-                  aria-label={t.showDrafts}
-                  checked={drafts}
-                  disabled={!showOwn}
-                  onChange={(e) => setDrafts(e.target.checked)}
-                />
+                <span className={s.compactFilterLabel}>{t.sharedShort}</span>
+              </button>
+              <button
+                className={s.optionToggle}
+                aria-label={t.showDrafts}
+                aria-pressed={drafts}
+                disabled={!showOwn}
+                onClick={() => setDrafts(!drafts)}
+              >
                 <span className={s.fullFilterLabel}>{t.showDrafts}</span>
-                <span className={s.compactFilterLabel} aria-hidden>
-                  {t.draftsShort}
-                </span>
-              </label>
+                <span className={s.compactFilterLabel}>{t.draftsShort}</span>
+              </button>
+            </div>
+            <div className={s.filterRow}>
               <button
                 className={`${s.button} ${s.secondary} ${s.small}`}
                 onClick={() => onEditEvent()}
@@ -419,22 +419,22 @@ export default function CalendarView({
               </summary>
               <div className={s.filterRow}>
                 {people.map((person) => (
-                  <label className={s.personChip} key={person.id}>
-                    <input
-                      type="checkbox"
-                      aria-label={displayName(person)}
-                      checked={selected.includes(person.id)}
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? [...selected, person.id]
-                            : selected.filter((id) => id !== person.id),
-                        )
-                      }
-                    />
+                  <button
+                    className={`${s.personChip} ${s.optionToggle}`}
+                    key={person.id}
+                    aria-label={displayName(person)}
+                    aria-pressed={selected.includes(person.id)}
+                    onClick={() =>
+                      setSelected(
+                        selected.includes(person.id)
+                          ? selected.filter((id) => id !== person.id)
+                          : [...selected, person.id],
+                      )
+                    }
+                  >
                     <Avatar person={person} small />
                     <span>{displayName(person)}</span>
-                  </label>
+                  </button>
                 ))}
                 {selected.length > 0 && (
                   <button className={s.quiet} onClick={() => setSelected([])}>
@@ -457,7 +457,6 @@ export default function CalendarView({
                 <i style={{ background: PERSONAL_COLOR }} />
                 {t.personalType}
               </span>
-              <span className={s.muted}>{t.prague}</span>
             </div>
           </div>
         </section>
@@ -709,7 +708,7 @@ export default function CalendarView({
                 {detail.lesson.course ||
                   localizedText(detail.lesson.title, locale)}
               </h2>
-              <div className={s.lessonDialogTime} title={t.prague}>
+              <div className={s.lessonDialogTime}>
                 {time(detail.lesson.start)}–{time(detail.lesson.end)}
               </div>
               <p className={s.lessonDialogDate}>

@@ -90,8 +90,10 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
       .first(),
   ).toBeVisible();
   await pageB.getByText("Overlay timetables", { exact: true }).click();
-  await pageB.getByRole("checkbox", { name: a.username, exact: true }).check();
-  await pageB.getByLabel("Shared lessons only").check();
+  await pageB.getByRole("button", { name: a.username, exact: true }).click();
+  await pageB
+    .getByRole("button", { name: "Shared lessons only", exact: true })
+    .click();
   await expect(
     pageB
       .getByRole("button", { name: new RegExp(`TEST-MAT.*${a.username}`) })
@@ -476,39 +478,39 @@ test("shared overlays start off and support bulk, individual and own timetable s
       .where(eq(snapshots.userId, u.id));
   }
   await page.goto("/");
-  const all = page.getByRole("checkbox", { name: "All friends", exact: true });
+  const all = page
+    .getByRole("button", { name: "All friends", exact: true })
+    .last();
   const first = page.getByRole("button", { name: /FRIEND-0/ }).first();
   const next = page.getByRole("button", { name: /FRIEND-1/ }).first();
-  await expect(all).not.toBeChecked();
+  await expect(all).toHaveAttribute("aria-pressed", "false");
   await expect(first).toHaveCount(0);
   await expect(next).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: /TEST-MAT/ }).first(),
   ).toBeVisible();
-  await all.check();
+  await all.click();
   await expect(first).toBeVisible();
   await expect(next).toBeVisible();
   await page.getByText("Overlay timetables", { exact: true }).click();
-  await page.getByRole("checkbox", { name: b.username, exact: true }).uncheck();
+  await page.getByRole("button", { name: b.username, exact: true }).click();
   await expect(first).toHaveCount(0);
   await expect(next).toBeVisible();
-  expect(await all.evaluate((el: HTMLInputElement) => el.indeterminate)).toBe(
-    true,
-  );
-  await all.check();
+  await expect(all).toHaveAttribute("aria-pressed", "mixed");
+  await all.click();
   await expect(first).toBeVisible();
   await page
-    .getByRole("checkbox", { name: "Your timetable", exact: true })
-    .uncheck();
+    .getByRole("button", { name: "Your timetable", exact: true })
+    .click();
   await expect(page.locator('[data-owned="true"]')).toHaveCount(0);
   await expect(next).toBeVisible();
   await page
-    .getByRole("checkbox", { name: "Your timetable", exact: true })
-    .check();
+    .getByRole("button", { name: "Your timetable", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: /TEST-MAT/ }).first(),
   ).toBeVisible();
-  await all.uncheck();
+  await all.click();
   await expect(first).toHaveCount(0);
   await expect(next).toHaveCount(0);
   await second.close();
@@ -715,8 +717,9 @@ test("equal week columns cap crowded lessons and expand a complete day without l
     .where(eq(snapshots.userId, b.id));
   await page.goto("/");
   await page
-    .getByRole("checkbox", { name: "All friends", exact: true })
-    .check();
+    .getByRole("button", { name: "All friends", exact: true })
+    .last()
+    .click();
   const frame = page.locator('[class*="calendarFrame"]');
   const headers = page.locator("[data-date]");
   const columns = page.locator("[data-day-column]");

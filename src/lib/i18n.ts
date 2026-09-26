@@ -17,6 +17,7 @@ export const copy = {
     featureInstall: "Instalace na iPhone a Android",
 
     filters: "Filtry",
+    quickControls: "Ovládání rozvrhu",
     dayLayout: "Zobrazení dne",
     byPerson: "Podle lidí",
     byLesson: "Podle hodin",
@@ -278,10 +279,11 @@ export const copy = {
     featureInstall: "Install on iPhone and Android",
 
     filters: "Filters",
+    quickControls: "Timetable controls",
     dayLayout: "Day layout",
     byPerson: "By person",
     byLesson: "By lesson",
-    sharedShort: "Shared only",
+    sharedShort: "Shared",
     draftsShort: "Drafts",
     installApp: "Install app",
     installApple:
