@@ -794,6 +794,112 @@ describe("OAuth and encrypted connections", () => {
   });
 });
 describe("Sirius synchronization", () => {
+  it("accepts translated Sirius notes without copying unrelated object fields", () => {
+    const notes = normalizePage({
+      events: [
+        {
+          ...raw(1),
+          note: {
+            cs: "Česká poznámka",
+            en: "English note",
+            uk: "Примітка",
+            private: "discard-me",
+          },
+        },
+        { ...raw(2), note: "Plain note" },
+        { ...raw(3), note: { cz: "Starší překlad" } },
+      ],
+    }).events.map((event) => event.note);
+    expect(notes).toEqual([
+      { cs: "Česká poznámka", en: "English note", uk: "Примітка" },
+      "Plain note",
+      { cs: "Starší překlad", en: "Starší překlad" },
+    ]);
+    expect(JSON.stringify(notes)).not.toContain("discard-me");
+  });
+  it("omits unsupported optional details while retaining every valid lesson", () => {
+    const result = normalizePage({
+      events: [
+        {
+          ...raw(1),
+          note: ["unsupported"],
+          capacity: -1,
+          occupied: "unknown",
+          sequence_number: {},
+          original_data: null,
+          links: { ...raw(1).links, teachers: null, applied_exceptions: null },
+        },
+        {
+          ...raw(2),
+          note: "x".repeat(10001),
+          capacity: 25,
+          occupied: 0,
+          links: { ...raw(2).links, teachers: ["teacher1"] },
+        },
+      ],
+      linked: {
+        teachers: [{ id: "teacher1", full_name: {} }],
+        schedule_exceptions: null,
+      },
+    });
+    expect(result.events).toHaveLength(2);
+    expect(result.events[0]).toMatchObject({
+      id: "1",
+      teachers: [],
+      changes: [],
+    });
+    for (const field of [
+      "note",
+      "capacity",
+      "occupied",
+      "sequence",
+      "original",
+    ])
+      expect(result.events[0]).not.toHaveProperty(field);
+    expect(result.events[1]).toMatchObject({
+      capacity: 25,
+      occupied: 0,
+      teachers: [{ username: "teacher1", name: "teacher1" }],
+    });
+    expect(result.events[1]).not.toHaveProperty("note");
+  });
+  it("refreshes translated notes but preserves the successful snapshot if required lesson data is invalid", async () => {
+    const a = await user("test-notes");
+    let malformed = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url) =>
+        Response.json(
+          String(url).includes("/semesters")
+            ? { semesters: [], meta: { count: 0 } }
+            : {
+                events: [
+                  {
+                    ...raw(1),
+                    ...(malformed ? { starts_at: "invalid" } : {}),
+                    note: { cs: "Poznámka", en: "Note" },
+                  },
+                ],
+                meta: { count: 1 },
+              },
+        ),
+      ),
+    );
+    expect((await synchronize(a.id, semester, true))?.ok).toBe(true);
+    const saved = (await database().select().from(tables.snapshots))[0];
+    expect(saved.events[0].note).toEqual({ cs: "Poznámka", en: "Note" });
+    malformed = true;
+    await database()
+      .update(tables.snapshots)
+      .set({ lastAttempt: new Date(0) });
+    expect(await synchronize(a.id, semester, true)).toMatchObject({
+      ok: false,
+      error: "provider_format",
+    });
+    const failed = (await database().select().from(tables.snapshots))[0];
+    expect(failed.events).toEqual(saved.events);
+    expect(failed.lastSuccess).toEqual(saved.lastSuccess);
+  });
   it("imports useful lesson and teacher metadata while stripping rosters and private identity fields", () => {
     const result = normalizePage({
       events: [

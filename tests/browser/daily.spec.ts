@@ -45,6 +45,7 @@ test("next lesson, detailed classes and profiles stay compact and private on mob
     capacity: 24,
     occupied: 18,
     sequence: 2,
+    note: { cs: "Poznámka k výuce", en: "Bring your course materials" },
     teachers: [{ username: "teacher1", name: "Synthetic Teacher" }],
   };
   await database()
@@ -72,6 +73,9 @@ test("next lesson, detailed classes and profiles stay compact and private on mob
   const detail = page.getByRole("dialog", { name: "TEST-DAILY", exact: true });
   await expect(detail).toBeVisible();
   await expect(detail.getByText("18 / 24", { exact: true })).toBeVisible();
+  await expect(
+    detail.getByText("Bring your course materials", { exact: true }),
+  ).toBeVisible();
   await expect(
     detail.getByRole("link", {
       name: "Synthetic Teacher · CTU profile & contacts",
