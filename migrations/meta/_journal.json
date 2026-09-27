@@ -29,6 +29,13 @@
       "when": 1790268752182,
       "tag": "0003_typical_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790504703219,
+      "tag": "0004_many_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

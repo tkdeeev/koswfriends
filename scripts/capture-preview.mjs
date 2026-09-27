@@ -169,9 +169,15 @@ try {
   await page.goto(base, { waitUntil: "networkidle" });
   await page.locator("[data-lesson-type]").first().waitFor();
   for (const locale of ["cs", "en", "uk"]) {
+    await page.getByRole("button", { name: /^Language:/ }).click();
     await page
-      .getByRole("button", {
-        name: locale === "cs" ? "CZ" : locale === "uk" ? "UA" : "EN",
+      .getByRole("menuitemradio", {
+        name:
+          locale === "cs"
+            ? "Čeština"
+            : locale === "uk"
+              ? "Українська"
+              : "English",
         exact: true,
       })
       .click();

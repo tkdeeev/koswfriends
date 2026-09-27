@@ -10,6 +10,7 @@ export default defineConfig({
         "**/mobile.spec.ts",
         "**/analytics.spec.ts",
         "**/legal.spec.ts",
+        "**/profile-sharing.spec.ts",
       ],
       use: {
         browserName: "webkit",

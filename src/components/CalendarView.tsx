@@ -137,6 +137,7 @@ export default function CalendarView({
           id: calendar.userId,
           username: calendar.username,
           name: calendar.name,
+          avatarVersion: calendar.avatarVersion,
         };
         const item = map.get(event.id) || {
           lesson: event,
@@ -279,19 +280,11 @@ export default function CalendarView({
     <div className={s.calendarWorkspace}>
       <section className={s.calendarArea} aria-label={t.timetable}>
         <div className={s.calendarToolbar}>
-          <h2>
-            <span className={s.longWeek}>
-              {week.setLocale(locale).toFormat("d. LLL")} –{" "}
-              {week.plus({ days: 6 }).setLocale(locale).toFormat("d. LLL yyyy")}
-            </span>
-            <span className={s.shortWeek}>
-              {week
-                .setLocale(locale)
-                .toFormat(
-                  week.month === week.plus({ days: 6 }).month ? "d" : "d. LLL",
-                )}
-              –{week.plus({ days: 6 }).setLocale(locale).toFormat("d. LLL")}
-            </span>
+          <h2
+            className={s.weekLabel}
+            title={`${week.toFormat("dd.MM.yyyy")} – ${week.plus({ days: 6 }).toFormat("dd.MM.yyyy")}`}
+          >
+            {week.setLocale(locale).toFormat("LLL yy")}
           </h2>
           <div className={s.toolbar}>
             <div className={s.calendarNavigation}>
@@ -300,20 +293,22 @@ export default function CalendarView({
                 className={s.iconButton}
                 onClick={() => navigateDate(date.minus({ weeks: 1 }))}
               >
-                ‹
+                <Icon name="chevron" style={{ transform: "rotate(180deg)" }} />
               </button>
               <button
-                className={`${s.button} ${s.secondary} ${s.small}`}
+                className={s.iconButton}
+                aria-label={t.today}
+                title={t.today}
                 onClick={() => navigateDate(now.startOf("day"))}
               >
-                {t.today}
+                <Icon name="today" />
               </button>
               <button
                 aria-label={t.next}
                 className={s.iconButton}
                 onClick={() => navigateDate(date.plus({ weeks: 1 }))}
               >
-                ›
+                <Icon name="chevron" />
               </button>
             </div>
             <div

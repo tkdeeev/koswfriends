@@ -28,6 +28,14 @@ import { DELETE as deleteMe } from "../src/app/api/me/route";
 import { GET as downloadExport } from "../src/app/api/me/export/route";
 import { GET as login } from "../src/app/auth/login/route";
 import { GET as callback } from "../src/app/callback/route";
+import sharp from "sharp";
+import {
+  POST as uploadPicture,
+  DELETE as removePicture,
+} from "../src/app/api/me/picture/route";
+import { GET as picture } from "../src/app/api/picture/route";
+import { GET as me } from "../src/app/api/me/route";
+import { MAX_PICTURE_BYTES, readPicture } from "../src/server/profile-picture";
 vi.mock("next/server", async (original) => ({
   ...(await original<typeof import("next/server")>()),
   after: vi.fn(),
@@ -75,6 +83,30 @@ async function user(username: string) {
   return { ...u, token, csrf };
 }
 type User = Awaited<ReturnType<typeof user>>;
+function pictureUpload(
+  u: User,
+  input: Buffer,
+  headers: Record<string, string> = {},
+) {
+  return new NextRequest("http://localhost:3100/api/me/picture", {
+    method: "POST",
+    headers: {
+      Cookie: `kwf_session=${u.token}`,
+      Origin: "http://localhost:3100",
+      "X-CSRF-Token": u.csrf,
+      "Content-Type": "image/jpeg",
+      ...headers,
+    },
+    body: new Uint8Array(input),
+  });
+}
+const samplePicture = () =>
+  sharp({
+    create: { width: 640, height: 480, channels: 3, background: "#308db5" },
+  })
+    .jpeg()
+    .withExif({ IFD0: { Artist: "private-camera-name" } })
+    .toBuffer();
 function req(
   u: User,
   path: string,
@@ -514,6 +546,7 @@ describe("account data export", () => {
       "ownedGroups",
       "personalEvents",
       "profile",
+      "profilePicture",
       "schemaVersion",
       "sharing",
       "timetableSnapshots",
@@ -1429,5 +1462,182 @@ describe("group links and all-friend overlays", () => {
       (await all()).map((x: { userId: string }) => x.userId),
     ).not.toContain(c.id);
     expect((await viewCalendar(b)).calendars).toHaveLength(1);
+  });
+});
+
+describe("uploaded profile pictures", () => {
+  it("normalizes and strips metadata, exports the image and removes it", async () => {
+    const a = await user("picture-owner");
+    const response = await uploadPicture(
+      pictureUpload(a, await samplePicture()),
+    );
+    expect(response.status).toBe(200);
+    const { avatarVersion } = await response.json();
+    expect((await (await me(req(a, "/api/me"))).json()).avatarVersion).toBe(
+      avatarVersion,
+    );
+    const photo = await picture(
+      req(a, `/api/picture?id=${a.id}&v=${avatarVersion}`),
+    );
+    expect(photo.status).toBe(200);
+    expect(photo.headers.get("cache-control")).toContain("no-store");
+    expect(photo.headers.get("content-type")).toBe("image/webp");
+    const image = Buffer.from(await photo.arrayBuffer());
+    const metadata = await sharp(image).metadata();
+    expect(metadata).toMatchObject({ width: 256, height: 256, format: "webp" });
+    expect(metadata.exif).toBeUndefined();
+    expect(metadata.icc).toBeUndefined();
+    const exported = await (
+      await downloadExport(req(a, "/api/me/export"))
+    ).json();
+    expect(exported.profilePicture).toEqual({
+      contentType: "image/webp",
+      base64: image.toString("base64"),
+    });
+    expect(
+      (await removePicture(req(a, "/api/me/picture", "DELETE"))).status,
+    ).toBe(200);
+    expect((await picture(req(a, `/api/picture?id=${a.id}`))).status).toBe(404);
+    expect(
+      (await (await me(req(a, "/api/me"))).json()).avatarVersion,
+    ).toBeNull();
+    await uploadPicture(pictureUpload(a, await samplePicture()));
+    await deleteMe(req(a, "/api/me", "DELETE", { confirm: "DELETE" }));
+    expect(await database().select().from(tables.profilePictures)).toEqual([]);
+  });
+
+  it("allows accepted contacts without timetable sharing and denies strangers, pending and revoked relationships", async () => {
+    const a = await user("photo-a"),
+      b = await user("photo-b"),
+      c = await user("photo-c");
+    const input = await samplePicture();
+    await uploadPicture(pictureUpload(a, input));
+    const read = (viewer: User) =>
+      picture(req(viewer, `/api/picture?id=${a.id}`));
+    expect(
+      (
+        await picture(
+          new NextRequest(`http://localhost:3100/api/picture?id=${a.id}`),
+        )
+      ).status,
+    ).toBe(401);
+    expect((await read(b)).status).toBe(404);
+    await requestFriend(a.id, b.id, { calendar: false, plans: false });
+    expect((await read(b)).status).toBe(404);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", {
+        id: a.id,
+        action: "accept",
+        giving: { calendar: false, plans: false },
+      }),
+    );
+    expect((await read(b)).status).toBe(200);
+    expect((await read(c)).status).toBe(404);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", { id: a.id, action: "remove" }),
+    );
+    expect((await read(b)).status).toBe(404);
+    const group = await makeGroup(a, { calendar: false, plans: false });
+    await joinGroup(a, b, group);
+    expect((await read(b)).status).toBe(200);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", { id: a.id, action: "block" }),
+    );
+    expect((await read(b)).status).toBe(404);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", { id: a.id, action: "unblock" }),
+    );
+    await groupAction(b, group, "leave");
+    expect((await read(b)).status).toBe(404);
+  });
+
+  it("rejects cross-site writes, oversized and disguised invalid images without replacing the current picture", async () => {
+    const a = await user("photo-validate");
+    const input = await samplePicture();
+    const original = await (
+      await uploadPicture(pictureUpload(a, input))
+    ).json();
+    expect(
+      (
+        await uploadPicture(
+          pictureUpload(a, input, { Origin: "https://other.example" }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await uploadPicture(
+          pictureUpload(a, input, { "X-CSRF-Token": "wrong" }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await uploadPicture(
+          pictureUpload(a, input, {
+            "Content-Length": String(MAX_PICTURE_BYTES + 1),
+          }),
+        )
+      ).status,
+    ).toBe(413);
+    expect(
+      (
+        await uploadPicture(
+          pictureUpload(a, Buffer.alloc(MAX_PICTURE_BYTES + 1)),
+        )
+      ).status,
+    ).toBe(413);
+    for (const invalid of [
+      Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+      Buffer.from("not-an-image"),
+      input.subarray(0, 50),
+    ]) {
+      expect((await uploadPicture(pictureUpload(a, invalid))).status).toBe(400);
+    }
+    const overPixels = await sharp({
+      create: { width: 8000, height: 7000, channels: 3, background: "white" },
+    })
+      .png()
+      .toBuffer();
+    expect((await uploadPicture(pictureUpload(a, overPixels))).status).toBe(
+      400,
+    );
+    expect((await (await me(req(a, "/api/me"))).json()).avatarVersion).toBe(
+      original.avatarVersion,
+    );
+    expect(
+      (
+        await removePicture(
+          req(
+            a,
+            "/api/me/picture",
+            "DELETE",
+            undefined,
+            "https://other.example",
+          ),
+        )
+      ).status,
+    ).toBe(403);
+  });
+
+  it("bounds chunked uploads even without a Content-Length", async () => {
+    let cancelled = false;
+    const stream = new ReadableStream({
+      pull(controller) {
+        controller.enqueue(new Uint8Array(1024 * 1024));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const request = new Request("http://localhost/upload", {
+      method: "POST",
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    await expect(readPicture(request)).rejects.toMatchObject({
+      code: "picture_too_large",
+    });
+    expect(cancelled).toBe(true);
   });
 });

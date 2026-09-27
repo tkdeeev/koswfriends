@@ -23,6 +23,7 @@ export const GET = endpoint(async (req) => {
     id: row.user.id,
     username: row.user.username,
     name: row.user.name,
+    avatarVersion: row.user.avatarVersion,
     semester: row.user.semester,
     csrf: row.session.csrf,
     reconnect: connection?.reconnect ?? true,

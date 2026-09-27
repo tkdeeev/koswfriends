@@ -5,6 +5,7 @@ export default function Icon({
   ...props
 }: SVGProps<SVGSVGElement> & {
   name:
+    | "today"
     | "sun"
     | "moon"
     | "plus"
@@ -42,6 +43,13 @@ export default function Icon({
         <>
           <rect x="3" y="3" width="18" height="18" rx="1" />
           <path d="M3 8h18M3 14h18M12 8v6M8 14v7" />
+        </>
+      )}
+      {name === "today" && (
+        <>
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M16 3v4M8 3v4M3 11h18" />
+          <circle cx="12" cy="16" r="2" fill="currentColor" stroke="none" />
         </>
       )}
       {name === "calendar" && (

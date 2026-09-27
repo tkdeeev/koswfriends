@@ -33,6 +33,7 @@ export type Friend = {
   id: string;
   username: string;
   name: string;
+  avatarVersion?: string | null;
   status: "pending" | "accepted";
   incoming: boolean;
   giving: Grant;
@@ -42,6 +43,7 @@ export type Calendar = {
   userId: string;
   username: string;
   name: string;
+  avatarVersion?: string | null;
   events: Lesson[];
   lastSuccess: string | null;
   error: string | null;
@@ -51,12 +53,18 @@ export type Me = {
   id: string;
   username: string;
   name: string;
+  avatarVersion?: string | null;
   csrf: string;
   semester: string;
   reconnect: boolean;
 };
 
-export type Person = { id: string; username: string; name: string };
+export type Person = {
+  id: string;
+  username: string;
+  name: string;
+  avatarVersion?: string | null;
+};
 export type SharingGroup = {
   id: string;
   name: string;

@@ -5,6 +5,7 @@ import { legalCopy, LEGAL_VERSION, PRIVACY_EMAIL } from "@/lib/legal-copy";
 import AnalyticsConsent from "./AnalyticsConsent";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSelect from "./LanguageSelect";
 import SiteFooter from "./SiteFooter";
 import s from "./LegalPage.module.css";
 
@@ -38,15 +39,7 @@ export default function LegalPage({ kind }: { kind: "privacy" | "terms" }) {
         </a>
         <div className={s.controls}>
           <ThemeToggle t={copy[locale]} />
-          {(["cs", "en", "uk"] as const).map((value) => (
-            <button
-              key={value}
-              aria-pressed={locale === value}
-              onClick={() => changeLocale(value)}
-            >
-              {value === "cs" ? "CZ" : value === "uk" ? "UA" : "EN"}
-            </button>
-          ))}
+          <LanguageSelect locale={locale} change={changeLocale} />
         </div>
       </header>
       <main className={s.content}>

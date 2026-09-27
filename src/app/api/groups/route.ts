@@ -37,6 +37,7 @@ export const GET = endpoint(async (req) => {
                 id: users.id,
                 username: users.username,
                 name: users.name,
+                avatarVersion: users.avatarVersion,
                 status: members.status,
                 blocked: isBlocked(user.id, users.id),
                 givingCalendar: canRead(user.id, users.id, "calendar"),
@@ -66,6 +67,8 @@ export const GET = endpoint(async (req) => {
           id: m.id,
           username: m.username,
           name: m.name,
+          avatarVersion:
+            !m.blocked && m.status === "accepted" ? m.avatarVersion : null,
           status: m.status,
           blocked: m.blocked,
           overridden: m.overridden,

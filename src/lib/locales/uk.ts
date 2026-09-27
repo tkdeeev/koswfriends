@@ -1,5 +1,26 @@
 /** Ukrainian interface copy. School-supplied course titles use the available source language. */
 export const uk = {
+  profilePicture: "Фото профілю",
+  uploadPicture: "Завантажити фото",
+  removePicture: "Видалити фото",
+  pictureHint:
+    "JPG, PNG або WebP · до 5 МБ. Фото бачать прийняті друзі й учасники ваших спільних груп.",
+  pictureTooLarge: "Виберіть фото розміром до 5 МБ.",
+  pictureInvalid:
+    "Виберіть коректне неанімоване зображення JPG, PNG або WebP (до 50 мегапікселів).",
+  landingTogether: "Розклади з друзями",
+  landingTogetherBody:
+    "Дізнайтеся, з ким ви відвідуєте заняття, або порівняйте розклади поруч.",
+  landingSharedLessons: "Фото друзів біля спільних занять.",
+  landingInvites: "Запрошуйте друзів або цілу групу за посиланням.",
+  landingSharing: "Ви обираєте, хто бачить ваш розклад.",
+  landingEveryday: "Ваш університетський тиждень",
+  landingEverydayBody:
+    "Університетський розклад і власні події в одному місці — на комп’ютері й телефоні.",
+  landingPersonal: "Додавайте спорт, роботу чи предмети поза KOS.",
+  landingMobile: "Додайте застосунок на головний екран iPhone або Android.",
+  landingPreferences: "Темна тема, кольори предметів і три мови.",
+
   connections: "Контакти",
   addConnection: "Додати контакт",
   connectionType: "Тип контакту",

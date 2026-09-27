@@ -839,7 +839,10 @@ test("single-day layouts persist across mobile and desktop with Ukrainian contro
   await expect(people).toHaveCount(0);
   await expect(lessons.locator("[data-day-column]")).toHaveCount(5);
   await page.setViewportSize({ width: 320, height: 844 });
-  await page.getByRole("button", { name: "UA", exact: true }).click();
+  await page.getByRole("button", { name: /^Language:/ }).click();
+  await page
+    .getByRole("menuitemradio", { name: "Українська", exact: true })
+    .click();
   await expect(page.locator("html")).toHaveAttribute("lang", "uk");
   await expect(
     page.getByRole("heading", { name: "Розклад", exact: true }),
