@@ -33,7 +33,7 @@ export default function LegalPage({ kind }: { kind: "privacy" | "terms" }) {
   return (
     <div className={s.page}>
       <header className={s.header}>
-        <a href="/" aria-label="KOSwFriends">
+        <a href="/" aria-label="KOS++ | KOS with Friends">
           <Logo />
         </a>
         <div className={s.controls}>

@@ -25,3 +25,25 @@ Rollback affects only this file: replace its contents with `http: { routers: {} 
 This configuration prevents new access-log entries for these routes. It does not erase historical logs, control hosting management/error logs, or change Cloudflare's account and security logging. The two domains are proxied by Cloudflare; its processing, contractual safeguards and retention must be covered separately in the operator's privacy documentation and provider arrangements.
 
 [Traefik 3.6 per-router observability reference](https://doc.traefik.io/traefik/v3.6/reference/routing-configuration/http/routing/observability/)
+
+## Short-domain redirects
+
+`k.deeev.cz`, `kpp.deeev.cz`, and `kwf.deeev.cz` redirect permanently to
+`https://kos.deeev.cz`, retaining the requested path and query string. The
+application origin, OAuth callback, cookies, and installed PWA identity stay
+on the canonical domain.
+
+Apply [ops/traefik-aliases.yml](../ops/traefik-aliases.yml) with Dokploy's
+`settings.updateTraefikFile` at
+`/etc/dokploy/traefik/dynamic/koswfriends-aliases.yml`. This separate file defines
+six host-specific HTTP/HTTPS routers, a fixed canonical redirect, and
+`Referrer-Policy: no-referrer`. All six routers disable access logging and
+tracing, matching the canonical routers above. They use `noop@internal` and
+do not proxy requests into the app. HTTPS uses the existing `letsencrypt`
+resolver; the aliases must resolve to this ingress before issuance.
+
+After applying, verify HTTP and HTTPS for all three hosts, including a nested
+path and synthetic query string. Each must return a permanent redirect to the
+same path/query on `https://kos.deeev.cz`, without a loop. Check canonical
+health independently. To roll back only aliases, replace this separate file
+with `http: { routers: {} }`; leave `koswfriends-privacy.yml` unchanged.

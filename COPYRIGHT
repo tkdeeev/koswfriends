@@ -1,0 +1,20 @@
+KOS++ | KOS with Friends (repository: koswfriends)
+Copyright (c) 2026 Tomáš Viktor Kubíček (TKDEV)
+SPDX-License-Identifier: AGPL-3.0-only
+
+From version 0.9.0, the project's own application code and documentation are
+licensed under the GNU Affero General Public License version 3 only.
+You may redistribute and modify them under the terms of that license.
+
+This software is distributed without any warranty, including the implied
+warranties of merchantability or fitness for a particular purpose, to the
+extent permitted by applicable law. See LICENSE for the complete terms.
+
+Versions 0.8.0 and 0.8.1 were released under MIT. This change does not
+withdraw permissions granted for those versions; their original notices
+remain in Git history.
+
+Third-party software and assets retain their own terms. School data, personal
+data, user content and trademark rights are not granted by this software
+license. See THIRD_PARTY_NOTICES.md. No rights are granted beyond those the
+licensor holds.

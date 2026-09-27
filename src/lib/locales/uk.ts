@@ -5,7 +5,7 @@ export const uk = {
   connectionType: "Тип контакту",
   add: "Додати",
   previewAlt:
-    "Приклад розкладу KOSwFriends зі спільними заняттями та власною подією",
+    "Приклад розкладу KOS++ | KOS with Friends зі спільними заняттями та власною подією",
   featureTimetables: "Ваш розклад і розклади друзів",
   featureGroups: "Групи, запрошення та індивідуальний доступ",
   featureEvents: "Власні предмети та повторювані події",
@@ -248,7 +248,7 @@ export const uk = {
     reconnect: "Відновіть підключення до університетського облікового запису.",
     sync_busy: "Розклад уже синхронізується.",
     sync_cooldown: "Зачекайте одну хвилину між оновленнями розкладу.",
-    user_not_registered: "Ця людина ще не входила до KOSwFriends.",
+    user_not_registered: "Ця людина ще не входила до KOS++ | KOS with Friends.",
     self_request: "Не можна додати себе.",
     request_exists: "Цей запит або дружба вже існує.",
     request_unavailable: "Не можна надіслати запит цьому обліковому запису.",

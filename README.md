@@ -1,4 +1,4 @@
-# KOSwFriends
+# KOS++ | KOS with Friends
 
 School timetables with friends, sharing groups and personal events. Czech, English and Ukrainian, Europe/Prague times, an original square-cornered interface inspired by Fittable. Official enrollment stays in KOS.
 
@@ -85,7 +85,11 @@ Public [privacy information](https://kos.deeev.cz/privacy) and [terms](https://k
 
 Optional Umami page counts use a same-origin, allowlisted collector only after explicit consent, with equally prominent decline and withdrawal, DNT/GPC support, and no visitor identifiers forwarded. See [analytics.md](docs/analytics.md) for setup and limitations, and [privacy-operations.md](docs/privacy-operations.md) for controller duties and the remaining launch checks. These documents do not certify legal compliance or school endorsement.
 
-Application code is [MIT licensed](LICENSE). School data, user content and third-party rights are outside that grant; bundled dependencies retain their [own notices and licenses](THIRD_PARTY_NOTICES.md).
+Copyright (c) 2026 Tomáš Viktor Kubíček (TKDEV). From version 0.9.0, this project’s own application code and documentation are licensed under the [GNU Affero General Public License version 3 only](LICENSE) (`AGPL-3.0-only`). You may modify and redistribute them under that license; they are provided without warranty to the extent permitted by law. See [COPYRIGHT](COPYRIGHT) for the notice and scope. School data, user content and third-party rights are outside that grant; bundled dependencies retain their [own notices and licenses](THIRD_PARTY_NOTICES.md).
+
+Versions 0.8.0 and 0.8.1 were published under MIT; this change does not withdraw permissions granted for those versions. Their original notices remain in Git history.
+
+The footer’s source link (`/source`) opens the public repository at the deployed `APP_REVISION`, including source and build/install scripts. Development checkouts without a commit revision link to `main`. Operators of modified versions must provide their own corresponding source as required by AGPL, update this source link, and retain the required notices.
 
 ## Deployment
 

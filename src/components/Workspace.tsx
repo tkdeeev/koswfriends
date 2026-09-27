@@ -263,7 +263,7 @@ export default function Workspace() {
   return (
     <div className={`${s.app} ${me ? s.signedIn : ""}`}>
       <header className={s.header}>
-        <a className={s.brand} href="/" aria-label="KOSwFriends">
+        <a className={s.brand} href="/" aria-label="KOS++ | KOS with Friends">
           <Logo />
         </a>
         {me && (

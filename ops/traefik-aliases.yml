@@ -1,0 +1,59 @@
+# Applied through Dokploy settings.updateTraefikFile to
+# /etc/dokploy/traefik/dynamic/koswfriends-aliases.yml.
+# Separate from the canonical application and analytics routers.
+http:
+  middlewares:
+    koswfriends-canonical:
+      redirectRegex:
+        regex: "^https?://[^/]+/(.*)"
+        replacement: "https://kos.deeev.cz/${1}"
+        permanent: true
+    koswfriends-alias-privacy:
+      headers:
+        referrerPolicy: no-referrer
+  routers:
+    koswfriends-alias-k-http:
+      rule: "Host(`k.deeev.cz`)"
+      entryPoints: [web]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      observability: { accessLogs: false, tracing: false }
+    koswfriends-alias-k-https:
+      rule: "Host(`k.deeev.cz`)"
+      entryPoints: [websecure]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      tls: { certResolver: letsencrypt }
+      observability: { accessLogs: false, tracing: false }
+    koswfriends-alias-kpp-http:
+      rule: "Host(`kpp.deeev.cz`)"
+      entryPoints: [web]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      observability: { accessLogs: false, tracing: false }
+    koswfriends-alias-kpp-https:
+      rule: "Host(`kpp.deeev.cz`)"
+      entryPoints: [websecure]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      tls: { certResolver: letsencrypt }
+      observability: { accessLogs: false, tracing: false }
+    koswfriends-alias-kwf-http:
+      rule: "Host(`kwf.deeev.cz`)"
+      entryPoints: [web]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      observability: { accessLogs: false, tracing: false }
+    koswfriends-alias-kwf-https:
+      rule: "Host(`kwf.deeev.cz`)"
+      entryPoints: [websecure]
+      priority: 10000
+      service: noop@internal
+      middlewares: [koswfriends-alias-privacy, koswfriends-canonical]
+      tls: { certResolver: letsencrypt }
+      observability: { accessLogs: false, tracing: false }
