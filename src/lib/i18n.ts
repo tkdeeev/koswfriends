@@ -8,7 +8,7 @@ export const copy = {
     connectionType: "Typ kontaktu",
     add: "Přidat",
     previewAlt:
-      "Ukázka aktuálního rozvrhu KOSwFriends se sdílenými hodinami a vlastní událostí",
+      "Ukázka aktuálního rozvrhu KOS++ | KOS with Friends se sdílenými hodinami a vlastní událostí",
     featureTimetables: "Váš rozvrh a rozvrhy přátel",
     featureGroups: "Skupiny, pozvánky a sdílení s jednotlivci",
     featureEvents: "Vlastní předměty a opakované události",
@@ -258,7 +258,7 @@ export const copy = {
       sync_busy: "Rozvrh se právě synchronizuje.",
       sync_cooldown: "Mezi obnoveními rozvrhu počkejte jednu minutu.",
       user_not_registered:
-        "Tento uživatel se do KOSwFriends zatím nepřihlásil.",
+        "Tento uživatel se do KOS++ | KOS with Friends zatím nepřihlásil.",
       self_request: "Nemůžete přidat sami sebe.",
       request_exists: "Žádost nebo přátelství už existuje.",
       request_unavailable: "Tomuto účtu nelze poslat žádost.",
@@ -276,7 +276,7 @@ export const copy = {
     connectionType: "Connection type",
     add: "Add",
     previewAlt:
-      "Current KOSwFriends timetable with shared lessons and a personal event",
+      "Current KOS++ | KOS with Friends timetable with shared lessons and a personal event",
     featureTimetables: "Your timetable and friends’ timetables",
     featureGroups: "Groups, invites and per-person sharing",
     featureEvents: "Personal subjects and recurring events",
@@ -528,7 +528,8 @@ export const copy = {
       reconnect: "Please reconnect your school account.",
       sync_busy: "Your timetable is already synchronizing.",
       sync_cooldown: "Please wait one minute between timetable refreshes.",
-      user_not_registered: "This person has not signed in to KOSwFriends yet.",
+      user_not_registered:
+        "This person has not signed in to KOS++ | KOS with Friends yet.",
       self_request: "You cannot add yourself.",
       request_exists: "This request or friendship already exists.",
       request_unavailable: "You cannot send a request to this account.",

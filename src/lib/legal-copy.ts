@@ -1,6 +1,6 @@
 import type { Locale } from "./i18n";
 
-export const LEGAL_VERSION = "2026-09-26";
+export const LEGAL_VERSION = "2026-09-27";
 export const OPERATOR = "Tomáš Viktor Kubíček";
 export const PRIVACY_EMAIL = "tkdeeev@gmail.com";
 export type LegalSection = {
@@ -37,7 +37,7 @@ export const legalCopy: Record<
     privacy: {
       title: "Ochrana osobních údajů",
       intro:
-        "KOSwFriends provozuje Tomáš Viktor Kubíček (TKDEV), fyzická osoba, která je správcem osobních údajů. Kontakt pro soukromí a uplatnění práv: tkdeeev@gmail.com. Jde o nezávislý studentský projekt, nikoli službu provozovanou ČVUT.",
+        "KOS++ | KOS with Friends provozuje Tomáš Viktor Kubíček (TKDEV), fyzická osoba, která je správcem osobních údajů. Kontakt pro soukromí a uplatnění práv: tkdeeev@gmail.com. Jde o nezávislý studentský projekt, nikoli službu provozovanou ČVUT.",
       sections: [
         {
           title: "Jaké údaje zpracováváme",
@@ -103,7 +103,7 @@ export const legalCopy: Record<
     terms: {
       title: "Podmínky používání",
       intro:
-        "KOSwFriends je bezplatná aplikace pro vlastní rozvrh a dobrovolné sdílení. Provozuje ji Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, jako nezávislý studentský projekt.",
+        "KOS++ | KOS with Friends je bezplatná aplikace pro vlastní rozvrh a dobrovolné sdílení. Provozuje ji Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, jako nezávislý studentský projekt.",
       sections: [
         {
           title: "Vztah ke škole",
@@ -138,12 +138,16 @@ export const legalCopy: Record<
         {
           title: "Zdrojový kód a práva",
           paragraphs: [
-            "Vlastní zdrojový kód projektu je zveřejněn pod licencí MIT. Licence kódu neposkytuje práva ke školním datům, osobním údajům ani cizím ochranným známkám. Cizí součásti se řídí vlastními licencemi uvedenými v repozitáři. Případné spory řešíme nejprve přes kontaktní e-mail; použitelné české a unijní právo a vaše kogentní práva zůstávají zachovány.",
+            "Vlastní zdrojový kód projektu je zveřejněn pod licencí GNU Affero General Public License verze 3 (AGPL-3.0-only). Software lze upravovat a dále šířit za podmínek této licence; poskytuje se bez záruky v rozsahu dovoleném právem. Dřívější verze zveřejněné pod MIT si zachovávají tehdejší licenční podmínky. Licence kódu neposkytuje práva ke školním datům, osobním údajům ani cizím ochranným známkám. Cizí součásti se řídí vlastními licencemi uvedenými v repozitáři. Případné spory řešíme nejprve přes kontaktní e-mail; použitelné české a unijní právo a vaše kogentní práva zůstávají zachovány.",
           ],
           links: [
             {
               label: "GitHub — kód a licence",
-              href: "https://github.com/tkdeeev/koswfriends",
+              href: "/source",
+            },
+            {
+              label: "AGPL-3.0",
+              href: "/licenses/AGPL-3.0.txt",
             },
           ],
         },
@@ -156,7 +160,7 @@ export const legalCopy: Record<
     privacy: {
       title: "Privacy notice",
       intro:
-        "KOSwFriends is operated by Tomáš Viktor Kubíček (TKDEV), an individual and the data controller. Contact for privacy and data rights: tkdeeev@gmail.com. This is an independent student project, not a service operated by CTU.",
+        "KOS++ | KOS with Friends is operated by Tomáš Viktor Kubíček (TKDEV), an individual and the data controller. Contact for privacy and data rights: tkdeeev@gmail.com. This is an independent student project, not a service operated by CTU.",
       sections: [
         {
           title: "Information we process",
@@ -222,7 +226,7 @@ export const legalCopy: Record<
     terms: {
       title: "Terms of use",
       intro:
-        "KOSwFriends is a free app for your timetable and voluntary sharing. It is operated by Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, as an independent student project.",
+        "KOS++ | KOS with Friends is a free app for your timetable and voluntary sharing. It is operated by Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, as an independent student project.",
       sections: [
         {
           title: "Relationship to the university",
@@ -257,12 +261,16 @@ export const legalCopy: Record<
         {
           title: "Source code and rights",
           paragraphs: [
-            "The project's own source code is available under the MIT license. The code license does not grant rights to university data, personal information or third-party trademarks. Third-party components retain their own licenses, listed in the repository. Please contact us first about disputes; applicable Czech and EU law and mandatory user rights remain unaffected.",
+            "The project's own source code is available under the GNU Affero General Public License version 3 (AGPL-3.0-only). You may modify and redistribute the software under that license; it is provided without warranty to the extent permitted by law. Earlier versions released under MIT retain their original licensing terms. The code license does not grant rights to university data, personal information or third-party trademarks. Third-party components retain their own licenses, listed in the repository. Please contact us first about disputes; applicable Czech and EU law and mandatory user rights remain unaffected.",
           ],
           links: [
             {
               label: "GitHub — code and licenses",
-              href: "https://github.com/tkdeeev/koswfriends",
+              href: "/source",
+            },
+            {
+              label: "AGPL-3.0",
+              href: "/licenses/AGPL-3.0.txt",
             },
           ],
         },
@@ -275,7 +283,7 @@ export const legalCopy: Record<
     privacy: {
       title: "Захист персональних даних",
       intro:
-        "KOSwFriends підтримує Tomáš Viktor Kubíček (TKDEV), фізична особа та контролер персональних даних. Контакт із питань приватності та прав: tkdeeev@gmail.com. Це незалежний студентський проєкт, а не сервіс, яким керує ČVUT.",
+        "KOS++ | KOS with Friends підтримує Tomáš Viktor Kubíček (TKDEV), фізична особа та контролер персональних даних. Контакт із питань приватності та прав: tkdeeev@gmail.com. Це незалежний студентський проєкт, а не сервіс, яким керує ČVUT.",
       sections: [
         {
           title: "Які дані ми обробляємо",
@@ -341,7 +349,7 @@ export const legalCopy: Record<
     terms: {
       title: "Умови користування",
       intro:
-        "KOSwFriends — безплатний застосунок для вашого розкладу й добровільного доступу. Його підтримує Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, як незалежний студентський проєкт.",
+        "KOS++ | KOS with Friends — безплатний застосунок для вашого розкладу й добровільного доступу. Його підтримує Tomáš Viktor Kubíček (TKDEV), tkdeeev@gmail.com, як незалежний студентський проєкт.",
       sections: [
         {
           title: "Відносини з університетом",
@@ -376,12 +384,16 @@ export const legalCopy: Record<
         {
           title: "Код і права",
           paragraphs: [
-            "Власний код проєкту доступний за ліцензією MIT. Ліцензія коду не надає прав на університетські або персональні дані чи чужі торговельні марки. Сторонні компоненти зберігають власні ліцензії, зазначені в репозиторії. Щодо спорів спершу звертайтеся контактною поштою; застосовне чеське й європейське право та обов’язкові права користувачів залишаються чинними.",
+            "Власний код проєкту доступний за ліцензією GNU Affero General Public License версії 3 (AGPL-3.0-only). Програмне забезпечення можна змінювати й поширювати за умовами цієї ліцензії; воно надається без гарантій у межах, дозволених законом. Попередні версії, випущені під MIT, зберігають початкові ліцензійні умови. Ліцензія коду не надає прав на університетські або персональні дані чи чужі торговельні марки. Сторонні компоненти зберігають власні ліцензії, зазначені в репозиторії. Щодо спорів спершу звертайтеся контактною поштою; застосовне чеське й європейське право та обов’язкові права користувачів залишаються чинними.",
           ],
           links: [
             {
               label: "GitHub — код і ліцензії",
-              href: "https://github.com/tkdeeev/koswfriends",
+              href: "/source",
+            },
+            {
+              label: "AGPL-3.0",
+              href: "/licenses/AGPL-3.0.txt",
             },
           ],
         },

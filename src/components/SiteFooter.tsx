@@ -10,13 +10,11 @@ export default function SiteFooter({ locale }: { locale: Locale }) {
       <div className={s.footerCredits}>
         <span>
           {t.credits} ·{" "}
-          <a
-            href="https://github.com/tkdeeev/koswfriends"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="/source" target="_blank" rel="noopener noreferrer">
             {t.githubSource}
           </a>
+          {" · "}
+          <a href="/licenses/AGPL-3.0.txt">AGPL-3.0</a>
         </span>
         <span>{t.independent}</span>
       </div>

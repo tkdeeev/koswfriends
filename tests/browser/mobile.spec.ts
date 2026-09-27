@@ -188,6 +188,7 @@ test("PWA metadata, install guidance and private offline fallback", async ({
 }) => {
   await seed(context);
   await page.goto("/");
+  await expect(page).toHaveTitle("KOS++ | KOS with Friends");
   await expect(
     page.getByRole("heading", { name: "Timetable", exact: true }),
   ).toBeVisible();
@@ -196,6 +197,8 @@ test("PWA metadata, install guidance and private offline fallback", async ({
   ).json();
   expect(manifest).toMatchObject({
     id: "/",
+    name: "KOS++ | KOS with Friends",
+    short_name: "KOS++",
     start_url: "/",
     scope: "/",
     display: "standalone",

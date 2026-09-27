@@ -22,6 +22,7 @@ COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=build --chown=node:node /app/migrations ./migrations
+COPY --from=build --chown=node:node /app/LICENSE /app/NOTICE /app/THIRD_PARTY_NOTICES.md ./
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]

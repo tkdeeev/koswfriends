@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "KOSwFriends",
+    name: "KOS++ | KOS with Friends",
     short_name: "KOS++",
     description: "ČVUT timetables, friends, groups and personal events.",
     start_url: "/",
