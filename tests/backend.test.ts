@@ -39,6 +39,8 @@ import {
 } from "../src/app/api/me/picture/route";
 import { GET as picture } from "../src/app/api/picture/route";
 import { GET as me } from "../src/app/api/me/route";
+import { GET as health } from "../src/app/api/health/route";
+import { version } from "../package.json";
 import { MAX_PICTURE_BYTES, readPicture } from "../src/server/profile-picture";
 vi.mock("next/server", async (original) => ({
   ...(await original<typeof import("next/server")>()),
@@ -61,6 +63,26 @@ const raw = (id: number) => ({
 });
 const lesson = normalizePage({ events: [raw(1)] }).events[0];
 const permission = { calendar: true, plans: false };
+it("health reports the package version even when a stale runtime label is present", async () => {
+  await database()
+    .insert(tables.workerStatus)
+    .values({ id: "sync", heartbeat: new Date() })
+    .onConflictDoUpdate({
+      target: tables.workerStatus.id,
+      set: { heartbeat: new Date() },
+    });
+  vi.stubEnv("APP_VERSION", "outdated-runtime-version");
+  try {
+    const response = await health();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ status: "ready", version });
+  } finally {
+    vi.unstubAllEnvs();
+    await database()
+      .delete(tables.workerStatus)
+      .where(eq(tables.workerStatus.id, "sync"));
+  }
+});
 async function user(username: string) {
   const [u] = await database()
     .insert(tables.users)
