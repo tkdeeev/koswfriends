@@ -1,6 +1,7 @@
 import { database } from "@/server/db";
 import { sql } from "drizzle-orm";
 import { json } from "@/server/http";
+import { version } from "../../../../package.json";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
         status: worker ? "ready" : "degraded",
         database: "ok",
         worker: worker ? "ok" : "stale",
-        version: process.env.APP_VERSION || "0.10.0",
+        version,
         revision: process.env.APP_REVISION || "local",
       },
       worker ? 200 : 503,
