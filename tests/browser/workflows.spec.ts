@@ -43,7 +43,10 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
   await expect(
     page.getByRole("navigation", { name: "Navigation", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "CZ", exact: true }).click();
+  await page.getByRole("button", { name: /^Language:/ }).click();
+  await page
+    .getByRole("menuitemradio", { name: "Čeština", exact: true })
+    .click();
   await expect(
     page.getByRole("link", { name: /Přihlásit školním/ }),
   ).toBeVisible();

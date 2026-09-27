@@ -15,7 +15,7 @@ import { pairLock } from "@/server/friends";
 export const dynamic = "force-dynamic";
 const tokenFormat = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
 const linkUrl = (token: string) =>
-  `${process.env.APP_URL}/#groupInvite=${token}`;
+  `${process.env.APP_URL}/invite/group#groupInvite=${token}`;
 export const GET = endpoint(async (req) => {
   const { user } = await session(req);
   const id = z.uuid().parse(req.nextUrl.searchParams.get("group"));

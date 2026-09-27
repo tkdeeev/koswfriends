@@ -2,6 +2,7 @@ import { eq, or } from "drizzle-orm";
 import { database } from "./db";
 import {
   users,
+  profilePictures,
   snapshots,
   personalEvents,
   plans,
@@ -110,11 +111,19 @@ export async function exportAccount(userId: string) {
         .from(groups)
         .where(eq(groups.owner, userId));
 
+      const [picture] = await tx
+        .select({ image: profilePictures.image })
+        .from(profilePictures)
+        .where(eq(profilePictures.userId, userId));
+
       return {
         format: "koswfriends-account-export",
         schemaVersion: 1,
         exportedAt: new Date().toISOString(),
         profile,
+        profilePicture: picture
+          ? { contentType: "image/webp", base64: picture.image }
+          : null,
         timetableSnapshots,
         personalEvents: events,
         draftPlans,

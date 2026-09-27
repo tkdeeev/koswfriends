@@ -20,11 +20,14 @@ test("public legal pages work without login in all languages and themes", async 
   await page.getByRole("button", { name: "Dark mode", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   for (const [button, language, heading] of [
-    ["CZ", "cs", "Ochrana osobních údajů"],
-    ["UA", "uk", "Захист персональних даних"],
-    ["EN", "en", "Privacy notice"],
+    ["Čeština", "cs", "Ochrana osobních údajů"],
+    ["Українська", "uk", "Захист персональних даних"],
+    ["English", "en", "Privacy notice"],
   ]) {
-    await page.getByRole("button", { name: button, exact: true }).click();
+    await page.getByRole("button", { name: /^Language:/ }).click();
+    await page
+      .getByRole("menuitemradio", { name: button, exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { level: 1, name: heading }),
     ).toBeVisible();
@@ -40,8 +43,11 @@ test("public legal pages work without login in all languages and themes", async 
     page.getByRole("heading", { level: 1, name: "Terms of use" }),
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  for (const language of ["CZ", "UA", "EN"]) {
-    await page.getByRole("button", { name: language, exact: true }).click();
+  for (const language of ["Čeština", "Українська", "English"]) {
+    await page.getByRole("button", { name: /^Language:/ }).click();
+    await page
+      .getByRole("menuitemradio", { name: language, exact: true })
+      .click();
     await expect(page.getByText(/AGPL-3\.0-only/)).toBeVisible();
   }
   await expect(page.locator('footer a[href="/source"]')).toBeVisible();

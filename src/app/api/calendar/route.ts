@@ -43,6 +43,7 @@ export const GET = endpoint(async (req) => {
       userId: users.id,
       username: users.username,
       name: users.name,
+      avatarVersion: users.avatarVersion,
       events: snapshots.events,
       lastSuccess: snapshots.lastSuccess,
       error: snapshots.error,
@@ -71,6 +72,7 @@ export const GET = endpoint(async (req) => {
         id: person.userId,
         username: person.username,
         name: person.name,
+        avatarVersion: person.avatarVersion,
       });
     }
   return json({
@@ -79,6 +81,7 @@ export const GET = endpoint(async (req) => {
         userId: user.id,
         username: user.username,
         name: user.name,
+        avatarVersion: user.avatarVersion,
         events: ownEvents,
         lastSuccess: own?.lastSuccess || null,
         error: own?.error || null,
@@ -96,6 +99,7 @@ export const GET = endpoint(async (req) => {
       id: p.userId,
       username: p.username,
       name: p.name,
+      avatarVersion: p.avatarVersion,
     })),
     attendees,
     revoked: ids.filter((id) => !shared.some((s) => s.userId === id)),

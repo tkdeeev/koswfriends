@@ -3,6 +3,27 @@ import type { Localized } from "./types";
 export const copy = {
   uk,
   cs: {
+    profilePicture: "Profilová fotka",
+    uploadPicture: "Nahrát fotku",
+    removePicture: "Odstranit fotku",
+    pictureHint:
+      "JPG, PNG nebo WebP · max. 5 MB. Fotku uvidí přijatí přátelé a členové společných skupin.",
+    pictureTooLarge: "Fotka musí být menší než 5 MB.",
+    pictureInvalid:
+      "Vyberte platnou neanimovanou fotku JPG, PNG nebo WebP (max. 50 Mpx).",
+    landingTogether: "Rozvrh s přáteli",
+    landingTogetherBody:
+      "Podívejte se, koho potkáte na hodině, nebo porovnejte rozvrhy vedle sebe.",
+    landingSharedLessons: "Profilové fotky přátel přímo u společných hodin.",
+    landingInvites: "Pozvánky pro přátele i celé skupiny jedním odkazem.",
+    landingSharing: "Vy si vybíráte, s kým svůj rozvrh sdílíte.",
+    landingEveryday: "Váš školní týden",
+    landingEverydayBody:
+      "Školní rozvrh a vlastní události na jednom místě, na počítači i v mobilu.",
+    landingPersonal: "Přidejte sport, práci nebo jiný předmět mimo KOS.",
+    landingMobile: "Přidejte aplikaci na plochu iPhonu nebo Androidu.",
+    landingPreferences: "Tmavý režim, barvy předmětů a tři jazyky.",
+
     connections: "Kontakty",
     addConnection: "Přidat kontakt",
     connectionType: "Typ kontaktu",
@@ -271,6 +292,28 @@ export const copy = {
     },
   },
   en: {
+    profilePicture: "Profile picture",
+    uploadPicture: "Upload picture",
+    removePicture: "Remove picture",
+    pictureHint:
+      "JPG, PNG or WebP · up to 5 MB. Visible to accepted friends and members of your shared groups.",
+    pictureTooLarge: "Choose a picture smaller than 5 MB.",
+    pictureInvalid:
+      "Choose a valid, still JPG, PNG or WebP image (up to 50 megapixels).",
+    landingTogether: "Timetables with friends",
+    landingTogetherBody:
+      "See who shares your lessons, or compare timetables side by side.",
+    landingSharedLessons:
+      "Friends’ profile pictures on lessons you attend together.",
+    landingInvites: "Invite a friend or a whole group with a link.",
+    landingSharing: "Choose who can see your timetable.",
+    landingEveryday: "Your university week",
+    landingEverydayBody:
+      "Your school timetable and personal events in one place, on desktop and mobile.",
+    landingPersonal: "Add sports, work or a subject outside KOS.",
+    landingMobile: "Add the app to your iPhone or Android home screen.",
+    landingPreferences: "Dark mode, subject colours and three languages.",
+
     connections: "Connections",
     addConnection: "Add connection",
     connectionType: "Connection type",

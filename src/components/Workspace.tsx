@@ -15,6 +15,9 @@ import { semesterOptions } from "@/lib/calendar";
 import PersonalEvents from "./PersonalEvents";
 import Avatar from "./Avatar";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSelect from "./LanguageSelect";
+import ProfilePicture from "./ProfilePicture";
+import LandingFeatures from "./LandingFeatures";
 import GroupInvitation from "./GroupInvitation";
 import ConnectionsView, { type ConnectionTab } from "./ConnectionsView";
 import Icon from "./Icon";
@@ -288,21 +291,15 @@ export default function Workspace() {
         )}
         <div className={s.headerEnd}>
           <ThemeToggle t={t} />
-          <div className={s.languages} aria-label="Language">
-            {(["cs", "en", "uk"] as const).map((l) => (
-              <button
-                key={l}
-                className={locale === l ? s.chosen : ""}
-                aria-pressed={locale === l}
-                onClick={() => {
-                  setLocale(l);
-                  localStorage.setItem("kwf_locale", l);
-                }}
-              >
-                {l === "cs" ? "CZ" : l === "uk" ? "UA" : "EN"}
-              </button>
-            ))}
-          </div>
+          <LanguageSelect
+            locale={locale}
+            change={(value) => {
+              setLocale(value);
+              try {
+                localStorage.setItem("kwf_locale", value);
+              } catch {}
+            }}
+          />
           {me && (
             <button
               className={`${s.quiet} ${s.accountButton}`}
@@ -380,6 +377,7 @@ export default function Workspace() {
               <figcaption>{t.preview}</figcaption>
             </figure>
           </main>
+          <LandingFeatures t={t} />
         </>
       ) : (
         <main className={s.main}>
@@ -615,6 +613,14 @@ export default function Workspace() {
             <section className={`${s.panel} ${s.accountSection}`}>
               <h2>{displayName(me)}</h2>
               <p className={s.hint}>@{me.username}</p>
+              <ProfilePicture
+                me={me}
+                t={t}
+                updated={(avatarVersion) => {
+                  setMe({ ...me, avatarVersion });
+                  void reload();
+                }}
+              />
               <p className={s.muted}>{t.privacy}</p>
               <p className={s.hint}>{t.retentionHint}</p>
               <p>

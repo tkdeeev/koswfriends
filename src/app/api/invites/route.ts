@@ -63,7 +63,7 @@ export const POST = endpoint(async (req) => {
       .returning({ id: invites.id });
     return json({
       id: invite.id,
-      url: `${process.env.APP_URL}/?invite=${token}`,
+      url: `${process.env.APP_URL}/invite/friend?invite=${token}`,
       expiresAt,
     });
   }

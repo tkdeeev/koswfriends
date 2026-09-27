@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   username: text("username").notNull().unique(),
   name: text("name").notNull(),
+  avatarVersion: uuid("avatar_version"),
   semester: text("semester").notNull(),
   createdAt: time("created_at").defaultNow().notNull(),
   activeAt: time("active_at").defaultNow().notNull(),
@@ -25,6 +26,11 @@ const userRef = (name: string) =>
   uuid(name)
     .notNull()
     .references(() => users.id, { onDelete: "cascade" });
+export const profilePictures = pgTable("profile_pictures", {
+  userId: userRef("user_id").primaryKey(),
+  // Only a small, re-encoded WebP is stored; never the original upload.
+  image: text("image").notNull(),
+});
 export const connections = pgTable("connections", {
   userId: userRef("user_id").primaryKey(),
   access: text("access").notNull(),
