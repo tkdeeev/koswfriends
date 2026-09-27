@@ -12,7 +12,7 @@ export type Lesson = {
   cancelled: boolean;
   personalId?: string;
   color?: string;
-  note?: string;
+  note?: string | Localized;
   capacity?: number | null;
   occupied?: number | null;
   teachers?: Teacher[];

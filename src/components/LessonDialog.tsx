@@ -167,7 +167,11 @@ export default function LessonDialog({
               </ul>
             </section>
             {detail.lesson.note && (
-              <p className={s.eventNote}>{detail.lesson.note}</p>
+              <p className={s.eventNote}>
+                {typeof detail.lesson.note === "string"
+                  ? detail.lesson.note
+                  : localizedText(detail.lesson.note, locale)}
+              </p>
             )}
             {detail.lesson.personalId && detail.own && (
               <button

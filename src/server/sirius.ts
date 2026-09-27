@@ -5,6 +5,21 @@ import { semesterWindow, ZONE } from "../lib/calendar";
 import { config } from "./config";
 import { AppError } from "./security";
 import { providerJson } from "./oauth";
+const noteText = z.string().max(10000).nullish();
+// Sirius notes can be plain text or translations. Optional enrichment must
+// never prevent an otherwise valid timetable from being imported.
+const eventNote = z
+  .union([
+    z.string().max(10000),
+    z
+      .object({ cs: noteText, cz: noteText, en: noteText, uk: noteText })
+      .transform((value) => ({
+        ...localized(value),
+        ...(value.uk ? { uk: value.uk } : {}),
+      })),
+  ])
+  .nullish()
+  .catch(undefined);
 const rawEvent = z.object({
   id: z.union([z.string(), z.number()]),
   starts_at: z.string().datetime({ offset: true }),
@@ -14,23 +29,27 @@ const rawEvent = z.object({
   deleted: z.boolean().optional(),
   cancelled: z.boolean().optional(),
   name: z.unknown().optional(),
-  note: z.string().max(10000).nullish(),
-  capacity: z.number().int().nonnegative().nullish(),
-  occupied: z.number().int().nonnegative().nullish(),
-  sequence_number: z.number().int().nullish(),
+  note: eventNote,
+  capacity: z.number().int().nonnegative().nullish().catch(undefined),
+  occupied: z.number().int().nonnegative().nullish().catch(undefined),
+  sequence_number: z.number().int().nullish().catch(undefined),
   original_data: z
     .object({
       starts_at: z.string().datetime({ offset: true }).nullish(),
       ends_at: z.string().datetime({ offset: true }).nullish(),
       room_id: z.string().nullish(),
     })
-    .optional(),
+    .optional()
+    .catch(undefined),
   links: z
     .object({
       course: z.union([z.string(), z.number()]).nullish(),
       room: z.union([z.string(), z.number()]).nullish(),
-      teachers: z.array(z.string()).optional(),
-      applied_exceptions: z.array(z.union([z.string(), z.number()])).optional(),
+      teachers: z.array(z.string()).optional().catch(undefined),
+      applied_exceptions: z
+        .array(z.union([z.string(), z.number()]))
+        .optional()
+        .catch(undefined),
     })
     .optional(),
 });
@@ -55,7 +74,8 @@ export function normalizePage(page: unknown) {
             .array(
               z.object({ id: z.string(), full_name: z.string().nullish() }),
             )
-            .optional(),
+            .optional()
+            .catch(undefined),
           schedule_exceptions: z
             .array(
               z.object({
@@ -65,7 +85,8 @@ export function normalizePage(page: unknown) {
                 note: z.unknown().optional(),
               }),
             )
-            .optional(),
+            .optional()
+            .catch(undefined),
           courses: z
             .array(
               z.object({
