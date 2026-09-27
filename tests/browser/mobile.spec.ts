@@ -955,6 +955,7 @@ test.describe("synthetic wide-table rendering", () => {
       },
     });
     const responses: Record<string, unknown> = {
+      people: { people: [] },
       config: { enabled: false },
       me,
       friends: { friends: [], blocked: [] },

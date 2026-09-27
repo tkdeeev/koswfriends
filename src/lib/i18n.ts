@@ -3,6 +3,7 @@ import type { Localized } from "./types";
 export const copy = {
   uk,
   cs: {
+    food: "Jídlo",
     profilePicture: "Profilová fotka",
     uploadPicture: "Nahrát fotku",
     removePicture: "Odstranit fotku",
@@ -292,6 +293,7 @@ export const copy = {
     },
   },
   en: {
+    food: "Food",
     profilePicture: "Profile picture",
     uploadPicture: "Upload picture",
     removePicture: "Remove picture",

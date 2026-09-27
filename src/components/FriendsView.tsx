@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Friend, Grant, Person } from "@/lib/types";
 import type { Locale, Text } from "@/lib/i18n";
 import Avatar from "./Avatar";
+import { PersonLink } from "./PeopleProvider";
 import Icon from "./Icon";
 import { displayName } from "@/lib/appearance";
 import s from "./Workspace.module.css";
@@ -85,8 +86,14 @@ function FriendRow({
           aria-label={displayName(friend)}
         >
           <div className={s.person}>
-            <Avatar person={friend} />
-            <strong>{displayName(friend)}</strong>
+            <PersonLink
+              person={friend}
+              status
+              disabled={friend.status !== "accepted"}
+            >
+              <Avatar person={friend} />
+              <strong>{displayName(friend)}</strong>
+            </PersonLink>
           </div>
           {friend.status === "pending" && (
             <span className={s.badge}>

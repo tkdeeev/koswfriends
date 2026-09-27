@@ -15,6 +15,10 @@ import {
 } from "../src/server/sirius";
 import { semesterWindow } from "../src/lib/calendar";
 import { GET as calendar } from "../src/app/api/calendar/route";
+import { GET as people } from "../src/app/api/people/route";
+import { GET as menza } from "../src/app/api/menza/route";
+import { GET as menzaPhoto } from "../src/app/api/menza/photo/route";
+import { currentSemester } from "../src/lib/calendar";
 import { GET as plans, POST as savePlan } from "../src/app/api/plans/route";
 import {
   PATCH as changeFriend,
@@ -132,6 +136,79 @@ beforeEach(async () => {
 });
 afterAll(closeDatabase);
 describe("privacy and database transactions", () => {
+  it("gates profiles and availability by current directional sharing, including revocation and blocks", async () => {
+    expect(
+      (
+        await menzaPhoto(
+          new NextRequest(
+            "http://localhost:3100/api/menza/photo?canteen=1&meal=12",
+          ),
+        )
+      ).status,
+    ).toBe(401);
+    expect(
+      (await people(new NextRequest("http://localhost:3100/api/people")))
+        .status,
+    ).toBe(401);
+    expect(
+      (await menza(new NextRequest("http://localhost:3100/api/menza"))).status,
+    ).toBe(401);
+    const a = await user("availability-a"),
+      b = await user("availability-b");
+    const course = {
+      ...lesson,
+      start: new Date(Date.now() - 60000).toISOString(),
+      end: new Date(Date.now() + 600000).toISOString(),
+    };
+    await database()
+      .insert(tables.snapshots)
+      .values({
+        userId: a.id,
+        semester: currentSemester(),
+        window: semesterWindow(currentSemester()),
+        events: [course],
+        lastSuccess: new Date(),
+      });
+    const path = `/api/people?id=${a.id}`;
+    expect((await people(req(b, path))).status).toBe(404);
+    await requestFriend(a.id, b.id, permission);
+    expect((await people(req(b, path))).status).toBe(404);
+    await changeFriend(
+      req(b, "/api/friends", "PATCH", {
+        id: a.id,
+        action: "accept",
+        giving: { calendar: false, plans: false },
+      }),
+    );
+    const response = await people(req(b, path));
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect((await response.json()).people[0].availability).toMatchObject({
+      state: "busy",
+      current: [course],
+    });
+    expect(
+      (await (await people(req(a, `/api/people?id=${b.id}`))).json()).people[0]
+        .availability.state,
+    ).toBe("private");
+    await changeFriend(
+      req(a, "/api/friends", "PATCH", {
+        id: b.id,
+        action: "sharing",
+        giving: { calendar: false, plans: false },
+      }),
+    );
+    const revoked = await (await people(req(b, path))).json();
+    expect(revoked.people[0].availability).toMatchObject({
+      state: "private",
+      current: [],
+      next: null,
+    });
+    expect(JSON.stringify(revoked)).not.toContain(course.course);
+    await changeFriend(
+      req(a, "/api/friends", "PATCH", { id: b.id, action: "block" }),
+    );
+    expect((await people(req(b, path))).status).toBe(404);
+  });
   it("denies unauthenticated reads and cross-origin mutations", async () => {
     expect(
       (await calendar(new NextRequest("http://localhost:3100/api/calendar")))
@@ -695,6 +772,57 @@ describe("OAuth and encrypted connections", () => {
   });
 });
 describe("Sirius synchronization", () => {
+  it("imports useful lesson and teacher metadata while stripping rosters and private identity fields", () => {
+    const result = normalizePage({
+      events: [
+        {
+          ...raw(1),
+          capacity: 30,
+          occupied: 0,
+          sequence_number: 4,
+          note: "Bring a laptop",
+          original_data: { room_id: "OLD" },
+          links: {
+            ...raw(1).links,
+            teachers: ["teacher1"],
+            students: ["private-student"],
+            applied_exceptions: [5],
+          },
+        },
+      ],
+      linked: {
+        teachers: [
+          {
+            id: "teacher1",
+            full_name: "Dr. Test Teacher",
+            access_token: "private-token",
+          },
+        ],
+        schedule_exceptions: [
+          {
+            id: 5,
+            exception_type: "ROOM_CHANGE",
+            name: "Changed room",
+            note: "Temporary move",
+          },
+        ],
+      },
+    }).events[0];
+    expect(result).toMatchObject({
+      capacity: 30,
+      occupied: 0,
+      sequence: 4,
+      teachers: [{ username: "teacher1", name: "Dr. Test Teacher" }],
+      original: { room: "OLD" },
+      changes: [
+        {
+          type: "ROOM_CHANGE",
+          name: { en: "Changed room", cs: "Changed room" },
+        },
+      ],
+    });
+    expect(JSON.stringify(result)).not.toMatch(/private-student|private-token/);
+  });
   it("normalizes cancellation and does not copy student lists or private provider fields", () => {
     const page = normalizePage({
       events: [

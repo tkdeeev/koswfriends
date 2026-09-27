@@ -7,6 +7,7 @@ import { localizedText, lessonType, type Locale, type Text } from "@/lib/i18n";
 import type { Person } from "@/lib/types";
 import type { Display } from "./CalendarView";
 import Avatar, { AvatarStack } from "./Avatar";
+import { PersonLink } from "./PeopleProvider";
 import s from "./Workspace.module.css";
 
 const SCALE = 1.4;
@@ -95,10 +96,12 @@ export default function MobileTimetable({
                   } as CSSProperties
                 }
               >
-                <Avatar person={person} small />
-                <span title={displayName(person)}>
-                  {own ? t.you : displayName(person)}
-                </span>
+                <PersonLink person={person}>
+                  <Avatar person={person} small />
+                  <span title={displayName(person)}>
+                    {own ? t.you : displayName(person)}
+                  </span>
+                </PersonLink>
               </div>
             ))}
           </div>

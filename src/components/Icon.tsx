@@ -5,6 +5,7 @@ export default function Icon({
   ...props
 }: SVGProps<SVGSVGElement> & {
   name:
+    | "food"
     | "today"
     | "sun"
     | "moon"
@@ -43,6 +44,11 @@ export default function Icon({
         <>
           <rect x="3" y="3" width="18" height="18" rx="1" />
           <path d="M3 8h18M3 14h18M12 8v6M8 14v7" />
+        </>
+      )}
+      {name === "food" && (
+        <>
+          <path d="M4 3v5a3 3 0 0 0 6 0V3M7 3v18M18 3c-3 3-3 8 0 9h2V3h-2Zm2 9v9" />
         </>
       )}
       {name === "today" && (

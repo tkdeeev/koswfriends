@@ -7,6 +7,7 @@ export const analyticsPages = [
   "home",
   "timetable",
   "connections",
+  "food",
   "account",
   "planner",
   "privacy",

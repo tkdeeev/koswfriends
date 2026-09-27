@@ -671,7 +671,7 @@
   box-shadow: 0 20px 80px #0004;
 }
 .lessonDialogHeader {
-  padding: 12px 24px 22px;
+  padding: 8px 20px 14px;
   background: color-mix(in srgb, var(--lesson-color) 20%, var(--surface));
   border-top: 4px solid var(--lesson-color);
   color: var(--dark);
@@ -687,21 +687,29 @@
   background: transparent;
   border-color: transparent;
   color: inherit;
-  margin-right: -12px;
+  margin-right: -8px;
+  width: 32px;
+  height: 32px;
 }
 .lessonDialogHeader h2 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 500;
   overflow-wrap: anywhere;
-  margin: 8px 0 12px;
+  margin: 2px 0 8px;
+}
+.lessonDialogWhen {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
 }
 .lessonDialogTime {
-  font-size: 22px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
 .lessonDialogDate {
-  margin-top: 4px;
-  font-size: 13px;
+  margin: 0;
+  font-size: 12px;
 }
 .lessonDialogStatus {
   display: flex;
@@ -709,42 +717,50 @@
   margin-top: 12px;
 }
 .lessonDialogBody {
-  padding: 24px;
+  padding: 16px 20px;
   display: grid;
-  gap: 22px;
+  gap: 14px;
   overflow-wrap: anywhere;
 }
 .lessonDialogBody > h3 {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.4;
   font-weight: 500;
   color: var(--blue);
 }
 .lessonFacts {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
-  padding: 18px 0;
+  padding: 0;
   border-block: 1px solid var(--line);
 }
 .lessonFacts > div {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column-reverse;
-  gap: 4px;
+  justify-content: flex-end;
+  gap: 3px;
+  padding: 10px 16px;
 }
-.lessonFacts > div + div {
-  padding-left: 18px;
-  margin-left: 18px;
+.lessonFacts > div:nth-child(odd) {
+  padding-left: 0;
+}
+.lessonFacts > div:nth-child(even) {
+  padding-right: 0;
   border-left: 1px solid var(--line);
 }
+.lessonFacts > div:nth-child(n + 3) {
+  border-top: 1px solid var(--line);
+}
 .lessonFacts dt {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 .lessonFacts dd {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
 }
 .lessonAttendees h3 {
   display: flex;
@@ -752,17 +768,41 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 .lessonAttendees h3 > span {
   color: var(--muted);
   font-weight: 400;
 }
 .lessonAttendees .attendeeList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 4px 8px;
+  max-height: min(144px, 24dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
-  padding: 0;
+  padding: 3px;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
+}
+.lessonAttendee {
+  min-width: 0;
+}
+.lessonAttendee > button {
+  width: 100%;
+  min-height: 36px;
+}
+.lessonAttendee > button > span {
+  width: 100%;
+  flex-wrap: nowrap;
+}
+.attendeeName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .lessonDialogBody .eventNote {
   margin: 0;
@@ -1744,7 +1784,7 @@
 }
 @media (max-width: 760px) {
   .navigation {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .connectionColumns {
     grid-template-columns: minmax(0, 1fr);
@@ -2441,13 +2481,36 @@
   height: 20px;
 }
 .profileAvatar {
-  overflow: hidden;
+  position: relative;
+  overflow: visible;
 }
 .profileAvatar img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50% !important;
+}
+.availabilityDot {
+  position: absolute;
+  right: -1px;
+  bottom: -2px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface);
+  border-radius: 50% !important;
+  background: #248447;
+  z-index: 1;
+}
+.availabilityDot[data-availability="soon"] {
+  background: #dda413;
+}
+.availabilityDot[data-availability="busy"] {
+  background: #d64045;
+}
+.smallAvatar .availabilityDot {
+  width: 10px;
+  height: 10px;
 }
 .pictureEditor {
   display: flex;

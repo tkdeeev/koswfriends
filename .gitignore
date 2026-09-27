@@ -8,6 +8,13 @@ test-results/
 *.tsbuildinfo
 .DS_Store
 
+# Local preview servers, seed data and review captures are never published.
+/.koswfriends-ops/
+/local-preview/
+/seed-data/
+/daily-preview.ts
+/meal-fixture.webp
+
 # Private handoffs, credentials and database exports must stay outside Git.
 /private/
 *handoff*/
