@@ -4,6 +4,7 @@ import type { Grant, Me, SharingGroup } from "@/lib/types";
 import type { Locale, Text } from "@/lib/i18n";
 import { Sharing, type Mutate } from "./FriendsView";
 import Avatar from "./Avatar";
+import { PersonLink } from "./PeopleProvider";
 import Icon from "./Icon";
 import { displayName } from "@/lib/appearance";
 import GroupInviteLink, { type Read } from "./GroupInviteLink";
@@ -51,8 +52,14 @@ function MemberRow({
           aria-label={displayName(member)}
         >
           <div className={s.person}>
-            <Avatar person={member} />
-            <strong>{displayName(member)}</strong>
+            <PersonLink
+              person={member}
+              status
+              disabled={member.status !== "accepted" || member.blocked}
+            >
+              <Avatar person={member} />
+              <strong>{displayName(member)}</strong>
+            </PersonLink>
           </div>
           <span className={s.badge}>
             {member.status === "pending"

@@ -43,7 +43,7 @@ export const legalCopy: Record<
           title: "Jaké údaje zpracováváme",
           items: [
             "Po školním přihlášení: uživatelské jméno, jméno poskytnuté školou, interní identifikátor, zvolený semestr a čas vytvoření a poslední aktivity účtu. Zdrojem školních údajů jsou OAuth a Sirius ČVUT.",
-            "Váš rozvrh: předměty, názvy a identifikátory hodin, typ výuky, skupina, čas, místnost a zrušení hodiny. Uchováváme poslední úspěšně načtenou podobu rozvrhu pro zvolené semestry.",
+            "Váš rozvrh: předměty, názvy a identifikátory hodin, typ výuky, skupina, čas, místnost, zrušení a změny hodiny, kapacita a obsazenost a jména a školní identifikátory vyučujících. Ze sdíleného rozvrhu zobrazujeme aktuální a příští hodinu a čas volna; nejde o sledování polohy nebo skutečné přítomnosti. Uchováváme poslední úspěšně načtenou podobu rozvrhu pro zvolené semestry.",
             "Vámi zadané události, opakování, barvy a poznámky; případné návrhy semestru; žádosti o přátelství, skupiny, členství, pozvánky, blokace a nastavení sdílení.",
             "Šifrované přístupové a obnovovací tokeny školy, přihlašovací relace a údaje potřebné pro zabezpečení. Heslo ke škole aplikace nepřijímá ani neukládá. Školní profilové fotografie neimportujeme. Volitelně si můžete nahrát vlastní profilovou fotku. Ukládáme pouze zmenšenou kopii bez vložených metadat; originál neuchováváme.",
             "Při spojení se serverem infrastruktura zpracovává IP adresu a technické údaje požadavku. Pokud nám napíšete, zpracujeme obsah a kontaktní údaje vaší zprávy.",
@@ -85,7 +85,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, úložiště a analytika",
           paragraphs: [
-            "Nezbytné cookies kwf_session (30 dní) a kwf_oauth (10 minut) slouží k přihlášení a jeho ochraně. Místní úložiště si pamatuje jazyk, téma a zobrazení dne do změny či vymazání. Dočasné úložiště drží pozvánku ke skupině pro přihlášení v téže kartě; PWA ukládá veřejné ikony a offline stránku, nikoli rozvrhy. Síťová ochrana Cloudflare může při bezpečnostní výzvě použít nezbytné bezpečnostní úložiště.",
+            "Nezbytné cookies kwf_session (30 dní) a kwf_oauth (10 minut) slouží k přihlášení a jeho ochraně. Místní úložiště si pamatuje jazyk, téma, zobrazení dne a vybranou menzu do změny či vymazání. Dočasné úložiště drží pozvánku ke skupině pro přihlášení v téže kartě; PWA ukládá veřejné ikony a offline stránku, nikoli rozvrhy. Síťová ochrana Cloudflare může při bezpečnostní výzvě použít nezbytné bezpečnostní úložiště.",
             "Po výslovném povolení odesíláme do vlastního Umami záznam o zobrazení předem dané obrazovky. Umami záznamy počítá a uchovává čas události. Nepředáváme jména, účty, rozvrhy, texty, adresy s parametry, pozvánky ani původní IP adresu či identifikaci prohlížeče. Nejde o počítání jedinečných lidí. Pro analytiku nepoužíváme nahrávání obrazovky ani otisky zařízení.",
             "Volbu analytiky s verzí a datem si toto zařízení pamatuje šest měsíců. V Nastavení analytiky v patičce ji kdykoli změníte; odmítnutí je stejně dostupné jako přijetí. Do Not Track a Global Privacy Control měření vypnou. Odvolání působí do budoucna; Umami neuchovává vazbu na váš účet, podle které bychom v něm mohli vyhledat vaše jednotlivé záznamy.",
           ],
@@ -166,7 +166,7 @@ export const legalCopy: Record<
           title: "Information we process",
           items: [
             "After school sign-in: school username, school-provided name, internal ID, selected semester, account creation and last activity times. School information comes from CTU OAuth and Sirius.",
-            "Your timetable: courses, lesson titles and IDs, type, group, times, room and cancellation status. We retain the last successful import for semesters you select.",
+            "Your timetable: courses, lesson titles and IDs, type, group, times, room, cancellations and changes, capacity and occupancy, and teachers’ names and school identifiers. Shared timetables also provide current/next lessons and free-time status; this does not track location or actual presence. We retain the last successful import for semesters you select.",
             "Personal events, recurrence, colors and notes; any semester drafts; friend requests, groups, memberships, invitations, blocks and sharing preferences.",
             "Encrypted school access/refresh tokens, login sessions and security information. The app never receives or stores your school password. We do not import school profile photos. You may optionally upload your own profile picture. We store only a resized copy with embedded metadata removed, not the original.",
             "When connecting, the infrastructure processes your IP address and technical request information. If you contact us, we process your message and contact details.",
@@ -208,7 +208,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, storage and analytics",
           paragraphs: [
-            "Necessary cookies kwf_session (30 days) and kwf_oauth (10 minutes) support sign-in and its security. Local storage remembers language, theme and day layout until changed or cleared. Session storage holds a group invitation through sign-in in the same tab. The PWA caches public icons and an offline page, not timetables. Cloudflare protection may use necessary security storage when presenting a security challenge.",
+            "Necessary cookies kwf_session (30 days) and kwf_oauth (10 minutes) support sign-in and its security. Local storage remembers language, theme, day layout and selected canteen until changed or cleared. Session storage holds a group invitation through sign-in in the same tab. The PWA caches public icons and an offline page, not timetables. Cloudflare protection may use necessary security storage when presenting a security challenge.",
             "After explicit permission, we send a view event for a predefined app screen to our own Umami instance. Umami counts these events and records their time. We do not forward names, accounts, calendars, entered text, query strings, invitation links, original visitor IP addresses or browser identifiers. This does not measure unique people. Analytics does not use session recording or device fingerprinting.",
             "This device remembers your analytics choice, policy version and date for six months. Change it at any time through Analytics settings in the footer; declining is as easy as accepting. Do Not Track and Global Privacy Control disable collection. Withdrawal stops future collection. Umami keeps no link to your account that would let us locate your individual entries there.",
           ],
@@ -289,7 +289,7 @@ export const legalCopy: Record<
           title: "Які дані ми обробляємо",
           items: [
             "Після входу через університет: ім’я користувача, надане університетом ім’я, внутрішній ідентифікатор, обраний семестр, час створення та останньої активності облікового запису. Джерело університетських даних — OAuth та Sirius ČVUT.",
-            "Ваш розклад: предмети, назви й ідентифікатори занять, тип, група, час, аудиторія та скасування. Зберігаємо останній успішний імпорт для обраних семестрів.",
+            "Ваш розклад: предмети, назви й ідентифікатори занять, тип, група, час, аудиторія, скасування та зміни, місткість і заповненість, імена та університетські ідентифікатори викладачів. За спільним розкладом показуємо поточне й наступне заняття та вільний час; це не відстеження місця або фактичної присутності. Зберігаємо останній успішний імпорт для обраних семестрів.",
             "Власні події, повторення, кольори й нотатки; чернетки семестру; запити дружби, групи, членство, запрошення, блокування та налаштування доступу.",
             "Зашифровані токени доступу й оновлення університету, сеанси входу та дані безпеки. Застосунок не отримує й не зберігає університетський пароль. Фотографії профілю з університету не імпортуються. Ви можете завантажити власне фото. Зберігаємо лише зменшену копію без вбудованих метаданих, а не оригінал.",
             "Під час з’єднання інфраструктура обробляє IP-адресу й технічні дані запиту. Якщо ви звернетеся до нас, обробляємо зміст повідомлення та контактні дані.",
@@ -331,7 +331,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, сховище та аналітика",
           paragraphs: [
-            "Необхідні cookies kwf_session (30 днів) і kwf_oauth (10 хвилин) забезпечують вхід і його захист. Локальне сховище пам’ятає мову, тему й вигляд дня до зміни або очищення. Сховище вкладки тримає запрошення до групи під час входу в тій самій вкладці. PWA кешує публічні іконки й офлайн-сторінку, а не розклади. Захист Cloudflare може використовувати необхідне сховище під час перевірки безпеки.",
+            "Необхідні cookies kwf_session (30 днів) і kwf_oauth (10 хвилин) забезпечують вхід і його захист. Локальне сховище пам’ятає мову, тему, вигляд дня та обрану їдальню до зміни або очищення. Сховище вкладки тримає запрошення до групи під час входу в тій самій вкладці. PWA кешує публічні іконки й офлайн-сторінку, а не розклади. Захист Cloudflare може використовувати необхідне сховище під час перевірки безпеки.",
             "Лише після явного дозволу наш Umami отримує подію перегляду визначеного екрана. Umami підраховує ці події та зберігає їхній час. Ми не передаємо імена, облікові записи, розклади, введені тексти, параметри адрес, запрошення, оригінальні IP-адреси відвідувачів чи ідентифікацію браузера. Це не підрахунок унікальних людей. Аналітика не використовує запис сеансів чи цифрові відбитки пристроїв.",
             "Пристрій пам’ятає ваш вибір аналітики, версію та дату шість місяців. Змінити його можна в Налаштуваннях аналітики у підвалі; відмовитися так само легко, як погодитися. Do Not Track і Global Privacy Control вимикають збір. Відкликання припиняє майбутній збір. Umami не зберігає зв’язку з вашим обліковим записом, за яким ми могли б знайти там ваші окремі записи.",
           ],

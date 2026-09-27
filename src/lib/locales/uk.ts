@@ -1,5 +1,6 @@
 /** Ukrainian interface copy. School-supplied course titles use the available source language. */
 export const uk = {
+  food: "Їжа",
   profilePicture: "Фото профілю",
   uploadPicture: "Завантажити фото",
   removePicture: "Видалити фото",

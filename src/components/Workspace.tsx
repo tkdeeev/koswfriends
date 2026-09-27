@@ -17,6 +17,8 @@ import Avatar from "./Avatar";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSelect from "./LanguageSelect";
 import ProfilePicture from "./ProfilePicture";
+import { PeopleProvider } from "./PeopleProvider";
+import FoodView from "./FoodView";
 import LandingFeatures from "./LandingFeatures";
 import GroupInvitation from "./GroupInvitation";
 import ConnectionsView, { type ConnectionTab } from "./ConnectionsView";
@@ -29,7 +31,8 @@ import AnalyticsConsent from "./AnalyticsConsent";
 import { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
 import s from "./Workspace.module.css";
-type WorkspaceView = "timetable" | "connections" | "planner" | "account";
+type WorkspaceView =
+  "timetable" | "connections" | "planner" | "account" | "food";
 async function request(path: string, init: RequestInit = {}) {
   let response: Response;
   try {
@@ -91,6 +94,7 @@ export default function Workspace() {
       setView(
         requested === "planner" ||
           requested === "connections" ||
+          requested === "food" ||
           requested === "account"
           ? requested
           : "timetable",
@@ -264,432 +268,443 @@ export default function Workspace() {
       : t.errors[error as keyof typeof t.errors] || t.error;
   const own = calendars.find((c) => c.userId === me?.id);
   return (
-    <div className={`${s.app} ${me ? s.signedIn : ""}`}>
-      <header className={s.header}>
-        <a className={s.brand} href="/" aria-label="KOS++ | KOS with Friends">
-          <Logo />
-        </a>
-        {me && (
-          <nav className={s.navigation} aria-label="Navigation">
-            {(["timetable", "connections"] as const).map((tab) => (
-              <button
-                key={tab}
-                aria-current={view === tab ? "page" : undefined}
-                className={`${s.nav} ${view === tab ? s.active : ""}`}
-                aria-label={t[tab]}
-                title={t[tab]}
-                onClick={() => navigateView(tab)}
-              >
-                <Icon
-                  name={tab === "timetable" ? "calendar" : "users"}
-                  className={s.navIcon}
-                />
-                <span className={s.navText}>{t[tab]}</span>
-              </button>
-            ))}
-          </nav>
-        )}
-        <div className={s.headerEnd}>
-          <ThemeToggle t={t} />
-          <LanguageSelect
-            locale={locale}
-            change={(value) => {
-              setLocale(value);
-              try {
-                localStorage.setItem("kwf_locale", value);
-              } catch {}
-            }}
-          />
+    <PeopleProvider
+      me={me}
+      locale={locale}
+      t={t}
+      onEditEvent={(id) => {
+        setEventId(id);
+        setEventEditor(true);
+      }}
+    >
+      <div className={`${s.app} ${me ? s.signedIn : ""}`}>
+        <header className={s.header}>
+          <a className={s.brand} href="/" aria-label="KOS++ | KOS with Friends">
+            <Logo />
+          </a>
           {me && (
-            <button
-              className={`${s.quiet} ${s.accountButton}`}
-              onClick={() => navigateView("account")}
-              aria-label={t.account}
-            >
-              <span className={s.identity}>
-                <Avatar person={me} />
-                <span className={s.accountUsername}>{displayName(me)}</span>
-              </span>
-            </button>
+            <nav className={s.navigation} aria-label="Navigation">
+              {(["timetable", "connections"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  aria-current={view === tab ? "page" : undefined}
+                  className={`${s.nav} ${view === tab ? s.active : ""}`}
+                  aria-label={t[tab]}
+                  title={t[tab]}
+                  onClick={() => navigateView(tab)}
+                >
+                  <Icon
+                    name={tab === "timetable" ? "calendar" : "users"}
+                    className={s.navIcon}
+                  />
+                  <span className={s.navText}>{t[tab]}</span>
+                </button>
+              ))}
+            </nav>
           )}
-        </div>
-      </header>
-      {me === undefined ? (
-        <div className={s.loading}>{t.loading}</div>
-      ) : !me ? (
-        <>
-          {error && (
-            <div
-              role="alert"
-              className={`${s.banner} ${s.error}`}
-              style={{ margin: "20px 6% 0" }}
-            >
-              {errorMessage}
-            </div>
-          )}
-          {groupInviteToken && (
-            <div className={s.banner} style={{ margin: "20px 6% 0" }}>
-              <p>{t.groupSignIn}</p>
-              <button className={s.quiet} onClick={clearGroupInvite}>
-                {t.cancel}
-              </button>
-            </div>
-          )}
-          <main className={s.hero}>
-            <div>
-              <h1>{t.hero}</h1>
-              <p className={s.intro}>{t.intro}</p>
-              <a className={s.button} href={signIn}>
-                {t.signIn} <span aria-hidden>↗</span>
-              </a>
-              <p className={s.signInLegal}>
-                {t.signInLegal}{" "}
-                <a href={`/terms?lang=${locale}`}>{t.termsOfUse}</a> ·{" "}
-                <a href={`/privacy?lang=${locale}`}>{t.privacyNotice}</a>
-              </p>
-              <ul className={s.featureList}>
-                {[
-                  t.featureTimetables,
-                  t.featureGroups,
-                  t.featureEvents,
-                  t.featureTheme,
-                  t.featureInstall,
-                ].map((feature) => (
-                  <li key={feature}>{feature}</li>
-                ))}
-              </ul>
-            </div>
-            <figure className={s.productPreview}>
-              <img
-                className={s.previewLight}
-                src={`/preview/timetable-${locale}-light.png`}
-                alt={t.previewAlt}
-                width={1280}
-                height={940}
-              />
-              <img
-                className={s.previewDark}
-                src={`/preview/timetable-${locale}-dark.png`}
-                alt={t.previewAlt}
-                width={1280}
-                height={940}
-              />
-              <figcaption>{t.preview}</figcaption>
-            </figure>
-          </main>
-          <LandingFeatures t={t} />
-        </>
-      ) : (
-        <main className={s.main}>
-          <div
-            className={`${s.titleRow} ${view === "timetable" ? s.timetableTitle : ""}`}
-          >
-            <div>
-              <h1>{t[view]}</h1>
-              {view === "planner" && (
-                <p className={s.subtitle}>{t.plannerIntro}</p>
-              )}
-            </div>
-            {view === "connections" && (
+          <div className={s.headerEnd}>
+            <ThemeToggle t={t} />
+            <LanguageSelect
+              locale={locale}
+              change={(value) => {
+                setLocale(value);
+                try {
+                  localStorage.setItem("kwf_locale", value);
+                } catch {}
+              }}
+            />
+            {me && (
               <button
-                className={`${s.button} ${s.addConnection}`}
-                aria-label={t.addConnection}
-                onClick={() => {
-                  setError("");
-                  setAddConnection(true);
-                }}
+                className={`${s.quiet} ${s.accountButton}`}
+                onClick={() => navigateView("account")}
+                aria-label={t.account}
               >
-                <Icon name="plus" width={28} height={28} />
-                {t.add}
+                <span className={s.identity}>
+                  <Avatar person={me} />
+                  <span className={s.accountUsername}>{displayName(me)}</span>
+                </span>
               </button>
             )}
-            {(view === "timetable" || view === "planner") && (
-              <div className={s.toolbar}>
-                <label className={s.semesterLabel}>
-                  <span>{t.semester}</span>
-                  <select
-                    aria-label={t.semester}
-                    value={me.semester}
-                    onChange={async (e) => {
-                      const semester = e.target.value;
+          </div>
+        </header>
+        {me === undefined ? (
+          <div className={s.loading}>{t.loading}</div>
+        ) : !me ? (
+          <>
+            {error && (
+              <div
+                role="alert"
+                className={`${s.banner} ${s.error}`}
+                style={{ margin: "20px 6% 0" }}
+              >
+                {errorMessage}
+              </div>
+            )}
+            {groupInviteToken && (
+              <div className={s.banner} style={{ margin: "20px 6% 0" }}>
+                <p>{t.groupSignIn}</p>
+                <button className={s.quiet} onClick={clearGroupInvite}>
+                  {t.cancel}
+                </button>
+              </div>
+            )}
+            <main className={s.hero}>
+              <div>
+                <h1>{t.hero}</h1>
+                <p className={s.intro}>{t.intro}</p>
+                <a className={s.button} href={signIn}>
+                  {t.signIn} <span aria-hidden>↗</span>
+                </a>
+                <p className={s.signInLegal}>
+                  {t.signInLegal}{" "}
+                  <a href={`/terms?lang=${locale}`}>{t.termsOfUse}</a> ·{" "}
+                  <a href={`/privacy?lang=${locale}`}>{t.privacyNotice}</a>
+                </p>
+                <ul className={s.featureList}>
+                  {[
+                    t.featureTimetables,
+                    t.featureGroups,
+                    t.featureEvents,
+                    t.featureTheme,
+                    t.featureInstall,
+                  ].map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+              </div>
+              <figure className={s.productPreview}>
+                <img
+                  className={s.previewLight}
+                  src={`/preview/timetable-${locale}-light.png`}
+                  alt={t.previewAlt}
+                  width={1280}
+                  height={940}
+                />
+                <img
+                  className={s.previewDark}
+                  src={`/preview/timetable-${locale}-dark.png`}
+                  alt={t.previewAlt}
+                  width={1280}
+                  height={940}
+                />
+                <figcaption>{t.preview}</figcaption>
+              </figure>
+            </main>
+            <LandingFeatures t={t} />
+          </>
+        ) : (
+          <main className={s.main}>
+            <div
+              className={`${s.titleRow} ${view === "timetable" ? s.timetableTitle : ""}`}
+            >
+              <div>
+                <h1>{t[view]}</h1>
+                {view === "planner" && (
+                  <p className={s.subtitle}>{t.plannerIntro}</p>
+                )}
+              </div>
+              {view === "connections" && (
+                <button
+                  className={`${s.button} ${s.addConnection}`}
+                  aria-label={t.addConnection}
+                  onClick={() => {
+                    setError("");
+                    setAddConnection(true);
+                  }}
+                >
+                  <Icon name="plus" width={28} height={28} />
+                  {t.add}
+                </button>
+              )}
+              {(view === "timetable" || view === "planner") && (
+                <div className={s.toolbar}>
+                  <label className={s.semesterLabel}>
+                    <span>{t.semester}</span>
+                    <select
+                      aria-label={t.semester}
+                      value={me.semester}
+                      onChange={async (e) => {
+                        const semester = e.target.value;
+                        setBusy(true);
+                        try {
+                          await mutate("/api/me", { semester }, "PATCH");
+                          setMe((m) => (m ? { ...m, semester } : m));
+                          setCalendars([]);
+                          setChoices([]);
+                          setShared([]);
+                        } catch {
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      {[...new Set([...semesterOptions(), me.semester])]
+                        .sort()
+                        .map((sem) => (
+                          <option key={sem}>{sem}</option>
+                        ))}
+                    </select>
+                  </label>
+                  <button
+                    className={`${s.button} ${s.secondary} ${s.small}`}
+                    disabled={busy}
+                    aria-label={busy ? t.syncing : t.refresh}
+                    title={busy ? t.syncing : t.refresh}
+                    onClick={async () => {
                       setBusy(true);
                       try {
-                        await mutate("/api/me", { semester }, "PATCH");
-                        setMe((m) => (m ? { ...m, semester } : m));
-                        setCalendars([]);
-                        setChoices([]);
-                        setShared([]);
+                        await mutate("/api/sync", {});
                       } catch {
                       } finally {
                         setBusy(false);
                       }
                     }}
                   >
-                    {[...new Set([...semesterOptions(), me.semester])]
-                      .sort()
-                      .map((sem) => (
-                        <option key={sem}>{sem}</option>
-                      ))}
-                  </select>
-                </label>
+                    <Icon name="refresh" />
+                    <span className={s.refreshText}>
+                      {busy ? t.syncing : t.refresh}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+            {error && (
+              <div role="alert" className={`${s.banner} ${s.error}`}>
+                {errorMessage}
                 <button
-                  className={`${s.button} ${s.secondary} ${s.small}`}
-                  disabled={busy}
-                  aria-label={busy ? t.syncing : t.refresh}
-                  title={busy ? t.syncing : t.refresh}
-                  onClick={async () => {
-                    setBusy(true);
-                    try {
-                      await mutate("/api/sync", {});
-                    } catch {
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
+                  className={s.quiet}
+                  style={{ marginLeft: 14 }}
+                  onClick={() => setError("")}
+                  aria-label={t.close}
                 >
-                  <Icon name="refresh" />
-                  <span className={s.refreshText}>
-                    {busy ? t.syncing : t.refresh}
-                  </span>
+                  ×
                 </button>
               </div>
             )}
-          </div>
-          {error && (
-            <div role="alert" className={`${s.banner} ${s.error}`}>
-              {errorMessage}
-              <button
-                className={s.quiet}
-                style={{ marginLeft: 14 }}
-                onClick={() => setError("")}
-                aria-label={t.close}
-              >
-                ×
-              </button>
-            </div>
-          )}
-          {me.reconnect && (
-            <div className={`${s.banner} ${s.warning}`}>
-              {t.reconnect} <a href={signIn}>{t.reconnectButton}</a>
-            </div>
-          )}
-          {own?.error && view === "timetable" && (
-            <div className={`${s.banner} ${s.warning}`}>
-              {t.stale} {t.errors[own.error as keyof typeof t.errors] || ""}
-            </div>
-          )}
-          {own?.lastSuccess &&
-            !own.semester.verified &&
-            view === "timetable" && (
-              <div className={`${s.banner} ${s.warning}`}>{t.estimated}</div>
+            {me.reconnect && (
+              <div className={`${s.banner} ${s.warning}`}>
+                {t.reconnect} <a href={signIn}>{t.reconnectButton}</a>
+              </div>
             )}
-          {revoked && view === "timetable" && (
-            <div className={s.banner}>{t.revoked}</div>
-          )}
-          {groupInviteToken && (
-            <GroupInvitation
-              key={groupInviteToken}
-              token={groupInviteToken}
-              me={me}
-              request={request}
-              mutate={mutate}
-              t={t}
-              dismiss={clearGroupInvite}
-              joined={() => {
-                clearGroupInvite();
-                setConnectionTab("groups");
-                navigateView("connections");
-              }}
-              onError={setError}
-            />
-          )}
-          {inviteFrom && (
-            <section className={s.panel} style={{ marginBottom: 25 }}>
-              <h2>
-                {t.inviteFrom} {inviteFrom}
-              </h2>
-              <p className={s.muted}>{t.inviteHint}</p>
-              <Sharing value={giving} change={setGiving} t={t} />
-              <button
-                className={s.button}
-                onClick={() =>
-                  mutate("/api/invites", {
-                    action: "join",
-                    token: inviteToken,
-                    giving,
-                  })
-                    .then(() => {
-                      setInviteToken("");
-                      setInviteFrom("");
-                      history.replaceState(null, "", "/");
-                      setConnectionTab("friends");
-                      navigateView("connections");
-                    })
-                    .catch(() => {})
-                }
-              >
-                {t.joinInvite}
-              </button>
-            </section>
-          )}
-          {view === "timetable" &&
-            (!calendars.length && !error ? (
-              <div className={s.loading}>{t.loading}</div>
-            ) : (
-              <CalendarView
-                key={me.semester}
+            {own?.error && view === "timetable" && (
+              <div className={`${s.banner} ${s.warning}`}>
+                {t.stale} {t.errors[own.error as keyof typeof t.errors] || ""}
+              </div>
+            )}
+            {own?.lastSuccess &&
+              !own.semester.verified &&
+              view === "timetable" && (
+                <div className={`${s.banner} ${s.warning}`}>{t.estimated}</div>
+              )}
+            {revoked && view === "timetable" && (
+              <div className={s.banner}>{t.revoked}</div>
+            )}
+            {groupInviteToken && (
+              <GroupInvitation
+                key={groupInviteToken}
+                token={groupInviteToken}
                 me={me}
-                calendars={calendars}
-                people={people}
-                attendees={attendees}
-                selected={allOverlays ? people.map((p) => p.id) : selected}
-                allOverlays={allOverlays}
-                toggleAll={(checked) => {
-                  setAllOverlays(checked);
-                  setSelected([]);
-                  setRevoked(false);
-                }}
-                setSelected={(ids) => {
-                  setAllOverlays(false);
-                  setSelected(ids);
-                  setRevoked(false);
-                }}
-                choices={choices}
-                locale={locale}
+                request={request}
+                mutate={mutate}
                 t={t}
-                onFriends={() => {
-                  setConnectionTab("friends");
+                dismiss={clearGroupInvite}
+                joined={() => {
+                  clearGroupInvite();
+                  setConnectionTab("groups");
                   navigateView("connections");
                 }}
-                onEditEvent={(id) => {
-                  setEventId(id);
-                  setEventEditor(true);
-                }}
+                onError={setError}
               />
-            ))}
-          {eventEditor && (
-            <PersonalEvents
-              open={eventEditor}
-              initialId={eventId}
-              close={() => setEventEditor(false)}
-              events={events}
-              me={me}
-              mutate={mutate}
-              t={t}
-            />
-          )}
-          {view === "connections" && (
-            <ConnectionsView
-              friends={friends}
-              blocked={blocked}
-              groups={groups}
-              invites={invites}
-              me={me}
-              mutate={mutate}
-              read={read}
-              locale={locale}
-              t={t}
-              tab={connectionTab}
-              setTab={setConnectionTab}
-              error={error ? errorMessage : undefined}
-              addOpen={addConnection}
-              closeAdd={() => setAddConnection(false)}
-            />
-          )}
-          {view === "planner" && (
-            <PlannerView
-              key={me.semester}
-              me={me}
-              choices={choices}
-              shared={shared}
-              calendars={calendars}
-              read={read}
-              mutate={mutate}
-              locale={locale}
-              t={t}
-            />
-          )}
-          {view === "account" && (
-            <section className={`${s.panel} ${s.accountSection}`}>
-              <h2>{displayName(me)}</h2>
-              <p className={s.hint}>@{me.username}</p>
-              <ProfilePicture
-                me={me}
-                t={t}
-                updated={(avatarVersion) => {
-                  setMe({ ...me, avatarVersion });
-                  void reload();
-                }}
-              />
-              <p className={s.muted}>{t.privacy}</p>
-              <p className={s.hint}>{t.retentionHint}</p>
-              <p>
-                <a
-                  className={`${s.button} ${s.secondary}`}
-                  href="/api/me/export"
-                  download
-                >
-                  {t.downloadData}
-                </a>
-              </p>
-              <button
-                className={`${s.button} ${s.secondary}`}
-                onClick={async () => {
-                  try {
-                    await request("/auth/logout", {
-                      method: "POST",
-                      headers: { "X-CSRF-Token": me.csrf },
-                    });
-                    location.assign("/");
-                  } catch {
-                    setError("unavailable");
+            )}
+            {inviteFrom && (
+              <section className={s.panel} style={{ marginBottom: 25 }}>
+                <h2>
+                  {t.inviteFrom} {inviteFrom}
+                </h2>
+                <p className={s.muted}>{t.inviteHint}</p>
+                <Sharing value={giving} change={setGiving} t={t} />
+                <button
+                  className={s.button}
+                  onClick={() =>
+                    mutate("/api/invites", {
+                      action: "join",
+                      token: inviteToken,
+                      giving,
+                    })
+                      .then(() => {
+                        setInviteToken("");
+                        setInviteFrom("");
+                        history.replaceState(null, "", "/");
+                        setConnectionTab("friends");
+                        navigateView("connections");
+                      })
+                      .catch(() => {})
                   }
-                }}
-              >
-                {t.signOut}
-              </button>
-              <p className={s.hint}>{t.deletionBackup}</p>
-              <button
-                className={`${s.button} ${s.danger}`}
-                onClick={() => deleteDialog.current?.showModal()}
-              >
-                {t.deleteAccount}
-              </button>
-            </section>
-          )}
-          <dialog ref={deleteDialog}>
-            <h2>{t.deleteAccount}</h2>
-            <p style={{ margin: "20px 0" }}>{t.deletePrompt}</p>
-            <div className={s.actions}>
-              <button
-                className={`${s.button} ${s.danger}`}
-                onClick={() =>
-                  mutate("/api/me", { confirm: "DELETE" }, "DELETE")
-                    .then(() => location.assign("/"))
-                    .catch(() => {})
-                }
-              >
-                {t.deleteConfirm}
-              </button>
-              <button
-                className={`${s.button} ${s.secondary}`}
-                onClick={() => deleteDialog.current?.close()}
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </dialog>
-        </main>
-      )}
-      <SiteFooter locale={locale} />
-      {me !== undefined && (
-        <AnalyticsConsent locale={locale} page={me ? view : "home"} />
-      )}
-      {toast && (
-        <div role="status" className={s.toast}>
-          {toast}
-        </div>
-      )}
-    </div>
+                >
+                  {t.joinInvite}
+                </button>
+              </section>
+            )}
+            {view === "timetable" &&
+              (!calendars.length && !error ? (
+                <div className={s.loading}>{t.loading}</div>
+              ) : (
+                <CalendarView
+                  key={me.semester}
+                  me={me}
+                  calendars={calendars}
+                  people={people}
+                  attendees={attendees}
+                  selected={allOverlays ? people.map((p) => p.id) : selected}
+                  allOverlays={allOverlays}
+                  toggleAll={(checked) => {
+                    setAllOverlays(checked);
+                    setSelected([]);
+                    setRevoked(false);
+                  }}
+                  setSelected={(ids) => {
+                    setAllOverlays(false);
+                    setSelected(ids);
+                    setRevoked(false);
+                  }}
+                  choices={choices}
+                  locale={locale}
+                  t={t}
+                  onFriends={() => {
+                    setConnectionTab("friends");
+                    navigateView("connections");
+                  }}
+                  onEditEvent={(id) => {
+                    setEventId(id);
+                    setEventEditor(true);
+                  }}
+                />
+              ))}
+            {eventEditor && (
+              <PersonalEvents
+                open={eventEditor}
+                initialId={eventId}
+                close={() => setEventEditor(false)}
+                events={events}
+                me={me}
+                mutate={mutate}
+                t={t}
+              />
+            )}
+            {view === "connections" && (
+              <ConnectionsView
+                friends={friends}
+                blocked={blocked}
+                groups={groups}
+                invites={invites}
+                me={me}
+                mutate={mutate}
+                read={read}
+                locale={locale}
+                t={t}
+                tab={connectionTab}
+                setTab={setConnectionTab}
+                error={error ? errorMessage : undefined}
+                addOpen={addConnection}
+                closeAdd={() => setAddConnection(false)}
+              />
+            )}
+            {view === "food" && <FoodView locale={locale} t={t} />}
+            {view === "planner" && (
+              <PlannerView
+                key={me.semester}
+                me={me}
+                choices={choices}
+                shared={shared}
+                calendars={calendars}
+                read={read}
+                mutate={mutate}
+                locale={locale}
+                t={t}
+              />
+            )}
+            {view === "account" && (
+              <section className={`${s.panel} ${s.accountSection}`}>
+                <h2>{displayName(me)}</h2>
+                <p className={s.hint}>@{me.username}</p>
+                <ProfilePicture
+                  me={me}
+                  t={t}
+                  updated={(avatarVersion) => {
+                    setMe({ ...me, avatarVersion });
+                    void reload();
+                  }}
+                />
+                <p className={s.muted}>{t.privacy}</p>
+                <p className={s.hint}>{t.retentionHint}</p>
+                <p>
+                  <a
+                    className={`${s.button} ${s.secondary}`}
+                    href="/api/me/export"
+                    download
+                  >
+                    {t.downloadData}
+                  </a>
+                </p>
+                <button
+                  className={`${s.button} ${s.secondary}`}
+                  onClick={async () => {
+                    try {
+                      await request("/auth/logout", {
+                        method: "POST",
+                        headers: { "X-CSRF-Token": me.csrf },
+                      });
+                      location.assign("/");
+                    } catch {
+                      setError("unavailable");
+                    }
+                  }}
+                >
+                  {t.signOut}
+                </button>
+                <p className={s.hint}>{t.deletionBackup}</p>
+                <button
+                  className={`${s.button} ${s.danger}`}
+                  onClick={() => deleteDialog.current?.showModal()}
+                >
+                  {t.deleteAccount}
+                </button>
+              </section>
+            )}
+            <dialog ref={deleteDialog}>
+              <h2>{t.deleteAccount}</h2>
+              <p style={{ margin: "20px 0" }}>{t.deletePrompt}</p>
+              <div className={s.actions}>
+                <button
+                  className={`${s.button} ${s.danger}`}
+                  onClick={() =>
+                    mutate("/api/me", { confirm: "DELETE" }, "DELETE")
+                      .then(() => location.assign("/"))
+                      .catch(() => {})
+                  }
+                >
+                  {t.deleteConfirm}
+                </button>
+                <button
+                  className={`${s.button} ${s.secondary}`}
+                  onClick={() => deleteDialog.current?.close()}
+                >
+                  {t.cancel}
+                </button>
+              </div>
+            </dialog>
+          </main>
+        )}
+        <SiteFooter locale={locale} />
+        {me !== undefined && (
+          <AnalyticsConsent locale={locale} page={me ? view : "home"} />
+        )}
+        {toast && (
+          <div role="status" className={s.toast}>
+            {toast}
+          </div>
+        )}
+      </div>
+    </PeopleProvider>
   );
 }

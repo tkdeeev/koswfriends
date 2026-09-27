@@ -14,10 +14,23 @@ const rawEvent = z.object({
   deleted: z.boolean().optional(),
   cancelled: z.boolean().optional(),
   name: z.unknown().optional(),
+  note: z.string().max(10000).nullish(),
+  capacity: z.number().int().nonnegative().nullish(),
+  occupied: z.number().int().nonnegative().nullish(),
+  sequence_number: z.number().int().nullish(),
+  original_data: z
+    .object({
+      starts_at: z.string().datetime({ offset: true }).nullish(),
+      ends_at: z.string().datetime({ offset: true }).nullish(),
+      room_id: z.string().nullish(),
+    })
+    .optional(),
   links: z
     .object({
       course: z.union([z.string(), z.number()]).nullish(),
       room: z.union([z.string(), z.number()]).nullish(),
+      teachers: z.array(z.string()).optional(),
+      applied_exceptions: z.array(z.union([z.string(), z.number()])).optional(),
     })
     .optional(),
 });
@@ -38,6 +51,21 @@ export function normalizePage(page: unknown) {
       events: z.array(rawEvent),
       linked: z
         .object({
+          teachers: z
+            .array(
+              z.object({ id: z.string(), full_name: z.string().nullish() }),
+            )
+            .optional(),
+          schedule_exceptions: z
+            .array(
+              z.object({
+                id: z.union([z.string(), z.number()]),
+                exception_type: z.string().optional(),
+                name: z.unknown().optional(),
+                note: z.unknown().optional(),
+              }),
+            )
+            .optional(),
           courses: z
             .array(
               z.object({
@@ -74,6 +102,47 @@ export function normalizePage(page: unknown) {
       end: e.ends_at,
       room: String(e.links?.room || ""),
       cancelled: e.deleted === true || e.cancelled === true,
+      ...(e.capacity !== undefined ? { capacity: e.capacity } : {}),
+      ...(e.occupied !== undefined ? { occupied: e.occupied } : {}),
+      ...(e.sequence_number !== undefined
+        ? { sequence: e.sequence_number }
+        : {}),
+      ...(e.note ? { note: e.note } : {}),
+      teachers: (e.links?.teachers || [])
+        .filter((id) => /^[a-zA-Z0-9._-]{1,80}$/.test(id))
+        .map((username) => ({
+          username,
+          name:
+            doc.data.linked?.teachers
+              ?.find((t) => t.id === username)
+              ?.full_name?.trim() || username,
+        })),
+      ...(e.original_data
+        ? {
+            original: {
+              ...(e.original_data.starts_at
+                ? { start: e.original_data.starts_at }
+                : {}),
+              ...(e.original_data.ends_at
+                ? { end: e.original_data.ends_at }
+                : {}),
+              ...(e.original_data.room_id
+                ? { room: e.original_data.room_id }
+                : {}),
+            },
+          }
+        : {}),
+      changes: (doc.data.linked?.schedule_exceptions || [])
+        .filter((c) =>
+          e.links?.applied_exceptions?.some(
+            (id) => String(id) === String(c.id),
+          ),
+        )
+        .map((c) => ({
+          type: c.exception_type || "",
+          name: localized(c.name),
+          note: localized(c.note),
+        })),
     };
   });
   return { events, count: doc.data.meta?.count, offset: doc.data.meta?.offset };
@@ -174,7 +243,7 @@ export async function fetchEvents(
         limit: "100",
         offset: String(offset),
         deleted: "true",
-        include: "courses",
+        include: "courses,teachers,schedule_exceptions",
       }),
     );
     if (normalized.offset !== undefined && normalized.offset !== offset)

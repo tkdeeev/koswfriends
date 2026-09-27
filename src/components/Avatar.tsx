@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { avatarColor, initials, displayName } from "@/lib/appearance";
 import type { Person } from "@/lib/types";
 import s from "./Workspace.module.css";
+import { PeopleContext } from "./PeopleContext";
+import { dailyCopy } from "@/lib/daily-copy";
 export default function Avatar({
   person,
   small = false,
@@ -10,6 +12,19 @@ export default function Avatar({
   person: Pick<Person, "username"> & Partial<Person>;
   small?: boolean;
 }) {
+  const { people, locale } = useContext(PeopleContext);
+  const availability = people.find(
+    (p) => p.person.id === person.id,
+  )?.availability;
+  const state = availability?.state;
+  const label =
+    state === "free"
+      ? dailyCopy[locale].free
+      : state === "soon"
+        ? dailyCopy[locale].soon
+        : state === "busy"
+          ? dailyCopy[locale].now
+          : null;
   return (
     <span
       className={`${s.profileAvatar} ${small ? s.smallAvatar : ""}`}
@@ -25,6 +40,15 @@ export default function Avatar({
         <Picture key={`${person.id}:${person.avatarVersion}`} person={person} />
       ) : (
         initials(person.username, person.name)
+      )}
+      {label && (
+        <span
+          className={s.availabilityDot}
+          data-availability={state}
+          role="img"
+          aria-label={label}
+          title={label}
+        />
       )}
     </span>
   );

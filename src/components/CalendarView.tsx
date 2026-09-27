@@ -18,6 +18,8 @@ import { useMobile } from "@/lib/use-mobile";
 import MobileTimetable from "./MobileTimetable";
 import DayLayoutToggle, { type DayLayout } from "./DayLayoutToggle";
 import Icon from "./Icon";
+import LessonDialog from "./LessonDialog";
+import { NextLessonCard, PersonLink } from "./PeopleProvider";
 import Avatar, { AvatarStack } from "./Avatar";
 import s from "./Workspace.module.css";
 export type Display = {
@@ -107,14 +109,6 @@ export default function CalendarView({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [drafts, setDrafts] = useState(false);
   const [detail, setDetail] = useState<Display | null>(null);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const detailOpen = detail !== null;
-  useEffect(() => {
-    if (!detailOpen) return;
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, [detailOpen]);
   const week = date.startOf("week");
   const now = DateTime.now().setZone(ZONE);
   const own = calendars.find((c) => c.userId === me.id);
@@ -200,7 +194,6 @@ export default function CalendarView({
       (item) => item.lesson.id === detail.lesson.id,
     );
     if (!current) {
-      dialog.current?.close();
       setDetail(null);
     } else setDetail(current);
   }, [displays, detail?.lesson.id]);
@@ -278,6 +271,7 @@ export default function CalendarView({
     `${item.lesson.course} · ${lessonType(item.lesson.type, locale)} · ${time(item.lesson.start)}–${time(item.lesson.end)} · ${item.lesson.room} · ${item.lesson.group}\n${item.attendees.map(displayName).join(", ")}`;
   return (
     <div className={s.calendarWorkspace}>
+      <NextLessonCard me={me} locale={locale} t={t} onEditEvent={onEditEvent} />
       <section className={s.calendarArea} aria-label={t.timetable}>
         <div className={s.calendarToolbar}>
           <h2
@@ -414,22 +408,25 @@ export default function CalendarView({
               </summary>
               <div className={s.filterRow}>
                 {people.map((person) => (
-                  <button
-                    className={`${s.personChip} ${s.optionToggle}`}
-                    key={person.id}
-                    aria-label={displayName(person)}
-                    aria-pressed={selected.includes(person.id)}
-                    onClick={() =>
-                      setSelected(
-                        selected.includes(person.id)
-                          ? selected.filter((id) => id !== person.id)
-                          : [...selected, person.id],
-                      )
-                    }
-                  >
-                    <Avatar person={person} small />
-                    <span>{displayName(person)}</span>
-                  </button>
+                  <span key={person.id} className={s.personChip}>
+                    <PersonLink person={person}>
+                      <Avatar person={person} small />
+                    </PersonLink>
+                    <button
+                      className={s.optionToggle}
+                      aria-label={displayName(person)}
+                      aria-pressed={selected.includes(person.id)}
+                      onClick={() =>
+                        setSelected(
+                          selected.includes(person.id)
+                            ? selected.filter((id) => id !== person.id)
+                            : [...selected, person.id],
+                        )
+                      }
+                    >
+                      <span>{displayName(person)}</span>
+                    </button>
+                  </span>
                 ))}
                 {selected.length > 0 && (
                   <button className={s.quiet} onClick={() => setSelected([])}>
@@ -674,129 +671,16 @@ export default function CalendarView({
           )}
         </div>
       </section>
-      <dialog
-        ref={dialog}
-        className={s.lessonDialog}
-        aria-labelledby="lesson-title"
-        style={
-          detail
-            ? colorStyle(detail.lesson.type, detail.lesson.color)
-            : undefined
-        }
-        onClose={() => setDetail(null)}
-      >
-        {detail && (
-          <>
-            <header className={s.lessonDialogHeader}>
-              <div className={s.lessonDialogTop}>
-                <span>{lessonType(detail.lesson.type, locale)}</span>
-                <button
-                  className={s.iconButton}
-                  onClick={() => dialog.current?.close()}
-                  aria-label={t.close}
-                  autoFocus
-                >
-                  ×
-                </button>
-              </div>
-              <h2 id="lesson-title">
-                {detail.lesson.course ||
-                  localizedText(detail.lesson.title, locale)}
-              </h2>
-              <div className={s.lessonDialogTime}>
-                {time(detail.lesson.start)}–{time(detail.lesson.end)}
-              </div>
-              <p className={s.lessonDialogDate}>
-                {DateTime.fromISO(detail.lesson.start)
-                  .setZone(ZONE)
-                  .setLocale(locale)
-                  .toLocaleString(DateTime.DATE_FULL)}
-                {!DateTime.fromISO(detail.lesson.start)
-                  .setZone(ZONE)
-                  .hasSame(
-                    DateTime.fromISO(detail.lesson.end).setZone(ZONE),
-                    "day",
-                  ) && (
-                  <>
-                    {" "}
-                    –{" "}
-                    {DateTime.fromISO(detail.lesson.end)
-                      .setZone(ZONE)
-                      .setLocale(locale)
-                      .toLocaleString(DateTime.DATE_FULL)}
-                  </>
-                )}
-              </p>
-              {(detail.lesson.cancelled || detail.draft) && (
-                <div className={s.lessonDialogStatus}>
-                  {detail.lesson.cancelled && (
-                    <span className={`${s.badge} ${s.badgeWarning}`}>
-                      {t.cancelled}
-                    </span>
-                  )}
-                  {detail.draft && <span className={s.badge}>{t.draft}</span>}
-                </div>
-              )}
-            </header>
-            <div className={s.lessonDialogBody}>
-              {detail.lesson.course &&
-                localizedText(detail.lesson.title, locale) !==
-                  detail.lesson.course && (
-                  <h3>{localizedText(detail.lesson.title, locale)}</h3>
-                )}
-              {(detail.lesson.room || detail.lesson.group) && (
-                <dl className={s.lessonFacts}>
-                  {detail.lesson.room && (
-                    <div>
-                      <dt>{t.room}</dt>
-                      <dd>{detail.lesson.room}</dd>
-                    </div>
-                  )}
-                  {detail.lesson.group && (
-                    <div>
-                      <dt>{t.group}</dt>
-                      <dd>{detail.lesson.group}</dd>
-                    </div>
-                  )}
-                </dl>
-              )}
-              <section className={s.lessonAttendees} aria-label={t.attendees}>
-                <h3>
-                  {t.attendees} <span>{detail.attendees.length}</span>
-                </h3>
-                <ul className={s.attendeeList}>
-                  {detail.attendees.map((p) => (
-                    <li className={s.person} key={p.id}>
-                      <Avatar person={p} />
-                      <span>
-                        {p.name || p.username}
-                        {p.name && p.name !== p.username && (
-                          <small>{p.username}</small>
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-              {detail.lesson.note && (
-                <p className={s.eventNote}>{detail.lesson.note}</p>
-              )}
-              {detail.lesson.personalId && detail.own && (
-                <button
-                  className={`${s.button} ${s.secondary}`}
-                  onClick={() => {
-                    dialog.current?.close();
-                    onEditEvent(detail.lesson.personalId);
-                  }}
-                >
-                  {t.editPersonal}
-                </button>
-              )}
-              {detail.draft && <p className={s.hint}>{t.plannerIntro}</p>}
-            </div>
-          </>
-        )}
-      </dialog>
+      {detail && (
+        <LessonDialog
+          semester={me.semester}
+          detail={detail}
+          close={() => setDetail(null)}
+          locale={locale}
+          t={t}
+          onEditEvent={onEditEvent}
+        />
+      )}
     </div>
   );
 }

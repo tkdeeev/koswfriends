@@ -4,6 +4,11 @@ node_modules
 .env*
 playwright-report
 test-results
+.koswfriends-ops
+local-preview
+seed-data
+daily-preview.ts
+meal-fixture.webp
 private
 *handoff*
 *.pem

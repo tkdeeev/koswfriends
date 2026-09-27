@@ -1,4 +1,5 @@
 export type Localized = { cs: string; en: string; uk?: string };
+export type Teacher = { username: string; name: string };
 export type Lesson = {
   id: string;
   course: string;
@@ -12,6 +13,12 @@ export type Lesson = {
   personalId?: string;
   color?: string;
   note?: string;
+  capacity?: number | null;
+  occupied?: number | null;
+  teachers?: Teacher[];
+  sequence?: number | null;
+  changes?: { type: string; name: Localized; note: Localized }[];
+  original?: { start?: string; end?: string; room?: string };
 };
 export type Semester = {
   code: string;
