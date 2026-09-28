@@ -53,19 +53,22 @@ export default function LanguageSelect({
     root.current
       ?.querySelector<HTMLButtonElement>(`[lang="${locale}"]`)
       ?.focus();
-    const outside = (event: PointerEvent) => {
+    const outside = (event: PointerEvent | FocusEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener("pointerdown", outside);
-    return () => document.removeEventListener("pointerdown", outside);
+    // Safari can blur the focused item before a tapped button receives its click.
+    // Dismiss on a confirmed outside focus target, not that intermediate blur.
+    document.addEventListener("focusin", outside);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("focusin", outside);
+    };
   }, [open, locale]);
   return (
     <div
       ref={root}
       className={s.root}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-      }}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
           setOpen(false);
