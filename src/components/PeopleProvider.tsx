@@ -117,21 +117,24 @@ export function PersonLink({
   children,
   status = false,
   disabled = false,
+  className = "",
 }: {
   person: Person;
   children: ReactNode;
   status?: boolean;
   disabled?: boolean;
+  className?: string;
 }) {
   const context = useContext(PeopleContext);
   const availability = context.people.find(
     (p) => p.person.id === person.id,
   )?.availability;
-  if (disabled) return <span className={s.identity}>{children}</span>;
+  if (disabled)
+    return <span className={`${s.identity} ${className}`}>{children}</span>;
   return (
     <button
       type="button"
-      className={s.personLink}
+      className={`${s.personLink} ${className}`}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

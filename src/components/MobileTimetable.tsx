@@ -96,9 +96,9 @@ export default function MobileTimetable({
                   } as CSSProperties
                 }
               >
-                <PersonLink person={person}>
+                <PersonLink person={person} className={s.lanePerson}>
                   <Avatar person={person} small />
-                  <span title={displayName(person)}>
+                  <span className={s.laneName} title={displayName(person)}>
                     {own ? t.you : displayName(person)}
                   </span>
                 </PersonLink>

@@ -73,6 +73,13 @@ test("flag dropdown is compact, keyboard accessible and persists the choice", as
   await trigger.click();
   await page.locator("h1").click();
   await expect(page.getByRole("menu")).toHaveCount(0);
+  await trigger.focus();
+  await trigger.press("ArrowDown");
+  await page.keyboard.press("Home");
+  await page.keyboard.press("Shift+Tab");
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.getByRole("menu")).toHaveCount(0);
 });
 
 test("picture upload, replacement and removal work on a narrow screen with fallback initials", async ({

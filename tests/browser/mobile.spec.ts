@@ -55,6 +55,18 @@ test("mobile navigation, sharing controls and personal event editing fit small s
   await expect(
     page.getByRole("img", { name: "KOS++", exact: true }),
   ).toBeVisible();
+  const navigation = page.getByRole("navigation", { name: "Navigation" });
+  await expect(navigation.getByRole("button")).toHaveCount(2);
+  const navBounds = (await navigation.boundingBox())!;
+  const tabBounds = await navigation.getByRole("button").evaluateAll((tabs) =>
+    tabs.map((tab) => {
+      const { x, width, right } = tab.getBoundingClientRect();
+      return { x, width, right };
+    }),
+  );
+  expect(tabBounds[0].x).toBeCloseTo(navBounds.x, 0);
+  expect(tabBounds[0].width).toBeCloseTo(navBounds.width / 2, 0);
+  expect(tabBounds[1].right).toBeCloseTo(navBounds.x + navBounds.width, 0);
   const filters = page.getByRole("button", { name: "Filters", exact: true });
   await expect(filters).toHaveAttribute("aria-expanded", "false");
   await page.getByRole("button", { name: /^Thu/ }).tap();
@@ -179,6 +191,51 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     animations: "disabled",
   });
   expect(errors).toEqual([]);
+});
+
+test("language flags work with touch and dismiss without losing the selection", async ({
+  page,
+  context,
+}) => {
+  await seed(context);
+  for (const url of ["/", "/privacy"]) {
+    await page.goto(url);
+    const trigger = page.getByRole("button", { name: /^Language:/ });
+    for (const [locale, name] of [
+      ["cs", "Čeština"],
+      ["uk", "Українська"],
+      ["en", "English"],
+    ]) {
+      await trigger.tap();
+      await page.getByRole("menuitemradio", { name, exact: true }).tap();
+      await expect(page.locator("html")).toHaveAttribute("lang", locale);
+      await expect(trigger).toHaveAccessibleName(`Language: ${name}`);
+      await expect(page.getByRole("menu")).toHaveCount(0);
+      await page.reload();
+      await expect(trigger).toHaveAccessibleName(`Language: ${name}`);
+    }
+    await trigger.tap();
+    await trigger.tap();
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await trigger.tap();
+    await page.locator("h1").tap();
+    await expect(page.getByRole("menu")).toHaveCount(0);
+  }
+  // On some Safari versions, tapping a button blurs the focused menu item
+  // without focusing the tapped button. Its click must still select the locale.
+  await page.evaluate(() => {
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if ((event.target as Element).closest('[role="menuitemradio"]'))
+          (document.activeElement as HTMLElement)?.blur();
+      },
+      { capture: true },
+    );
+  });
+  await page.getByRole("button", { name: /^Language:/ }).tap();
+  await page.getByRole("menuitemradio", { name: "Čeština", exact: true }).tap();
+  await expect(page.locator("html")).toHaveAttribute("lang", "cs");
 });
 
 test("PWA metadata, install guidance and private offline fallback", async ({
@@ -923,7 +980,8 @@ test.describe("synthetic wide-table rendering", () => {
     const people = Array.from({ length: 9 }, (_, i) => ({
       id: `synthetic-${i}`,
       username: `synthetic${i}`,
-      name: `Demo Person ${i}`,
+      name:
+        i % 2 ? `Alexandertest Longsurnameexample ${i}` : `Demo Person ${i}`,
     }));
     const lesson = {
       id: "wide-shared",
@@ -985,6 +1043,36 @@ test.describe("synthetic wide-table rendering", () => {
     const grid = page.getByRole("region", { name: "Compare timetables" });
     const card = grid.getByRole("button", { name: /DEMO-101/ });
     await expect(card).toHaveAttribute("data-lane-span", "10");
+    const headers = await grid
+      .locator("[data-person-header]")
+      .evaluateAll((nodes) =>
+        nodes.map((header) => {
+          const name = header.querySelector("button > span > span:last-child")!;
+          const avatar = header.querySelector(
+            "button > span > span:first-child",
+          )!;
+          const label = name.getBoundingClientRect();
+          const picture = avatar.getBoundingClientRect();
+          const lane = document
+            .querySelector(
+              `[data-person-lane="${header.getAttribute("data-person-header")}"]`,
+            )!
+            .getBoundingClientRect();
+          return {
+            nameWidth: label.width,
+            nameBottom: label.bottom,
+            laneTop: lane.top,
+            centerDifference: Math.abs(
+              label.y + label.height / 2 - picture.y - picture.height / 2,
+            ),
+          };
+        }),
+      );
+    for (const header of headers) {
+      expect(header.nameWidth).toBeGreaterThan(20);
+      expect(header.nameBottom).toBeLessThan(header.laneTop);
+      expect(header.centerDifference).toBeLessThan(1);
+    }
     await expect(
       page.locator('[class*="accountButton"] [class*="profileAvatar"]'),
     ).toHaveText("DS");
