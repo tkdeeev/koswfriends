@@ -126,35 +126,6 @@
   padding: 7px 10px;
   min-height: 36px;
 }
-.hero {
-  max-width: 1420px;
-  width: 100%;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 7%;
-  padding: 85px 6% 65px;
-  align-items: center;
-}
-
-.hero h1 {
-  font-size: clamp(40px, 4.2vw, 66px);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -2.4px;
-  white-space: pre-line;
-  margin: 22px 0;
-}
-.intro {
-  font-size: 18px;
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 440px;
-}
-.hero .button {
-  margin-top: 28px;
-  padding: 14px 22px;
-}
 
 .footer {
   display: flex;
@@ -871,10 +842,6 @@
   .main {
     padding: 25px 3%;
   }
-  .hero {
-    gap: 5%;
-    padding: 60px 4%;
-  }
 
   .lesson {
     font-size: 10px;
@@ -909,17 +876,6 @@
     font-size: 12px;
     padding: 6px 2px;
     min-width: 0;
-  }
-  .hero {
-    grid-template-columns: 1fr;
-    padding: 44px 6% 35px;
-    gap: 44px;
-  }
-  .hero h1 {
-    font-size: 45px;
-  }
-  .intro {
-    font-size: 17px;
   }
 
   .footer {
@@ -1553,77 +1509,6 @@
   }
   .toast {
     bottom: calc(80px + env(safe-area-inset-bottom));
-  }
-}
-
-.featureList {
-  list-style: none;
-  padding: 0;
-  margin: 28px 0 0;
-  display: grid;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 14px;
-}
-.featureList li {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-}
-.featureList li:before {
-  content: "✓";
-  color: var(--blue);
-  font-weight: 700;
-}
-.hero {
-  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.4fr);
-  gap: 5%;
-  padding: 56px 4%;
-}
-.hero h1 {
-  font-size: clamp(36px, 3.7vw, 58px);
-  letter-spacing: -1.6px;
-}
-.productPreview {
-  margin: 0;
-  min-width: 0;
-}
-.productPreview img {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
-  box-shadow: 0 12px 40px #0001;
-}
-.productPreview figcaption {
-  text-align: center;
-  color: var(--muted);
-  font-size: 11px;
-  margin-top: 10px;
-}
-.previewLight {
-  display: block;
-}
-.previewDark {
-  display: none;
-}
-:global([data-theme="dark"]) .previewLight {
-  display: none;
-}
-:global([data-theme="dark"]) .previewDark {
-  display: block;
-}
-@media (max-width: 760px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 28px 16px;
-    gap: 32px;
-  }
-  .hero h1 {
-    font-size: 38px;
-    margin: 12px 0;
-  }
-  .hero .button {
-    margin-top: 20px;
   }
 }
 
@@ -2435,13 +2320,6 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px 16px;
-}
-.signInLegal {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 12px;
-  max-width: 440px;
-  line-height: 1.6;
 }
 
 /* A single compact row keeps the timetable above the fold on phones. */
