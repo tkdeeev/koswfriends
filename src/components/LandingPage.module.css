@@ -69,98 +69,31 @@
   line-height: 1.6;
 }
 .example {
-  margin: 0;
-  padding: 26px 32px 30px;
-  border-top: 3px solid var(--blue);
-  background: var(--pale);
+  width: min(100%, 820px);
+  margin: 0 auto;
+}
+.example img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 40px #0001;
+}
+.previewLight {
+  display: block;
+}
+.previewDark {
+  display: none;
+}
+:global([data-theme="dark"]) .previewLight {
+  display: none;
+}
+:global([data-theme="dark"]) .previewDark {
+  display: block;
 }
 .caption {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 16px;
-  margin-bottom: 24px;
-  font-size: 18px;
-  font-weight: 500;
-}
-.sample {
+  margin-top: 10px;
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 400;
-}
-.schedule {
-  display: grid;
-  grid-template-columns: 72px repeat(4, minmax(0, 1fr));
-  grid-template-rows: 24px repeat(3, 40px);
-  gap: 10px;
-}
-.day,
-.time {
-  color: var(--muted);
-  font-size: 12px;
-}
-.person {
-  display: flex;
-  align-items: center;
-  grid-column: 1;
-  font-size: 14px;
-  font-weight: 500;
-}
-.you {
-  grid-row: 2;
-}
-.alex {
-  grid-row: 3;
-}
-.sam {
-  grid-row: 4;
-}
-.lesson {
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  border-left: 3px solid var(--input-line);
-  background: var(--grey);
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-}
-.math {
-  grid-area: 2 / 2 / 3 / 4;
-}
-.code {
-  grid-area: 3 / 3 / 4 / 4;
-}
-.physics {
-  grid-area: 4 / 2 / 5 / 3;
-}
-.lab {
-  grid-area: 4 / 5 / 5 / 6;
-}
-.shared {
-  grid-area: 2 / 4 / 5 / 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px;
-  background: var(--soft-blue);
-  border: 1px solid var(--blue);
-  color: var(--blue-text);
   text-align: center;
-}
-.plus {
-  font-size: 32px;
-  line-height: 1;
-  letter-spacing: -0.1em;
-  color: var(--blue);
-}
-.shared strong {
-  font-size: 16px;
-  font-weight: 500;
-}
-.shared > span:last-child {
   font-size: 11px;
 }
 .benefits {
@@ -219,45 +152,6 @@
   }
   .signIn {
     margin-top: 18px;
-  }
-  .example {
-    padding: 18px 12px;
-  }
-  .caption {
-    align-items: start;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 18px;
-    font-size: 16px;
-  }
-  .schedule {
-    grid-template-columns: 34px repeat(4, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .person {
-    font-size: 11px;
-  }
-  .day,
-  .time {
-    font-size: 10px;
-  }
-  .lesson {
-    padding: 0 5px;
-    font-size: 10px;
-    border-left-width: 2px;
-  }
-  .shared {
-    padding: 4px;
-  }
-  .shared strong {
-    font-size: 12px;
-    overflow-wrap: anywhere;
-  }
-  .shared > span:last-child {
-    font-size: 9px;
-  }
-  .plus {
-    font-size: 26px;
   }
   .benefits {
     grid-template-columns: minmax(0, 1fr);

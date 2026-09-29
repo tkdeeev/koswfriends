@@ -35,34 +35,21 @@ export default function LandingPage({
       </section>
 
       <figure className={s.example}>
-        <figcaption className={s.caption}>
-          <span>{t.landingExample}</span>
-          <span className={s.sample}>{t.preview}</span>
-        </figcaption>
-        <div role="img" aria-label={t.landingExampleAlt}>
-          <div className={s.schedule} aria-hidden="true">
-            <span className={s.day}>{t.monday}</span>
-            {["09:00", "10:30", "12:00", "13:30"].map((time) => (
-              <span className={s.time} key={time}>
-                {time}
-              </span>
-            ))}
-            <span className={`${s.person} ${s.you}`}>{t.you}</span>
-            <span className={`${s.person} ${s.alex}`}>Alex</span>
-            <span className={`${s.person} ${s.sam}`}>Sam</span>
-            <span className={`${s.lesson} ${s.math}`}>MAT</span>
-            <span className={`${s.lesson} ${s.code}`}>PRG</span>
-            <span className={`${s.lesson} ${s.physics}`}>FYZ</span>
-            <span className={`${s.lesson} ${s.lab}`}>LAB</span>
-            <div className={s.shared}>
-              <span className={s.plus} aria-hidden="true">
-                ++
-              </span>
-              <strong>{t.landingLunch}</strong>
-              <span>12:00–13:30</span>
-            </div>
-          </div>
-        </div>
+        <img
+          className={s.previewLight}
+          src={`/preview/timetable-${locale}-light.png`}
+          alt={t.previewAlt}
+          width={1280}
+          height={940}
+        />
+        <img
+          className={s.previewDark}
+          src={`/preview/timetable-${locale}-dark.png`}
+          alt={t.previewAlt}
+          width={1280}
+          height={940}
+        />
+        <figcaption className={s.caption}>{t.preview}</figcaption>
       </figure>
 
       <ul className={s.benefits}>

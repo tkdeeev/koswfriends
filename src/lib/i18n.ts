@@ -12,10 +12,10 @@ export const copy = {
     pictureTooLarge: "Fotka musí být menší než 5 MB.",
     pictureInvalid:
       "Vyberte platnou neanimovanou fotku JPG, PNG nebo WebP (max. 50 Mpx).",
-    landingExample: "Tři rozvrhy. Jeden společný oběd.",
-    landingExampleAlt:
-      "Ukázka pondělí: ty, Alex a Sam máte různé hodiny, ale od 12:00 do 13:30 máte všichni volno na oběd.",
-    landingLunch: "Na oběd?",
+
+    previewAlt:
+      "Ukázka rozvrhu KOS++ se společnými hodinami přátel a vlastní událostí.",
+
     landingTimetable: "Tvůj týden v kostce",
     landingTimetableBody: "Rozvrh z ČVUT přehledně v mobilu i na počítači.",
     landingFriends: "S těmi, které si vybereš",
@@ -294,10 +294,10 @@ export const copy = {
     pictureTooLarge: "Choose a picture smaller than 5 MB.",
     pictureInvalid:
       "Choose a valid, still JPG, PNG or WebP image (up to 50 megapixels).",
-    landingExample: "Three timetables. One lunch together.",
-    landingExampleAlt:
-      "Example Monday: you, Alex and Sam have different classes, but all three are free for lunch from 12:00 to 13:30.",
-    landingLunch: "Lunch?",
+
+    previewAlt:
+      "KOS++ timetable preview with shared lessons and a personal event.",
+
     landingTimetable: "Your week at a glance",
     landingTimetableBody: "Your CTU timetable, at home on your phone or laptop.",
     landingFriends: "Your choice of company",

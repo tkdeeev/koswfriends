@@ -24,9 +24,11 @@ test("landing page languages, themes and desktop/mobile layout", async ({
       name: "Less back-and-forth. More time together.",
     }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("img", { name: /Example Monday:/ }),
-  ).toBeVisible();
+  const preview = page.locator("figure img:visible");
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-en-light.png");
+  await expect.poll(
+    () => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth),
+  ).toBe(1280);
   await expect(page.locator("figure")).toContainText("Sample data");
   await expect(page.locator('main a[href="/terms?lang=en"]')).toBeVisible();
   await expect(page.locator('main a[href="/privacy?lang=en"]')).toBeVisible();
@@ -55,6 +57,7 @@ test("landing page languages, themes and desktop/mobile layout", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Méně domlouvání. Více společného času.",
   );
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-cs-light.png");
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     expect(
@@ -75,6 +78,10 @@ test("landing page languages, themes and desktop/mobile layout", async ({
   await expect(page.locator('main a[href="/privacy?lang=uk"]')).toBeVisible();
   await page.getByRole("button", { name: "Темна тема", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-uk-dark.png");
+  await expect.poll(
+    () => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth),
+  ).toBe(1280);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
   ).toBe(true);
