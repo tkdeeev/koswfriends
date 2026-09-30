@@ -9,7 +9,7 @@ if (process.env.KWF_TEST_DATABASE !== "yes")
 import { seed } from "./fixtures";
 import { connections, addConnection, expand } from "./connections-helpers";
 test.afterAll(closeDatabase);
-test("bilingual landing page, square controls and desktop/mobile layout", async ({
+test("landing page languages, themes and desktop/mobile layout", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -19,19 +19,19 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
     page.getByRole("link", { name: /Sign in with your school/ }),
   ).toBeVisible();
   await expect(
-    page.getByText("Groups, invites and per-person sharing", { exact: true }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Less back-and-forth. More time together.",
+    }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Semester planning with conflict checks", { exact: true }),
-  ).toHaveCount(0);
   const preview = page.locator("figure img:visible");
-  await expect(preview).toHaveAttribute(
-    "src",
-    "/preview/timetable-en-light.png",
-  );
-  expect(
-    await preview.evaluate((el) => (el as HTMLImageElement).naturalWidth),
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-en-light.png");
+  await expect.poll(
+    () => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth),
   ).toBe(1280);
+  await expect(page.locator("figure")).toContainText("Sample data");
+  await expect(page.locator('main a[href="/terms?lang=en"]')).toBeVisible();
+  await expect(page.locator('main a[href="/privacy?lang=en"]')).toBeVisible();
   await page.screenshot({
     path: "test-results/landing-desktop.png",
     fullPage: true,
@@ -54,6 +54,10 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
   await expect(
     page.getByRole("link", { name: /Přihlásit školním/ }),
   ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Méně domlouvání. Více společného času.",
+  );
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-cs-light.png");
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     expect(
@@ -64,6 +68,25 @@ test("bilingual landing page, square controls and desktop/mobile layout", async 
   }
   await page.screenshot({
     path: "test-results/landing-mobile.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: /^Language:/ }).click();
+  await page.getByRole("menuitemradio", { name: "Українська", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Менше узгоджень. Більше часу разом.",
+  );
+  await expect(page.locator('main a[href="/privacy?lang=uk"]')).toBeVisible();
+  await page.getByRole("button", { name: "Темна тема", exact: true }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(preview).toHaveAttribute("src", "/preview/timetable-uk-dark.png");
+  await expect.poll(
+    () => preview.evaluate((image) => (image as HTMLImageElement).naturalWidth),
+  ).toBe(1280);
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/landing-mobile-uk-dark.png",
     fullPage: true,
   });
   expect(

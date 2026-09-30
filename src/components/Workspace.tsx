@@ -19,7 +19,7 @@ import LanguageSelect from "./LanguageSelect";
 import ProfilePicture from "./ProfilePicture";
 import { PeopleProvider } from "./PeopleProvider";
 import FoodView from "./FoodView";
-import LandingFeatures from "./LandingFeatures";
+import LandingPage from "./LandingPage";
 import GroupInvitation from "./GroupInvitation";
 import ConnectionsView, { type ConnectionTab } from "./ConnectionsView";
 import Icon from "./Icon";
@@ -348,49 +348,7 @@ export default function Workspace() {
                 </button>
               </div>
             )}
-            <main className={s.hero}>
-              <div>
-                <h1>{t.hero}</h1>
-                <p className={s.intro}>{t.intro}</p>
-                <a className={s.button} href={signIn}>
-                  {t.signIn} <span aria-hidden>↗</span>
-                </a>
-                <p className={s.signInLegal}>
-                  {t.signInLegal}{" "}
-                  <a href={`/terms?lang=${locale}`}>{t.termsOfUse}</a> ·{" "}
-                  <a href={`/privacy?lang=${locale}`}>{t.privacyNotice}</a>
-                </p>
-                <ul className={s.featureList}>
-                  {[
-                    t.featureTimetables,
-                    t.featureGroups,
-                    t.featureEvents,
-                    t.featureTheme,
-                    t.featureInstall,
-                  ].map((feature) => (
-                    <li key={feature}>{feature}</li>
-                  ))}
-                </ul>
-              </div>
-              <figure className={s.productPreview}>
-                <img
-                  className={s.previewLight}
-                  src={`/preview/timetable-${locale}-light.png`}
-                  alt={t.previewAlt}
-                  width={1280}
-                  height={940}
-                />
-                <img
-                  className={s.previewDark}
-                  src={`/preview/timetable-${locale}-dark.png`}
-                  alt={t.previewAlt}
-                  width={1280}
-                  height={940}
-                />
-                <figcaption>{t.preview}</figcaption>
-              </figure>
-            </main>
-            <LandingFeatures t={t} />
+            <LandingPage locale={locale} signIn={signIn} />
           </>
         ) : (
           <main className={s.main}>

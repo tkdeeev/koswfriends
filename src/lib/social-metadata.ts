@@ -5,7 +5,7 @@ const cards = {
   home: {
     title: "KOS++ | KOS with Friends",
     description:
-      "Your CTU timetable, shared lessons and personal events. Compare schedules with friends and groups.",
+      "Less back-and-forth. More time together. Bring your CTU timetable, add your friends and find time to meet with KOS++.",
     path: "/",
   },
   friend: {
