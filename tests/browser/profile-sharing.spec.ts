@@ -51,10 +51,10 @@ test("flag dropdown is compact, keyboard accessible and persists the choice", as
   await expect(trigger).toHaveAccessibleName("Language: English");
   await expect(trigger).toHaveText("");
   await expect(
-    page.getByRole("heading", { name: "Timetables with friends" }),
+    page.getByRole("heading", { name: "Your choice of company" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your university week" }),
+    page.getByRole("heading", { name: "Your week at a glance" }),
   ).toBeVisible();
   await trigger.focus();
   await trigger.press("ArrowDown");
