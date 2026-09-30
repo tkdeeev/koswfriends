@@ -44,7 +44,7 @@ export const legalCopy: Record<
           items: [
             "Po školním přihlášení: uživatelské jméno, jméno poskytnuté školou, interní identifikátor, zvolený semestr a čas vytvoření a poslední aktivity účtu. Zdrojem školních údajů jsou OAuth a Sirius ČVUT.",
             "Váš rozvrh: předměty, názvy a identifikátory hodin, typ výuky, skupina, čas, místnost, zrušení a změny hodiny, kapacita a obsazenost a jména a školní identifikátory vyučujících. Ze sdíleného rozvrhu zobrazujeme aktuální a příští hodinu a čas volna; nejde o sledování polohy nebo skutečné přítomnosti. Uchováváme poslední úspěšně načtenou podobu rozvrhu pro zvolené semestry.",
-            "Vámi zadané události, opakování, barvy a poznámky; případné návrhy semestru; žádosti o přátelství, skupiny, členství, pozvánky, blokace a nastavení sdílení.",
+            "Vámi zadané události, opakování, barvy a poznámky; soukromé poznámky, úkoly, seznamy kroků a termíny k předmětům; případné návrhy semestru; žádosti o přátelství, skupiny, členství, pozvánky, blokace a nastavení sdílení.",
             "Šifrované přístupové a obnovovací tokeny školy, přihlašovací relace a údaje potřebné pro zabezpečení. Heslo ke škole aplikace nepřijímá ani neukládá. Školní profilové fotografie neimportujeme. Volitelně si můžete nahrát vlastní profilovou fotku. Ukládáme pouze zmenšenou kopii bez vložených metadat; originál neuchováváme.",
             "Při spojení se serverem infrastruktura zpracovává IP adresu a technické údaje požadavku. Pokud nám napíšete, zpracujeme obsah a kontaktní údaje vaší zprávy.",
           ],
@@ -60,7 +60,7 @@ export const legalCopy: Record<
           title: "Kdo údaje uvidí",
           paragraphs: [
             "Profilová fotka je viditelná přijatým přátelům a přijatým členům společných skupin, i když s nimi nesdílíte rozvrh. Blokovaní uživatelé ji nevidí. Fotku lze kdykoli odstranit v účtu; odstraní se také při smazání účtu a vztahují se na ni níže uvedené lhůty záloh. Rozvrh není veřejný. Zpřístupní se přijatým přátelům nebo členům skupin podle vašich oprávnění. Jméno a školní uživatelské jméno jsou viditelné tam, kde jsou potřebné pro pozvání a správu vztahu; členové skupiny vidí její členství. Sdílení skupině zahrnuje současné i budoucí přijaté členy. Individuální nastavení má přednost; blokace zastaví sdílení oběma směry.",
-            "Vlastní události a jejich poznámky se sdílí spolu s rozvrhem. Nevkládejte citlivé údaje, například o zdraví, ani cizí údaje bez oprávnění. Sdílení můžete změnit či odvolat, ale nelze odvolat kopie nebo snímky, které příjemce již vytvořil. Odchod z jedné skupiny nemusí ukončit přístup udělený jiným vztahem.",
+            "Vlastní události a jejich poznámky se sdílí spolu s rozvrhem. Poznámky a úkoly v sekci Předměty jsou soukromé a ostatním uživatelům se nesdílí. Nevkládejte citlivé údaje, například o zdraví, ani cizí údaje bez oprávnění. Sdílení můžete změnit či odvolat, ale nelze odvolat kopie nebo snímky, které příjemce již vytvořil. Odchod z jedné skupiny nemusí ukončit přístup udělený jiným vztahem.",
             "Provozovatel přistupuje k údajům jen pro provoz, podporu, zabezpečení a vyřízení práv. Údaje mohou být vydány příslušnému orgánu, vyžaduje-li to zákon.",
           ],
         },
@@ -120,7 +120,7 @@ export const legalCopy: Record<
         {
           title: "Sdílení a vlastní obsah",
           paragraphs: [
-            "Před odesláním žádosti nebo připojením ke skupině zkontrolujte, co sdílíte. Udělený přístup zahrnuje i vlastní události a poznámky. Obsah vkládejte jen v rozsahu, ke kterému máte oprávnění. Nesdílejte cizí rozvrhy mimo zamýšlené příjemce, neobtěžujte ostatní, neobcházejte oprávnění ani hromadně nesbírejte údaje. Zneužití nebo bezpečnostní chybu nahlaste na kontaktní e-mail bez zveřejnění osobních údajů.",
+            "Před odesláním žádosti nebo připojením ke skupině zkontrolujte, co sdílíte. Udělený přístup zahrnuje i vlastní události a jejich poznámky. Soukromé poznámky a úkoly k předmětům se nesdílí. Obsah vkládejte jen v rozsahu, ke kterému máte oprávnění. Nesdílejte cizí rozvrhy mimo zamýšlené příjemce, neobtěžujte ostatní, neobcházejte oprávnění ani hromadně nesbírejte údaje. Zneužití nebo bezpečnostní chybu nahlaste na kontaktní e-mail bez zveřejnění osobních údajů.",
           ],
         },
         {
@@ -167,7 +167,7 @@ export const legalCopy: Record<
           items: [
             "After school sign-in: school username, school-provided name, internal ID, selected semester, account creation and last activity times. School information comes from CTU OAuth and Sirius.",
             "Your timetable: courses, lesson titles and IDs, type, group, times, room, cancellations and changes, capacity and occupancy, and teachers’ names and school identifiers. Shared timetables also provide current/next lessons and free-time status; this does not track location or actual presence. We retain the last successful import for semesters you select.",
-            "Personal events, recurrence, colors and notes; any semester drafts; friend requests, groups, memberships, invitations, blocks and sharing preferences.",
+            "Personal events, recurrence, colors and notes; private subject notes, tasks, checklists and due dates; any semester drafts; friend requests, groups, memberships, invitations, blocks and sharing preferences.",
             "Encrypted school access/refresh tokens, login sessions and security information. The app never receives or stores your school password. We do not import school profile photos. You may optionally upload your own profile picture. We store only a resized copy with embedded metadata removed, not the original.",
             "When connecting, the infrastructure processes your IP address and technical request information. If you contact us, we process your message and contact details.",
           ],
@@ -183,7 +183,7 @@ export const legalCopy: Record<
           title: "Who can see information",
           paragraphs: [
             "Your profile picture is visible to accepted friends and accepted members of shared groups, even when timetable sharing is off. Blocked users cannot see it. You can remove it in your account at any time; account deletion removes it too, subject to the backup retention periods below. Timetables are not public. Accepted friends or group members receive access according to your settings. Names and usernames appear where needed to invite and manage connections; group members can see membership. Group sharing covers current and future accepted members. Individual overrides take priority; blocking stops sharing in both directions.",
-            "Personal events and notes follow timetable sharing. Do not enter sensitive details, such as health information, or other people's data without permission. You can change or revoke access, but cannot recall screenshots or copies already made by recipients. Leaving one group may not remove access granted through another relationship.",
+            "Personal events and their event notes follow timetable sharing. Notes and tasks in Subjects stay private and are not shared with other users. Do not enter sensitive details, such as health information, or other people's data without permission. You can change or revoke access, but cannot recall screenshots or copies already made by recipients. Leaving one group may not remove access granted through another relationship.",
             "The operator accesses data only for operation, support, security and rights requests. Information may be disclosed to a competent authority where required by law.",
           ],
         },
@@ -243,7 +243,7 @@ export const legalCopy: Record<
         {
           title: "Sharing and content",
           paragraphs: [
-            "Review sharing choices before sending a request or joining a group. Timetable access includes personal events and notes. Enter only information you are entitled to use. Do not redistribute others' timetables beyond intended recipients, harass people, bypass access controls or collect information in bulk. Report abuse or security issues to the contact email without publicly disclosing personal information.",
+            "Review sharing choices before sending a request or joining a group. Timetable access includes personal events and their event notes. Private subject notes and tasks are not shared. Enter only information you are entitled to use. Do not redistribute others' timetables beyond intended recipients, harass people, bypass access controls or collect information in bulk. Report abuse or security issues to the contact email without publicly disclosing personal information.",
           ],
         },
         {
@@ -290,7 +290,7 @@ export const legalCopy: Record<
           items: [
             "Після входу через університет: ім’я користувача, надане університетом ім’я, внутрішній ідентифікатор, обраний семестр, час створення та останньої активності облікового запису. Джерело університетських даних — OAuth та Sirius ČVUT.",
             "Ваш розклад: предмети, назви й ідентифікатори занять, тип, група, час, аудиторія, скасування та зміни, місткість і заповненість, імена та університетські ідентифікатори викладачів. За спільним розкладом показуємо поточне й наступне заняття та вільний час; це не відстеження місця або фактичної присутності. Зберігаємо останній успішний імпорт для обраних семестрів.",
-            "Власні події, повторення, кольори й нотатки; чернетки семестру; запити дружби, групи, членство, запрошення, блокування та налаштування доступу.",
+            "Власні події, повторення, кольори й нотатки; приватні нотатки до предметів, завдання, списки кроків і терміни; чернетки семестру; запити дружби, групи, членство, запрошення, блокування та налаштування доступу.",
             "Зашифровані токени доступу й оновлення університету, сеанси входу та дані безпеки. Застосунок не отримує й не зберігає університетський пароль. Фотографії профілю з університету не імпортуються. Ви можете завантажити власне фото. Зберігаємо лише зменшену копію без вбудованих метаданих, а не оригінал.",
             "Під час з’єднання інфраструктура обробляє IP-адресу й технічні дані запиту. Якщо ви звернетеся до нас, обробляємо зміст повідомлення та контактні дані.",
           ],
@@ -306,7 +306,7 @@ export const legalCopy: Record<
           title: "Хто бачить дані",
           paragraphs: [
             "Фото профілю бачать прийняті друзі та прийняті учасники спільних груп, навіть якщо доступ до розкладу вимкнено. Заблоковані користувачі його не бачать. Фото можна видалити в обліковому записі будь-коли; воно також видаляється разом з обліковим записом, з урахуванням наведених нижче строків зберігання резервних копій. Розклади не є публічними. Прийняті друзі або учасники груп отримують доступ відповідно до ваших налаштувань. Ім’я та університетське ім’я користувача відображаються там, де це потрібно для запрошення й керування контактами; учасники груп бачать її склад. Доступ групі охоплює нинішніх і майбутніх прийнятих учасників. Особисті винятки мають пріоритет; блокування припиняє доступ в обох напрямках.",
-            "Власні події та нотатки доступні разом із розкладом. Не вводьте чутливі дані, наприклад про здоров’я, або чужі дані без дозволу. Доступ можна змінити чи відкликати, але вже зроблені копії та знімки одержувачів повернути неможливо. Вихід з однієї групи не завжди припиняє доступ через інший зв’язок.",
+            "Власні події та їхні нотатки доступні разом із розкладом. Нотатки й завдання в розділі «Предмети» залишаються приватними та не передаються іншим користувачам. Не вводьте чутливі дані, наприклад про здоров’я, або чужі дані без дозволу. Доступ можна змінити чи відкликати, але вже зроблені копії та знімки одержувачів повернути неможливо. Вихід з однієї групи не завжди припиняє доступ через інший зв’язок.",
             "Оператор працює з даними лише для надання послуги, підтримки, безпеки та виконання прав. Дані можуть бути передані компетентному органу, якщо цього вимагає закон.",
           ],
         },
@@ -366,7 +366,7 @@ export const legalCopy: Record<
         {
           title: "Доступ і власний вміст",
           paragraphs: [
-            "Перевірте дозволи перед надсиланням запиту чи вступом у групу. Доступ до розкладу охоплює власні події та нотатки. Додавайте лише інформацію, на використання якої маєте право. Не поширюйте чужі розклади поза призначеними одержувачами, не переслідуйте людей, не обходьте дозволи й не збирайте дані масово. Про зловживання чи вразливості повідомляйте контактною поштою без публікації персональних даних.",
+            "Перевірте дозволи перед надсиланням запиту чи вступом у групу. Доступ до розкладу охоплює власні події та їхні нотатки. Приватні нотатки й завдання до предметів не передаються іншим користувачам. Додавайте лише інформацію, на використання якої маєте право. Не поширюйте чужі розклади поза призначеними одержувачами, не переслідуйте людей, не обходьте дозволи й не збирайте дані масово. Про зловживання чи вразливості повідомляйте контактною поштою без публікації персональних даних.",
           ],
         },
         {

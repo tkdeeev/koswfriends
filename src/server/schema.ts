@@ -8,9 +8,12 @@ import {
   primaryKey,
   index,
   check,
+  integer,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { Lesson, Choice, Semester, PersonalEventData } from "../lib/types";
+import type { SubjectTask } from "../lib/subject-board";
+import type { Localized } from "../lib/types";
 const time = (name: string) =>
   timestamp(name, { withTimezone: true, mode: "date" });
 export const users = pgTable("users", {
@@ -120,6 +123,21 @@ export const workerStatus = pgTable("worker_status", {
   id: text("id").primaryKey(),
   heartbeat: time("heartbeat").defaultNow().notNull(),
 });
+
+// Deliberately separate from timetable snapshots and all sharing queries.
+export const subjectBoards = pgTable(
+  "subject_boards",
+  {
+    userId: userRef("user_id"),
+    semester: text("semester").notNull(),
+    course: text("course").notNull(),
+    title: jsonb("title").$type<Localized>().notNull(),
+    notes: text("notes").notNull().default(""),
+    tasks: jsonb("tasks").$type<SubjectTask[]>().notNull().default([]),
+    revision: integer("revision").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.semester, t.course] })],
+);
 
 export const groups = pgTable("sharing_groups", {
   id: uuid("id").defaultRandom().primaryKey(),

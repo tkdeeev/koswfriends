@@ -648,6 +648,7 @@ describe("account data export", () => {
       "profilePicture",
       "schemaVersion",
       "sharing",
+      "subjectBoards",
       "timetableSnapshots",
     ]);
   });

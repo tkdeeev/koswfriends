@@ -22,7 +22,7 @@ The backup service creates a custom-format `pg_dump` once a day into its dedicat
 
 Test a dump by restoring it into a new, isolated scratch PostgreSQL 17 database with `pg_restore --exit-on-error --no-owner --no-acl`. Check migrated tables and counts, then remove only that scratch database/container. Never restore over a live database as a test. For disaster recovery, add an independently stored encrypted copy; the supplied same-host volume cannot survive host loss.
 
-Account deletion cascades through sessions, tokens, invitations, permissions, owned sharing groups, memberships, personal events, snapshots and drafts. Historical backups can retain earlier data for up to seven days. A restore can resurrect deleted rows; production restore needs a reviewed deletion reconciliation procedure.
+Account deletion cascades through sessions, tokens, invitations, permissions, owned sharing groups, memberships, personal events, snapshots, drafts and private subject boards. Historical backups can retain earlier data for up to seven days. A restore can resurrect deleted rows; production restore needs a reviewed deletion reconciliation procedure.
 
 ## Rollback
 
@@ -39,6 +39,8 @@ Application images are tagged `koswfriends:<full SHA>`; retain the previous work
 ## Version 0.2 migrations
 
 Migrations 0001 and 0002 add sharing groups, memberships, per-person overrides and personal events. They do not rewrite or drop existing timetable snapshots, tokens or plans. Take and verify a fresh backup before deploying. Old 0.1 code remains structurally compatible with these additive tables but does not understand group overrides; after users have changed sharing in 0.2, rolling back to 0.1 can restore old friend grants. Prefer a forward fix. A rollback then needs a reviewed permission reconciliation before reopening reads.
+
+Migration 0005 adds private subject boards with a composite account/semester/course key and cascading account deletion. It is additive and leaves timetable imports and sharing tables unchanged. Apply it before starting version 0.12.0; existing backups include the new table automatically. Older application code will not display boards but must not drop their table during rollback.
 
 ## Version 0.3 migration
 

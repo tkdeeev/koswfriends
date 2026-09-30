@@ -1,0 +1,301 @@
+.workspace {
+  display: grid;
+  gap: 20px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+.muted,
+.privacy {
+  color: var(--muted);
+  font-size: 13px;
+}
+.subjectPicker {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  max-width: 600px;
+}
+.subjectPicker select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.boardHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.boardHeader h2 {
+  font-size: 23px;
+  margin-bottom: 5px;
+}
+.boardHeader p {
+  color: var(--muted);
+}
+.saveStatus {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+}
+.privacy {
+  border-left: 3px solid var(--blue);
+  padding: 8px 12px;
+  background: var(--soft-blue);
+}
+.notes {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.notes h3,
+.tasksHeading h3 {
+  font-size: 18px;
+}
+.notes textarea {
+  resize: vertical;
+  width: 100%;
+  min-height: 110px;
+}
+.notesFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.primary,
+.secondary,
+.addTask,
+.iconButton {
+  border: 1px solid var(--input-line);
+  color: var(--dark);
+  background: var(--surface);
+  min-height: 40px;
+  padding: 8px 14px;
+  font-weight: 500;
+}
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.secondary:hover,
+.iconButton:hover,
+.addTask:hover {
+  background: var(--soft-blue);
+}
+.tasksHeading {
+  display: grid;
+  gap: 6px;
+}
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.column {
+  background: var(--pale);
+  border: 1px solid var(--line);
+  min-width: 0;
+  padding: 14px;
+  border-top: 3px solid var(--muted);
+}
+.column[data-status="doing"] {
+  border-top-color: var(--blue);
+}
+.column[data-status="done"] {
+  border-top-color: #4e9470;
+}
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.columnHeader h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.columnHeader > span {
+  font-size: 12px;
+  background: var(--grey);
+  padding: 2px 8px;
+}
+.cards {
+  display: grid;
+  gap: 12px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 14px;
+  min-width: 0;
+  box-shadow: 0 2px 4px #00000006;
+}
+.cardTitle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cardTitle:hover {
+  color: var(--blue);
+}
+.description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  max-height: 130px;
+  overflow-y: auto;
+}
+.due {
+  font-size: 12px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+.due[data-overdue="true"] {
+  color: var(--error-text);
+}
+.checklist {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.checkItem {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.checkItem input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+.checked {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.cardActions {
+  display: flex;
+  gap: 5px;
+  margin-top: 14px;
+}
+.cardActions select {
+  min-width: 0;
+  flex: 1;
+  padding: 6px;
+  font-size: 12px;
+}
+.iconButton {
+  flex: 0 0 38px;
+  padding: 5px;
+  font-size: 20px;
+}
+.addTask {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  background: transparent;
+  border-style: dashed;
+}
+.columnEmpty,
+.empty {
+  padding: 24px 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.error {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-line);
+}
+.editor {
+  width: min(620px, calc(100vw - 24px));
+}
+.form,
+.form fieldset,
+.form label,
+.editChecklist {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  gap: 18px;
+}
+.form label {
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.form input,
+.form textarea {
+  min-width: 0;
+  width: 100%;
+}
+.form textarea {
+  resize: vertical;
+}
+.editChecklist h3 {
+  font-size: 15px;
+}
+.checkEditRow {
+  display: flex;
+  gap: 8px;
+}
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .workspace {
+    gap: 16px;
+  }
+  .notes {
+    padding: 14px;
+  }
+  .primary,
+  .secondary,
+  .iconButton,
+  .cardActions select,
+  .addTask {
+    min-height: 44px;
+  }
+  .form input,
+  .form textarea,
+  .form select,
+  .notes textarea {
+    font-size: 16px;
+  }
+}

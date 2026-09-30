@@ -72,6 +72,9 @@ test("next lesson, detailed classes and profiles stay compact and private on mob
     .click();
   const detail = page.getByRole("dialog", { name: "TEST-DAILY", exact: true });
   await expect(detail).toBeVisible();
+  await expect(
+    detail.getByRole("link", { name: "My notes & tasks", exact: true }),
+  ).toHaveAttribute("href", "/?view=subjects&course=TEST-DAILY");
   await expect(detail.getByText("18 / 24", { exact: true })).toBeVisible();
   await expect(
     detail.getByText("Bring your course materials", { exact: true }),

@@ -12,6 +12,7 @@ export default defineConfig({
         "**/legal.spec.ts",
         "**/profile-sharing.spec.ts",
         "**/daily.spec.ts",
+        "**/subjects.spec.ts",
       ],
       use: {
         browserName: "webkit",

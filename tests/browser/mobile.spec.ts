@@ -56,7 +56,7 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     page.getByRole("img", { name: "KOS++", exact: true }),
   ).toBeVisible();
   const navigation = page.getByRole("navigation", { name: "Navigation" });
-  await expect(navigation.getByRole("button")).toHaveCount(2);
+  await expect(navigation.getByRole("button")).toHaveCount(3);
   const navBounds = (await navigation.boundingBox())!;
   const tabBounds = await navigation.getByRole("button").evaluateAll((tabs) =>
     tabs.map((tab) => {
@@ -65,8 +65,8 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     }),
   );
   expect(tabBounds[0].x).toBeCloseTo(navBounds.x, 0);
-  expect(tabBounds[0].width).toBeCloseTo(navBounds.width / 2, 0);
-  expect(tabBounds[1].right).toBeCloseTo(navBounds.x + navBounds.width, 0);
+  expect(tabBounds[0].width).toBeCloseTo(navBounds.width / 3, 0);
+  expect(tabBounds[2].right).toBeCloseTo(navBounds.x + navBounds.width, 0);
   const filters = page.getByRole("button", { name: "Filters", exact: true });
   await expect(filters).toHaveAttribute("aria-expanded", "false");
   await page.getByRole("button", { name: /^Thu/ }).tap();
@@ -632,7 +632,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     const nav = page.getByRole("navigation", { name: "Navigation" });
     const navRect = await nav.boundingBox();
     expect(navRect!.y + navRect!.height).toBe(page.viewportSize()!.height);
-    await expect(nav.locator("button svg")).toHaveCount(2);
+    await expect(nav.locator("button svg")).toHaveCount(3);
     const filters = page.getByRole("button", { name: "Filters", exact: true });
     const iconBounds = await filters.evaluate((el) => {
       const button = el.getBoundingClientRect(),

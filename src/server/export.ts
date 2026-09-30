@@ -12,6 +12,7 @@ import {
   friendships,
   groups,
   members,
+  subjectBoards,
 } from "./schema";
 import { AppError } from "./security";
 
@@ -59,6 +60,16 @@ export async function exportAccount(userId: string) {
         })
         .from(plans)
         .where(eq(plans.userId, userId));
+      const boards = await tx
+        .select({
+          semester: subjectBoards.semester,
+          course: subjectBoards.course,
+          title: subjectBoards.title,
+          notes: subjectBoards.notes,
+          tasks: subjectBoards.tasks,
+        })
+        .from(subjectBoards)
+        .where(eq(subjectBoards.userId, userId));
       const outgoingGrants = await tx
         .select({
           viewerId: grants.viewer,
@@ -126,6 +137,7 @@ export async function exportAccount(userId: string) {
           : null,
         timetableSnapshots,
         personalEvents: events,
+        subjectBoards: boards,
         draftPlans,
         sharing: {
           grants: outgoingGrants,

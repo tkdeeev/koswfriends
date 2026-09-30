@@ -42,6 +42,12 @@ The default week shows only the user's timetable, with stacked profile pictures 
 
 Personal subjects and events (for example TV1-PE) have editable names, locations, notes, colors and optional weekly repetition. They are stored separately from Sirius imports, remain after synchronization and follow calendar sharing permissions. Weekly series preserve Prague wall-clock time across DST; editing or deleting changes the whole series. Their default teal color and Personal event label distinguish them from imported teaching. These entries do not perform registration in KOS. Course-only wishes without times remain available in the semester planner.
 
+## Subject notes and tasks
+
+The Subjects tab lists the signed-in user's imported and personal subjects for the selected semester. Own lesson details link to the corresponding board. Each board has private notes and three task lists: To do, In progress and Done. Cards support descriptions, due dates, checklists, editing, deletion and ordering. Drag cards between lists or onto another card; status menus and Move up provide touch and keyboard alternatives. The columns stack on small screens and support Czech, English, Ukrainian and both themes.
+
+Boards are stored separately from timetable imports and sharing. Synchronization or removing a lesson does not erase a saved board. All API reads and writes use the signed-in account, writes require CSRF, and revision checks reject stale edits from other tabs or devices. Notes allow 8,000 characters; each subject supports 100 cards with up to 30 checklist items. Boards are included in account exports and cascade on account deletion and retention. Apply the included database migration before running the updated app.
+
 ## Connections and names
 
 Connections combines friends and sharing groups into two columns on desktop,
