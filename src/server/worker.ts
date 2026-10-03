@@ -1,14 +1,6 @@
-import { and, eq, gt, lt, or } from "drizzle-orm";
+import { eq, gt, lt, or } from "drizzle-orm";
 import { database, closeDatabase } from "./db";
-import {
-  attempts,
-  connections,
-  invites,
-  sessions,
-  snapshots,
-  users,
-  workerStatus,
-} from "./schema";
+import { attempts, invites, sessions, users, workerStatus } from "./schema";
 import { synchronize } from "./sync";
 import { applyRetention, RETENTION_INTERVAL_MS } from "./retention";
 let stopping = false;
@@ -41,17 +33,6 @@ while (!stopping) {
     const accounts = await database()
       .select({ id: users.id, semester: users.semester })
       .from(users)
-      .innerJoin(
-        connections,
-        and(eq(connections.userId, users.id), eq(connections.reconnect, false)),
-      )
-      .leftJoin(
-        snapshots,
-        and(
-          eq(snapshots.userId, users.id),
-          eq(snapshots.semester, users.semester),
-        ),
-      )
       .where(gt(users.activeAt, new Date(Date.now() - 7 * 86400000)));
     for (const user of accounts) {
       if (stopping) break;

@@ -1,6 +1,6 @@
 import type { Locale } from "./i18n";
 
-export const LEGAL_VERSION = "2026-09-27";
+export const LEGAL_VERSION = "2026-10-03";
 export const OPERATOR = "Tomáš Viktor Kubíček";
 export const PRIVACY_EMAIL = "tkdeeev@gmail.com";
 export type LegalSection = {
@@ -20,6 +20,7 @@ const providers = [
     href: "https://www.cloudflare.com/cloudflare-customer-dpa/",
   },
   { label: "Google / Gmail", href: "https://policies.google.com/privacy" },
+  { label: "Discord", href: "https://discord.com/privacy" },
 ];
 const authority = [
   {
@@ -40,6 +41,14 @@ export const legalCopy: Record<
         "KOS++ | KOS with Friends provozuje Tomáš Viktor Kubíček (TKDEV), fyzická osoba, která je správcem osobních údajů. Kontakt pro soukromí a uplatnění práv: tkdeeev@gmail.com. Jde o nezávislý studentský projekt, nikoli službu provozovanou ČVUT.",
       sections: [
         {
+          title: "Externí účty a volitelné kalendáře",
+          paragraphs: [
+            "ČVUT účet není podmínkou používání. Přes Google nebo Discord zpracujeme identifikátor poskytovatele a jméno pro vytvoření či nalezení účtu. Vytvoříme unikátní devítipísmenné uživatelské jméno a zobrazujeme označení externího účtu; nejde o ověření příslušnosti k univerzitě. E-mail ani seznam kontaktů nevyžadujeme. Externí přístupový token použijeme pouze pro přihlášení a neukládáme jej; účty různých poskytovatelů automaticky nespojujeme.",
+            "Každý uživatel může volitelně přidat vlastní HTTPS ICS zdroj, případně používat aplikaci bez importu. URL zdroje ukládáme šifrovaně, protože může obsahovat soukromý klíč. Server z něj pravidelně načítá názvy, časy, místa a stav událostí. Poznámky, přílohy ani účastníky ICS neimportujeme. Importované události podléhají stejnému sdílení jako rozvrh; URL zdroje se nesdílí a není v exportu. Odebrání zdroje odstraní jeho importované události; smazání účtu odstraní i externí identity a všechny zdroje, s výhradou lhůt záloh.",
+            "Google nebo Discord zajišťuje zvolený způsob přihlášení podle svých pravidel. Provozovatel vámi přidaného ICS zdroje při stahování obdrží požadavek z našeho serveru včetně URL zdroje a serverové IP adresy. Přidávejte jen zdroje, k jejichž použití a sdílení máte oprávnění.",
+          ],
+        },
+        {
           title: "Jaké údaje zpracováváme",
           items: [
             "Po školním přihlášení: uživatelské jméno, jméno poskytnuté školou, interní identifikátor, zvolený semestr a čas vytvoření a poslední aktivity účtu. Zdrojem školních údajů jsou OAuth a Sirius ČVUT.",
@@ -59,7 +68,7 @@ export const legalCopy: Record<
         {
           title: "Kdo údaje uvidí",
           paragraphs: [
-            "Profilová fotka je viditelná přijatým přátelům a přijatým členům společných skupin, i když s nimi nesdílíte rozvrh. Blokovaní uživatelé ji nevidí. Fotku lze kdykoli odstranit v účtu; odstraní se také při smazání účtu a vztahují se na ni níže uvedené lhůty záloh. Rozvrh není veřejný. Zpřístupní se přijatým přátelům nebo členům skupin podle vašich oprávnění. Jméno a školní uživatelské jméno jsou viditelné tam, kde jsou potřebné pro pozvání a správu vztahu; členové skupiny vidí její členství. Sdílení skupině zahrnuje současné i budoucí přijaté členy. Individuální nastavení má přednost; blokace zastaví sdílení oběma směry.",
+            "Profilová fotka je viditelná přijatým přátelům a přijatým členům společných skupin, i když s nimi nesdílíte rozvrh. Blokovaní uživatelé ji nevidí. Fotku lze kdykoli odstranit v účtu; odstraní se také při smazání účtu a vztahují se na ni níže uvedené lhůty záloh. Rozvrh není veřejný. Zpřístupní se přijatým přátelům nebo členům skupin podle vašich oprávnění. Jméno, uživatelské jméno a označení externího účtu jsou viditelné tam, kde jsou potřebné pro pozvání a správu vztahu; členové skupiny vidí její členství. Sdílení skupině zahrnuje současné i budoucí přijaté členy. Individuální nastavení má přednost; blokace zastaví sdílení oběma směry.",
             "Vlastní události a jejich poznámky se sdílí spolu s rozvrhem. Poznámky a úkoly v sekci Předměty jsou soukromé a ostatním uživatelům se nesdílí. Nevkládejte citlivé údaje, například o zdraví, ani cizí údaje bez oprávnění. Sdílení můžete změnit či odvolat, ale nelze odvolat kopie nebo snímky, které příjemce již vytvořil. Odchod z jedné skupiny nemusí ukončit přístup udělený jiným vztahem.",
             "Provozovatel přistupuje k údajům jen pro provoz, podporu, zabezpečení a vyřízení práv. Údaje mohou být vydány příslušnému orgánu, vyžaduje-li to zákon.",
           ],
@@ -77,7 +86,7 @@ export const legalCopy: Record<
           items: [
             "Účet a související údaje uchováváme do jeho smazání. Po 365 dnech bez aktivity přihlášeného uživatele účet automaticky odstraní denní úklid. Synchronizace na pozadí tuto lhůtu neprodlužuje. Smazání odstraní i skupiny, které vlastníte, a členství v ostatních skupinách.",
             "Zálohy se při běžném monitorovaném provozu obměňují během sedmi dnů; mezitím mohou obsahovat dříve smazaná data a neslouží k běžnému používání. Při obnově je nutné znovu provést dřívější výmazy.",
-            "Přihlašovací relace platí nejvýše 30 dní a stav školního přihlášení 10 minut. Odkazy s pozvánkou platí 7 dní; expirované záznamy se průběžně odstraňují. Nevyřízené žádosti o přátelství či členství zůstávají do jejich vyřízení, zrušení nebo smazání účtu či skupiny.",
+            "Přihlašovací relace platí nejvýše 30 dní a stav přihlášení 10 minut. Odkazy s pozvánkou platí 7 dní; expirované záznamy se průběžně odstraňují. Nevyřízené žádosti o přátelství či členství zůstávají do jejich vyřízení, zrušení nebo smazání účtu či skupiny.",
             "Analytické záznamy starší 90 dní odstraňuje hodinový úklid. Korespondenci běžně uchováváme 12 měsíců po vyřízení; nezbytné podklady k právnímu nároku či povinnosti pouze po odůvodněnou dobu.",
             "Bezpečnostní podklady uchováváme po dobu potřebnou k vyřešení konkrétní události a případné právní ochraně. U technických údajů zpracovávaných poskytovateli infrastruktury se uplatní také jejich pravidla uchování uvedená v odkazech výše.",
           ],
@@ -85,7 +94,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, úložiště a analytika",
           paragraphs: [
-            "Nezbytné cookies kwf_session (30 dní) a kwf_oauth (10 minut) slouží k přihlášení a jeho ochraně. Místní úložiště si pamatuje jazyk, téma, zobrazení dne a vybranou menzu do změny či vymazání. Dočasné úložiště drží pozvánku ke skupině pro přihlášení v téže kartě; PWA ukládá veřejné ikony a offline stránku, nikoli rozvrhy. Síťová ochrana Cloudflare může při bezpečnostní výzvě použít nezbytné bezpečnostní úložiště.",
+            "Nezbytné cookies kwf_session (30 dní) a kwf_oauth, kwf_oauth_google a kwf_oauth_discord (10 minut) slouží k přihlášení a jeho ochraně. Místní úložiště si pamatuje jazyk, téma, zobrazení dne a vybranou menzu do změny či vymazání. Dočasné úložiště drží pozvánku ke skupině pro přihlášení v téže kartě; PWA ukládá veřejné ikony a offline stránku, nikoli rozvrhy. Síťová ochrana Cloudflare může při bezpečnostní výzvě použít nezbytné bezpečnostní úložiště.",
             "Po výslovném povolení odesíláme do vlastního Umami záznam o zobrazení předem dané obrazovky. Umami záznamy počítá a uchovává čas události. Nepředáváme jména, účty, rozvrhy, texty, adresy s parametry, pozvánky ani původní IP adresu či identifikaci prohlížeče. Nejde o počítání jedinečných lidí. Pro analytiku nepoužíváme nahrávání obrazovky ani otisky zařízení.",
             "Volbu analytiky s verzí a datem si toto zařízení pamatuje šest měsíců. V Nastavení analytiky v patičce ji kdykoli změníte; odmítnutí je stejně dostupné jako přijetí. Do Not Track a Global Privacy Control měření vypnou. Odvolání působí do budoucna; Umami neuchovává vazbu na váš účet, podle které bychom v něm mohli vyhledat vaše jednotlivé záznamy.",
           ],
@@ -114,7 +123,7 @@ export const legalCopy: Record<
         {
           title: "Používání a účet",
           paragraphs: [
-            "Přihlášením žádáte o vytvoření nebo používání osobního účtu podle těchto podmínek. Používejte pouze svůj školní účet, chraňte přístup a dodržujte pravidla školních API. Pro používání není nutné povolit analytiku. Experimentální funkce nemusí být dokončené; dostupnost a úplnost importu závisí také na škole.",
+            "Přihlášením žádáte o vytvoření nebo používání osobního účtu podle těchto podmínek. Používejte pouze svůj vlastní účet ČVUT, Google nebo Discord, chraňte přístup a dodržujte pravidla školních API. Pro používání není nutné povolit analytiku. Experimentální funkce nemusí být dokončené; dostupnost a úplnost importu závisí také na škole.",
           ],
         },
         {
@@ -163,6 +172,14 @@ export const legalCopy: Record<
         "KOS++ | KOS with Friends is operated by Tomáš Viktor Kubíček (TKDEV), an individual and the data controller. Contact for privacy and data rights: tkdeeev@gmail.com. This is an independent student project, not a service operated by CTU.",
       sections: [
         {
+          title: "External accounts and optional calendars",
+          paragraphs: [
+            "A CTU account is optional. Google or Discord sign-in supplies a provider ID and display name to create or find your account. We generate a unique nine-letter username and display an external-account label; this does not verify university affiliation. We do not request email or contacts. External access tokens are used only during sign-in and are not stored. Different providers' accounts are not automatically linked.",
+            "Every user may optionally add an HTTPS ICS subscription or use the app without imports. Subscription URLs are encrypted because they may contain private keys. Our server periodically imports event titles, times, locations and cancellation status. ICS descriptions, attachments and attendees are not imported. Events use the same sharing rules as your timetable. Subscription URLs are never shared or included in exports. Removing a feed deletes its imported events. Account deletion removes external identities and feeds too, subject to backup retention.",
+            "Google or Discord provides the selected sign-in under its own rules. Your ICS provider receives download requests including the subscription URL and our server's IP address. Only add sources you are authorized to use and share.",
+          ],
+        },
+        {
           title: "Information we process",
           items: [
             "After school sign-in: school username, school-provided name, internal ID, selected semester, account creation and last activity times. School information comes from CTU OAuth and Sirius.",
@@ -200,7 +217,7 @@ export const legalCopy: Record<
           items: [
             "Account data is kept until deletion. Daily cleanup automatically removes accounts after 365 days without activity by a signed-in user; background imports do not extend this period. Deletion also removes groups you own and your memberships in other groups.",
             "Under normal monitored operation, backups rotate within seven days. They may temporarily contain deleted data and are not used for ordinary access. Previous deletions must be reapplied when restoring a backup.",
-            "Login sessions last up to 30 days and school-login state lasts 10 minutes. Invitation links expire after seven days; expired records are removed periodically. Pending friend or membership requests remain until resolved, cancelled or removed with the account or group.",
+            "Login sessions last up to 30 days and login state lasts 10 minutes. Invitation links expire after seven days; expired records are removed periodically. Pending friend or membership requests remain until resolved, cancelled or removed with the account or group.",
             "Hourly cleanup removes analytics records older than 90 days. Correspondence is normally kept for 12 months after resolution; records necessary for a specific legal obligation or claim are retained only for a justified period.",
             "Security evidence is kept as needed to resolve a specific incident and address related legal claims. Infrastructure providers also apply their retention rules to technical information they process, as described in the linked documents above.",
           ],
@@ -208,7 +225,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, storage and analytics",
           paragraphs: [
-            "Necessary cookies kwf_session (30 days) and kwf_oauth (10 minutes) support sign-in and its security. Local storage remembers language, theme, day layout and selected canteen until changed or cleared. Session storage holds a group invitation through sign-in in the same tab. The PWA caches public icons and an offline page, not timetables. Cloudflare protection may use necessary security storage when presenting a security challenge.",
+            "Necessary cookies kwf_session (30 days) and kwf_oauth, kwf_oauth_google and kwf_oauth_discord (10 minutes) support sign-in and its security. Local storage remembers language, theme, day layout and selected canteen until changed or cleared. Session storage holds a group invitation through sign-in in the same tab. The PWA caches public icons and an offline page, not timetables. Cloudflare protection may use necessary security storage when presenting a security challenge.",
             "After explicit permission, we send a view event for a predefined app screen to our own Umami instance. Umami counts these events and records their time. We do not forward names, accounts, calendars, entered text, query strings, invitation links, original visitor IP addresses or browser identifiers. This does not measure unique people. Analytics does not use session recording or device fingerprinting.",
             "This device remembers your analytics choice, policy version and date for six months. Change it at any time through Analytics settings in the footer; declining is as easy as accepting. Do Not Track and Global Privacy Control disable collection. Withdrawal stops future collection. Umami keeps no link to your account that would let us locate your individual entries there.",
           ],
@@ -237,7 +254,7 @@ export const legalCopy: Record<
         {
           title: "Using your account",
           paragraphs: [
-            "Signing in requests creation or use of a personal account under these terms. Use only your own school account, protect access and follow school API rules. Analytics permission is optional. Experimental features may be incomplete; availability and complete imports also depend on school services.",
+            "Signing in requests creation or use of a personal account under these terms. Use only your own CTU, Google or Discord account, protect access and follow school API rules. Analytics permission is optional. Experimental features may be incomplete; availability and complete imports also depend on school services.",
           ],
         },
         {
@@ -286,6 +303,14 @@ export const legalCopy: Record<
         "KOS++ | KOS with Friends підтримує Tomáš Viktor Kubíček (TKDEV), фізична особа та контролер персональних даних. Контакт із питань приватності та прав: tkdeeev@gmail.com. Це незалежний студентський проєкт, а не сервіс, яким керує ČVUT.",
       sections: [
         {
+          title: "Зовнішні облікові записи та необов’язкові календарі",
+          paragraphs: [
+            "Обліковий запис ČVUT необов’язковий. Вхід через Google або Discord надає ідентифікатор провайдера й ім’я для створення або пошуку облікового запису. Ми створюємо унікальне ім’я з дев’яти літер і показуємо позначку зовнішнього облікового запису; це не підтверджує належність до університету. Електронну пошту й контакти не запитуємо. Зовнішній токен використовується лише під час входу й не зберігається. Облікові записи різних провайдерів автоматично не об’єднуються.",
+            "Кожен користувач може додати HTTPS-посилання на ICS або користуватися застосунком без імпорту. Посилання зберігаються зашифрованими, оскільки можуть містити приватні ключі. Сервер періодично імпортує назви, час, місце й статус скасування подій. Описи, вкладення й учасники ICS не імпортуються. Події використовують ті самі правила доступу, що й розклад. Посилання не передаються іншим користувачам і не входять до експорту. Видалення джерела видаляє його імпортовані події; видалення облікового запису видаляє зовнішні ідентифікатори й джерела з урахуванням строків резервних копій.",
+            "Google або Discord забезпечує обраний вхід за власними правилами. Провайдер ICS отримує запити з посиланням на джерело та IP-адресою нашого сервера. Додавайте лише джерела, які маєте право використовувати й поширювати.",
+          ],
+        },
+        {
           title: "Які дані ми обробляємо",
           items: [
             "Після входу через університет: ім’я користувача, надане університетом ім’я, внутрішній ідентифікатор, обраний семестр, час створення та останньої активності облікового запису. Джерело університетських даних — OAuth та Sirius ČVUT.",
@@ -305,7 +330,7 @@ export const legalCopy: Record<
         {
           title: "Хто бачить дані",
           paragraphs: [
-            "Фото профілю бачать прийняті друзі та прийняті учасники спільних груп, навіть якщо доступ до розкладу вимкнено. Заблоковані користувачі його не бачать. Фото можна видалити в обліковому записі будь-коли; воно також видаляється разом з обліковим записом, з урахуванням наведених нижче строків зберігання резервних копій. Розклади не є публічними. Прийняті друзі або учасники груп отримують доступ відповідно до ваших налаштувань. Ім’я та університетське ім’я користувача відображаються там, де це потрібно для запрошення й керування контактами; учасники груп бачать її склад. Доступ групі охоплює нинішніх і майбутніх прийнятих учасників. Особисті винятки мають пріоритет; блокування припиняє доступ в обох напрямках.",
+            "Фото профілю бачать прийняті друзі та прийняті учасники спільних груп, навіть якщо доступ до розкладу вимкнено. Заблоковані користувачі його не бачать. Фото можна видалити в обліковому записі будь-коли; воно також видаляється разом з обліковим записом, з урахуванням наведених нижче строків зберігання резервних копій. Розклади не є публічними. Прийняті друзі або учасники груп отримують доступ відповідно до ваших налаштувань. Ім’я, ім’я користувача та позначка зовнішнього облікового запису відображаються там, де це потрібно для запрошення й керування контактами; учасники груп бачать її склад. Доступ групі охоплює нинішніх і майбутніх прийнятих учасників. Особисті винятки мають пріоритет; блокування припиняє доступ в обох напрямках.",
             "Власні події та їхні нотатки доступні разом із розкладом. Нотатки й завдання в розділі «Предмети» залишаються приватними та не передаються іншим користувачам. Не вводьте чутливі дані, наприклад про здоров’я, або чужі дані без дозволу. Доступ можна змінити чи відкликати, але вже зроблені копії та знімки одержувачів повернути неможливо. Вихід з однієї групи не завжди припиняє доступ через інший зв’язок.",
             "Оператор працює з даними лише для надання послуги, підтримки, безпеки та виконання прав. Дані можуть бути передані компетентному органу, якщо цього вимагає закон.",
           ],
@@ -323,7 +348,7 @@ export const legalCopy: Record<
           items: [
             "Дані облікового запису зберігаються до видалення. Щоденне очищення автоматично видаляє облікові записи після 365 днів без активності користувача, який увійшов; фоновий імпорт не продовжує цей строк. Також видаляються групи, якими ви володієте, та ваше членство в інших групах.",
             "За звичайної контрольованої роботи резервні копії оновлюються протягом семи днів. Тимчасово вони можуть містити видалені дані й не використовуються для звичайного доступу. Після відновлення попередні видалення потрібно застосувати повторно.",
-            "Сеанс входу діє до 30 днів, стан університетського входу — 10 хвилин. Посилання із запрошеннями діють сім днів; прострочені записи періодично видаляються. Нерозглянуті запити дружби чи членства зберігаються до їх вирішення, скасування або видалення облікового запису чи групи.",
+            "Сеанс входу діє до 30 днів, стан входу — 10 хвилин. Посилання із запрошеннями діють сім днів; прострочені записи періодично видаляються. Нерозглянуті запити дружби чи членства зберігаються до їх вирішення, скасування або видалення облікового запису чи групи.",
             "Щогодинне очищення видаляє аналітичні записи, старші за 90 днів. Листування зазвичай зберігається 12 місяців після вирішення; необхідні матеріали для конкретного правового обов’язку або вимоги — лише протягом обґрунтованого строку.",
             "Матеріали щодо безпеки зберігаються стільки, скільки потрібно для вирішення конкретного інциденту та пов’язаних правових вимог. До технічних даних постачальники інфраструктури також застосовують власні правила зберігання, описані в документах за посиланнями вище.",
           ],
@@ -331,7 +356,7 @@ export const legalCopy: Record<
         {
           title: "Cookies, сховище та аналітика",
           paragraphs: [
-            "Необхідні cookies kwf_session (30 днів) і kwf_oauth (10 хвилин) забезпечують вхід і його захист. Локальне сховище пам’ятає мову, тему, вигляд дня та обрану їдальню до зміни або очищення. Сховище вкладки тримає запрошення до групи під час входу в тій самій вкладці. PWA кешує публічні іконки й офлайн-сторінку, а не розклади. Захист Cloudflare може використовувати необхідне сховище під час перевірки безпеки.",
+            "Необхідні cookies kwf_session (30 днів) і kwf_oauth, kwf_oauth_google і kwf_oauth_discord (10 хвилин) забезпечують вхід і його захист. Локальне сховище пам’ятає мову, тему, вигляд дня та обрану їдальню до зміни або очищення. Сховище вкладки тримає запрошення до групи під час входу в тій самій вкладці. PWA кешує публічні іконки й офлайн-сторінку, а не розклади. Захист Cloudflare може використовувати необхідне сховище під час перевірки безпеки.",
             "Лише після явного дозволу наш Umami отримує подію перегляду визначеного екрана. Umami підраховує ці події та зберігає їхній час. Ми не передаємо імена, облікові записи, розклади, введені тексти, параметри адрес, запрошення, оригінальні IP-адреси відвідувачів чи ідентифікацію браузера. Це не підрахунок унікальних людей. Аналітика не використовує запис сеансів чи цифрові відбитки пристроїв.",
             "Пристрій пам’ятає ваш вибір аналітики, версію та дату шість місяців. Змінити його можна в Налаштуваннях аналітики у підвалі; відмовитися так само легко, як погодитися. Do Not Track і Global Privacy Control вимикають збір. Відкликання припиняє майбутній збір. Umami не зберігає зв’язку з вашим обліковим записом, за яким ми могли б знайти там ваші окремі записи.",
           ],
@@ -360,7 +385,7 @@ export const legalCopy: Record<
         {
           title: "Користування обліковим записом",
           paragraphs: [
-            "Вхід означає запит на створення чи використання особистого облікового запису за цими умовами. Користуйтеся лише власним університетським обліковим записом, захищайте доступ і дотримуйтеся правил університетських API. Аналітика необов’язкова. Експериментальні функції можуть бути незавершеними; доступність і повнота імпорту також залежать від університету.",
+            "Вхід означає запит на створення чи використання особистого облікового запису за цими умовами. Користуйтеся лише власним обліковим записом ČVUT, Google або Discord, захищайте доступ і дотримуйтеся правил університетських API. Аналітика необов’язкова. Експериментальні функції можуть бути незавершеними; доступність і повнота імпорту також залежать від університету.",
           ],
         },
         {

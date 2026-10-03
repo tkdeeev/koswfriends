@@ -62,6 +62,48 @@
 .signIn > span {
   font-size: 23px;
 }
+.loginActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+.loginActions .signIn {
+  margin-top: 0;
+}
+.otherSignIn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dark);
+  padding-inline: 14px;
+  cursor: pointer;
+}
+.otherSignIn:hover {
+  background: var(--line);
+}
+.otherLogin {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+.providerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.provider {
+  border: 1px solid var(--line);
+  padding: 10px 18px;
+  color: var(--dark);
+  font-weight: 500;
+  text-decoration: none;
+}
+.provider:hover {
+  background: var(--line);
+}
 .legal {
   margin-top: 12px;
   color: var(--muted);
@@ -150,7 +192,7 @@
   .intro {
     font-size: 16px;
   }
-  .signIn {
+  .loginActions {
     margin-top: 18px;
   }
   .benefits {

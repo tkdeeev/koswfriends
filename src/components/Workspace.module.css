@@ -2455,3 +2455,57 @@
     flex-basis: 56px;
   }
 }
+.feedSection {
+  margin: 24px 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.feedRow {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 18px 0;
+}
+.feedRow > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.feedFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 14px;
+  margin: 18px 0;
+}
+.feedFields input {
+  width: 100%;
+  min-width: 0;
+}
+.externalBadge {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.avatarExternal {
+  position: absolute;
+  top: -4px;
+  right: -9px;
+  background: var(--surface);
+  color: var(--dark);
+  border: 1px solid var(--line);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 2px;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .feedFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .feedRow {
+    flex-wrap: wrap;
+  }
+}

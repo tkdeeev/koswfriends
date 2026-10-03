@@ -43,6 +43,13 @@
       "when": 1790746786062,
       "tag": "0005_fuzzy_marvel_zombies",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791022223995,
+      "tag": "0006_soft_champions",
+      "breakpoints": true
     }
   ]
 }

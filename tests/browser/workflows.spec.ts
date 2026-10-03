@@ -112,7 +112,7 @@ test("two synthetic browsers request, accept, compare, then revoke calendar acce
   await page.goto("/");
   await connections(page, "Friends");
   await addConnection(page, "Friends");
-  await page.getByLabel("School username", { exact: true }).fill(b.username);
+  await page.getByLabel("Username", { exact: true }).fill(b.username);
   await page.getByRole("button", { name: /Send request/ }).click();
   await expect(page.getByText("Request sent", { exact: true })).toBeVisible();
   await pageB.goto("/");
@@ -245,7 +245,7 @@ test("group invitation, personal override and leave update default attendee icon
   const group = page.getByRole("region", { name: "Study crew", exact: true });
   await expect(group).toBeVisible();
   await expand(group);
-  await group.getByLabel("School username", { exact: true }).fill(b.username);
+  await group.getByLabel("Username", { exact: true }).fill(b.username);
   await group.getByRole("button", { name: "Invite member" }).click();
   await pageB.goto("/");
   await expect(

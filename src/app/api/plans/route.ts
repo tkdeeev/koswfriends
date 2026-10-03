@@ -24,6 +24,7 @@ export const GET = endpoint(async (req) => {
     .select({
       userId: users.id,
       username: users.username,
+      accountType: users.accountType,
       name: users.name,
       choices: plans.choices,
       updatedAt: plans.updatedAt,

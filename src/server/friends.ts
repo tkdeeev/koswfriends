@@ -69,6 +69,7 @@ export async function friendList(userId: string) {
         .select({
           id: users.id,
           username: users.username,
+          accountType: users.accountType,
           name: users.name,
           avatarVersion: users.avatarVersion,
           givingCalendar: canRead(userId, users.id, "calendar"),
@@ -91,6 +92,7 @@ export async function friendList(userId: string) {
       return {
         id: user.id,
         username: user.username,
+        accountType: user.accountType,
         name: user.name,
         avatarVersion: f.status === "accepted" ? user.avatarVersion : null,
         status: f.status,

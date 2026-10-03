@@ -13,6 +13,7 @@ export default defineConfig({
         "**/profile-sharing.spec.ts",
         "**/daily.spec.ts",
         "**/subjects.spec.ts",
+        "**/external-users.spec.ts",
       ],
       use: {
         browserName: "webkit",

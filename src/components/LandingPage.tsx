@@ -1,5 +1,8 @@
+"use client";
 import { copy, type Locale } from "@/lib/i18n";
 import s from "./LandingPage.module.css";
+import { useState } from "react";
+import { externalCopy } from "@/lib/external-copy";
 
 export default function LandingPage({
   locale,
@@ -9,6 +12,10 @@ export default function LandingPage({
   signIn: string;
 }) {
   const t = copy[locale];
+  const c = externalCopy[locale];
+  const [other, setOther] = useState(false);
+  const providerLink = (provider: string) =>
+    `${signIn}${signIn.includes("?") ? "&" : "?"}provider=${provider}`;
 
   return (
     <main className={s.landing}>
@@ -18,15 +25,37 @@ export default function LandingPage({
             KOS with Friends <span aria-hidden="true">++</span>
           </p>
           <h1 id="landing-title">
-            {t.hero}{" "}
-            <span>{t.heroAccent}</span>
+            {t.hero} <span>{t.heroAccent}</span>
           </h1>
         </div>
         <div>
           <p className={s.intro}>{t.intro}</p>
-          <a className={s.signIn} href={signIn}>
-            {t.signIn} <span aria-hidden="true">↗</span>
-          </a>
+          <div className={s.loginActions}>
+            <a className={s.signIn} href={signIn}>
+              {t.signIn} <span aria-hidden="true">↗</span>
+            </a>
+            <button
+              className={`${s.signIn} ${s.otherSignIn}`}
+              aria-expanded={other}
+              aria-controls="other-login"
+              onClick={() => setOther(!other)}
+            >
+              {c.signIn}
+            </button>
+          </div>
+          {other && (
+            <div id="other-login" className={s.otherLogin}>
+              <p>{c.hint}</p>
+              <div className={s.providerActions}>
+                <a className={s.provider} href={providerLink("google")}>
+                  Google
+                </a>
+                <a className={s.provider} href={providerLink("discord")}>
+                  Discord
+                </a>
+              </div>
+            </div>
+          )}
           <p className={s.legal}>
             {t.signInLegal} <a href={`/terms?lang=${locale}`}>{t.termsOfUse}</a>{" "}
             · <a href={`/privacy?lang=${locale}`}>{t.privacyNotice}</a>

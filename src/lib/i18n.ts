@@ -102,7 +102,7 @@ export const copy = {
     deleteGroupConfirm:
       "Smazat skupinu pro všechny členy? Sdílení přes tuto skupinu skončí.",
     leaveGroupConfirm: "Opustit skupinu a ukončit sdílení přes tuto skupinu?",
-    emptyGroup: "Pozvěte prvního člena pomocí školního uživatelského jména.",
+    emptyGroup: "Pozvěte prvního člena pomocí uživatelského jména.",
     noSharingGroups: "Zatím žádné skupiny.",
     overlay: "Překrýt další rozvrhy",
     clearOverlay: "Jen můj rozvrh",
@@ -178,7 +178,7 @@ export const copy = {
     attendees: "Účastníci",
     close: "Zavřít",
     prague: "Čas v Praze",
-    username: "Školní uživatelské jméno",
+    username: "Uživatelské jméno",
     sendRequest: "Poslat žádost",
     shareBefore: "Co s tímto člověkem sdílíte",
     shareCalendar: "Můj rozvrh",
@@ -237,7 +237,7 @@ export const copy = {
     account: "Účet a data",
     deleteAccount: "Smazat účet a uložená data",
     deletePrompt:
-      "Smazat účet, přátelství, návrhy a připojení ke škole? Tato akce je nevratná.",
+      "Smazat účet, přátelství, návrhy a připojené kalendáře? Tato akce je nevratná.",
     deleteConfirm: "Ano, smazat můj účet",
     cancel: "Zrušit",
     deletionBackup:
@@ -263,11 +263,12 @@ export const copy = {
         "Přihlášení vypršelo nebo již bylo použito. Začněte znovu.",
       consent_denied: "Přístup nebyl povolen. Přihlášení můžete zopakovat.",
       invalid_identity:
-        "Škola nepotvrdila požadovanou identitu nebo oprávnění.",
+        "Přihlašovací služba nepotvrdila požadovanou identitu nebo oprávnění.",
       provider_denied:
-        "Školní služba odmítla přístup. Zkuste se znovu přihlásit.",
-      provider_unavailable: "Školní služba není dostupná. Zkuste to později.",
-      provider_format: "Školní služba vrátila neočekávaná data.",
+        "Připojená služba odmítla přístup. Zkuste se znovu přihlásit.",
+      provider_unavailable:
+        "Připojená služba není dostupná. Zkuste to později.",
+      provider_format: "Připojená služba vrátila neočekávaná data.",
       reconnect: "Je potřeba obnovit školní přihlášení.",
       sync_busy: "Rozvrh se právě synchronizuje.",
       sync_cooldown: "Mezi obnoveními rozvrhu počkejte jednu minutu.",
@@ -299,7 +300,8 @@ export const copy = {
       "KOS++ timetable preview with shared lessons and a personal event.",
 
     landingTimetable: "Your week at a glance",
-    landingTimetableBody: "Your CTU timetable, at home on your phone or laptop.",
+    landingTimetableBody:
+      "Your CTU timetable, at home on your phone or laptop.",
     landingFriends: "Your choice of company",
     landingFriendsBody: "Compare classes with friends and find time together.",
     landingPlans: "Room for the rest of life",
@@ -385,7 +387,7 @@ export const copy = {
     deleteGroupConfirm:
       "Delete this group for everyone? Sharing through this group will end.",
     leaveGroupConfirm: "Leave this group and end sharing through it?",
-    emptyGroup: "Invite the first member using their school username.",
+    emptyGroup: "Invite the first member using their username.",
     noSharingGroups: "No groups yet.",
     overlay: "Overlay timetables",
     clearOverlay: "My timetable only",
@@ -462,7 +464,7 @@ export const copy = {
     attendees: "Displayed timetables",
     close: "Close",
     prague: "Prague time",
-    username: "School username",
+    username: "Username",
     sendRequest: "Send request",
     shareBefore: "What you share with this person",
     shareCalendar: "My timetable",
@@ -521,7 +523,7 @@ export const copy = {
     account: "Account and data",
     deleteAccount: "Delete account and stored data",
     deletePrompt:
-      "Delete your account, friendships, drafts and school connection? This cannot be undone.",
+      "Delete your account, friendships, drafts and connected calendars? This cannot be undone.",
     deleteConfirm: "Yes, delete my account",
     cancel: "Cancel",
     deletionBackup:
@@ -547,12 +549,12 @@ export const copy = {
         "This sign-in attempt has expired or was already used. Please start again.",
       consent_denied: "Access was not granted. You can try signing in again.",
       invalid_identity:
-        "The school did not confirm the required identity or permission.",
+        "The sign-in provider did not confirm the required identity or permission.",
       provider_denied:
-        "The school service denied access. Try signing in again.",
+        "The connected service denied access. Try signing in again.",
       provider_unavailable:
-        "The school service is unavailable. Please try later.",
-      provider_format: "The school service returned unexpected data.",
+        "The connected service is unavailable. Please try later.",
+      provider_format: "The connected service returned unexpected data.",
       reconnect: "Please reconnect your school account.",
       sync_busy: "Your timetable is already synchronizing.",
       sync_cooldown: "Please wait one minute between timetable refreshes.",

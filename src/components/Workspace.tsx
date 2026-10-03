@@ -32,6 +32,8 @@ import { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
 import SubjectsView from "./SubjectsView";
 import { subjectCopy } from "@/lib/subject-copy";
+import { externalCopy } from "@/lib/external-copy";
+import CalendarFeeds from "./CalendarFeeds";
 import s from "./Workspace.module.css";
 type WorkspaceView =
   "timetable" | "connections" | "planner" | "account" | "food" | "subjects";
@@ -282,7 +284,11 @@ export default function Workspace() {
   const errorMessage =
     error === "offline"
       ? t.offline
-      : t.errors[error as keyof typeof t.errors] || t.error;
+      : externalCopy[locale].errors[
+          error as keyof typeof externalCopy.cs.errors
+        ] ||
+        t.errors[error as keyof typeof t.errors] ||
+        t.error;
   const own = calendars.find((c) => c.userId === me?.id);
   return (
     <PeopleProvider
@@ -488,7 +494,12 @@ export default function Workspace() {
             )}
             {own?.error && view === "timetable" && (
               <div className={`${s.banner} ${s.warning}`}>
-                {t.stale} {t.errors[own.error as keyof typeof t.errors] || ""}
+                {t.stale}{" "}
+                {externalCopy[locale].errors[
+                  own.error as keyof typeof externalCopy.cs.errors
+                ] ||
+                  t.errors[own.error as keyof typeof t.errors] ||
+                  ""}
               </div>
             )}
             {own?.lastSuccess &&
@@ -639,6 +650,11 @@ export default function Workspace() {
               <section className={`${s.panel} ${s.accountSection}`}>
                 <h2>{displayName(me)}</h2>
                 <p className={s.hint}>@{me.username}</p>
+                {me.accountType === "external" && (
+                  <p className={s.externalBadge}>
+                    {externalCopy[locale].external}
+                  </p>
+                )}
                 <ProfilePicture
                   me={me}
                   t={t}
@@ -649,6 +665,12 @@ export default function Workspace() {
                 />
                 <p className={s.muted}>{t.privacy}</p>
                 <p className={s.hint}>{t.retentionHint}</p>
+                <CalendarFeeds
+                  me={me}
+                  locale={locale}
+                  read={read}
+                  mutate={mutate}
+                />
                 <p>
                   <a
                     className={`${s.button} ${s.secondary}`}

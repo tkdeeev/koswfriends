@@ -5,10 +5,37 @@ import { accessToken } from "./oauth";
 import { fetchEvents, fetchPersonName, resolveSemester } from "./sirius";
 import { AppError, safeCode } from "./security";
 import { semesterWindow } from "../lib/calendar";
+import { synchronizeFeeds } from "./feeds";
 export async function synchronize(
   userId: string,
   semester: string,
   manual = false,
+) {
+  const [user] = await database()
+    .select()
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!user) return;
+  let school;
+  let schoolError: AppError | undefined;
+  if (user.accountType === "cvut") {
+    try {
+      school = await synchronizeSchool(userId, semester, manual);
+    } catch (error) {
+      if (!(error instanceof AppError)) throw error;
+      schoolError = error;
+    }
+  }
+  const feeds = await synchronizeFeeds(userId, semester, manual);
+  if (schoolError) throw schoolError;
+  if (school?.ok === false) return school;
+  if (!feeds.ok) return feeds;
+  return { ok: true, count: (school?.count || 0) + (feeds.count || 0) };
+}
+async function synchronizeSchool(
+  userId: string,
+  semester: string,
+  manual: boolean,
 ) {
   return database().transaction(async (tx) => {
     // Cross-process lease, released automatically on failure/crash.

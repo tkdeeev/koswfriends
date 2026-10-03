@@ -9,6 +9,7 @@ import {
   index,
   check,
   integer,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { Lesson, Choice, Semester, PersonalEventData } from "../lib/types";
@@ -19,6 +20,11 @@ const time = (name: string) =>
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   username: text("username").notNull().unique(),
+  accountType: text("account_type")
+    .$type<"cvut" | "external">()
+    .default("cvut")
+    .notNull(),
+  feedAttemptAt: time("feed_attempt_at"),
   name: text("name").notNull(),
   avatarVersion: uuid("avatar_version"),
   semester: text("semester").notNull(),
@@ -56,7 +62,48 @@ export const attempts = pgTable("oauth_attempts", {
   browserHash: text("browser_hash").notNull(),
   expiresAt: time("expires_at").notNull(),
   returnTo: text("return_to").notNull().default("/"),
+  provider: text("provider").notNull().default("cvut"),
+  verifier: text("verifier"),
 });
+export const identities = pgTable(
+  "external_identities",
+  {
+    provider: text("provider").$type<"google" | "discord">().notNull(),
+    subject: text("subject").notNull(),
+    userId: userRef("user_id"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.provider, t.subject] }),
+    index("external_identity_user_idx").on(t.userId),
+  ],
+);
+export const calendarFeeds = pgTable(
+  "calendar_feeds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: userRef("user_id"),
+    name: text("name").notNull(),
+    // Subscription URLs commonly contain private calendar tokens.
+    url: text("url").notNull(),
+    urlHash: text("url_hash").notNull(),
+    createdAt: time("created_at").defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("calendar_feed_user_url_idx").on(t.userId, t.urlHash)],
+);
+export const feedSnapshots = pgTable(
+  "feed_snapshots",
+  {
+    feedId: uuid("feed_id")
+      .notNull()
+      .references(() => calendarFeeds.id, { onDelete: "cascade" }),
+    semester: text("semester").notNull(),
+    events: jsonb("events").$type<Lesson[]>().notNull().default([]),
+    lastAttempt: time("last_attempt").notNull(),
+    lastSuccess: time("last_success"),
+    error: text("error"),
+  },
+  (t) => [primaryKey({ columns: [t.feedId, t.semester] })],
+);
 export const friendships = pgTable(
   "friendships",
   {

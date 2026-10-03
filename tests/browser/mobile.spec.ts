@@ -442,7 +442,7 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     row.getByRole("button", { name: "Accept", exact: true }),
   ).not.toBeVisible();
   await expect(
-    page.getByLabel("School username", { exact: true }),
+    page.getByLabel("Username", { exact: true }),
   ).not.toBeVisible();
   await summary.focus();
   await page.keyboard.press("Enter");
@@ -475,7 +475,7 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     group.getByRole("button", { name: "Save sharing", exact: true }),
   ).not.toBeVisible();
   await expand(group);
-  await group.getByLabel("School username", { exact: true }).fill(b.username);
+  await group.getByLabel("Username", { exact: true }).fill(b.username);
   await group
     .getByRole("button", { name: "Invite member", exact: true })
     .click();
@@ -504,16 +504,16 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     animations: "disabled",
   });
   await addConnection(page, "Friends");
-  await add.getByLabel("School username", { exact: true }).fill("missing-user");
+  await add.getByLabel("Username", { exact: true }).fill("missing-user");
   await add.getByRole("button", { name: "Send request", exact: true }).click();
   await expect(add.getByRole("alert")).toBeVisible();
   expect(await add.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
     true,
   );
-  await add.getByLabel("School username", { exact: true }).fill("draft-name");
+  await add.getByLabel("Username", { exact: true }).fill("draft-name");
   await add.getByRole("button", { name: "Groups", exact: true }).tap();
   await add.getByRole("button", { name: "Friends", exact: true }).tap();
-  await expect(add.getByLabel("School username", { exact: true })).toHaveValue(
+  await expect(add.getByLabel("Username", { exact: true })).toHaveValue(
     "draft-name",
   );
   await page.keyboard.press("Escape");

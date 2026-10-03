@@ -36,6 +36,7 @@ export const GET = endpoint(async (req) => {
               .select({
                 id: users.id,
                 username: users.username,
+                accountType: users.accountType,
                 name: users.name,
                 avatarVersion: users.avatarVersion,
                 status: members.status,
@@ -66,6 +67,7 @@ export const GET = endpoint(async (req) => {
         members: roster.map((m) => ({
           id: m.id,
           username: m.username,
+          accountType: m.accountType,
           name: m.name,
           avatarVersion:
             !m.blocked && m.status === "accepted" ? m.avatarVersion : null,
