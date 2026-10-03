@@ -10,11 +10,15 @@ The [GNU AGPL version 3 only](LICENSE) applies to this project’s own software 
 | ----------------------------------- | ------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Roboto font, packaged by Fontsource | 5.3.0   | SIL OFL 1.1 | [Fontsource](https://github.com/fontsource/font-files/tree/main/fonts/google/roboto); [exact package copyright and license](public/licenses/Roboto-OFL.txt) |
 | Drizzle ORM                         | 0.45.3  | Apache-2.0  | [Drizzle](https://github.com/drizzle-team/drizzle-orm); [license](public/licenses/Drizzle-Apache-2.0.txt)                                                   |
+| ICAL.js                             | 2.2.1   | MPL-2.0     | [ICAL.js](https://github.com/kewisch/ical.js); [retained license](public/licenses/ICAL-MPL-2.0.txt)                                                         |
+| ipaddr.js                           | 2.5.0   | MIT         | [ipaddr.js](https://github.com/whitequark/ipaddr.js); [retained license](public/licenses/IPAddr-MIT.txt)                                                    |
 | Luxon                               | 3.7.2   | MIT         | [Luxon](https://github.com/moment/luxon); [license](public/licenses/Luxon-MIT.txt)                                                                          |
 | Next.js                             | 16.3.6  | MIT         | [Next.js](https://github.com/vercel/next.js); [license](public/licenses/Next-MIT.txt)                                                                       |
 | Postgres.js (`postgres`)            | 3.4.9   | Unlicense   | [Postgres.js](https://github.com/porsager/postgres); [license](public/licenses/Postgres-Unlicense.txt)                                                      |
 | React and React DOM                 | 19.3.0  | MIT         | [React](https://github.com/facebook/react); [license](public/licenses/React-MIT.txt)                                                                        |
 | Zod                                 | 4.6.5   | MIT         | [Zod](https://github.com/colinhacks/zod); [license](public/licenses/Zod-MIT.txt)                                                                            |
+
+The new ICS parser and IP classifier were checked against their installed metadata and licenses on 3 October 2026. ICAL.js is an unmodified separate dependency used on the server; its MPL-covered source remains available in the upstream package.
 
 The font is served locally from the build; using Roboto does not require a Google Fonts network request. The imported normal styles are weights 400, 500 and 700, with the subsets supplied by Fontsource. Roboto's OFL terms and original copyright are preserved without modification. The application license does not replace the font license.
 

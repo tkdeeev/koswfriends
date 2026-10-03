@@ -10,6 +10,7 @@ export const analyticsPages = [
   "food",
   "account",
   "planner",
+  "subjects",
   "privacy",
   "terms",
   "cookies",

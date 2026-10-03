@@ -37,6 +37,7 @@ export type Choice = {
 };
 export type Grant = { calendar: boolean; plans: boolean };
 export type Friend = {
+  accountType?: "cvut" | "external";
   id: string;
   username: string;
   name: string;
@@ -47,6 +48,7 @@ export type Friend = {
   receiving: Grant;
 };
 export type Calendar = {
+  accountType?: "cvut" | "external";
   userId: string;
   username: string;
   name: string;
@@ -57,6 +59,7 @@ export type Calendar = {
   semester: Semester;
 };
 export type Me = {
+  accountType?: "cvut" | "external";
   id: string;
   username: string;
   name: string;
@@ -67,6 +70,7 @@ export type Me = {
 };
 
 export type Person = {
+  accountType?: "cvut" | "external";
   id: string;
   username: string;
   name: string;

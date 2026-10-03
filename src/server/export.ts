@@ -12,6 +12,10 @@ import {
   friendships,
   groups,
   members,
+  subjectBoards,
+  identities,
+  calendarFeeds,
+  feedSnapshots,
 } from "./schema";
 import { AppError } from "./security";
 
@@ -23,6 +27,7 @@ export async function exportAccount(userId: string) {
         .select({
           id: users.id,
           username: users.username,
+          accountType: users.accountType,
           name: users.name,
           semester: users.semester,
           createdAt: users.createdAt,
@@ -59,6 +64,16 @@ export async function exportAccount(userId: string) {
         })
         .from(plans)
         .where(eq(plans.userId, userId));
+      const boards = await tx
+        .select({
+          semester: subjectBoards.semester,
+          course: subjectBoards.course,
+          title: subjectBoards.title,
+          notes: subjectBoards.notes,
+          tasks: subjectBoards.tasks,
+        })
+        .from(subjectBoards)
+        .where(eq(subjectBoards.userId, userId));
       const outgoingGrants = await tx
         .select({
           viewerId: grants.viewer,
@@ -115,17 +130,44 @@ export async function exportAccount(userId: string) {
         .select({ image: profilePictures.image })
         .from(profilePictures)
         .where(eq(profilePictures.userId, userId));
+      const externalIdentities = await tx
+        .select({ provider: identities.provider, subject: identities.subject })
+        .from(identities)
+        .where(eq(identities.userId, userId));
+      const feeds = await tx
+        .select({
+          id: calendarFeeds.id,
+          name: calendarFeeds.name,
+          createdAt: calendarFeeds.createdAt,
+        })
+        .from(calendarFeeds)
+        .where(eq(calendarFeeds.userId, userId));
+      const importedFeeds = await tx
+        .select({
+          feedId: feedSnapshots.feedId,
+          semester: feedSnapshots.semester,
+          events: feedSnapshots.events,
+          lastSuccess: feedSnapshots.lastSuccess,
+          error: feedSnapshots.error,
+        })
+        .from(feedSnapshots)
+        .innerJoin(calendarFeeds, eq(calendarFeeds.id, feedSnapshots.feedId))
+        .where(eq(calendarFeeds.userId, userId));
 
       return {
         format: "koswfriends-account-export",
         schemaVersion: 1,
         exportedAt: new Date().toISOString(),
         profile,
+        externalIdentities,
+        calendarFeeds: feeds,
+        importedFeeds,
         profilePicture: picture
           ? { contentType: "image/webp", base64: picture.image }
           : null,
         timetableSnapshots,
         personalEvents: events,
+        subjectBoards: boards,
         draftPlans,
         sharing: {
           grants: outgoingGrants,

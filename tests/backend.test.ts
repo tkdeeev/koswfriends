@@ -637,17 +637,21 @@ describe("account data export", () => {
       }
     }
     expect(Object.keys(data).sort()).toEqual([
+      "calendarFeeds",
       "draftPlans",
       "exportedAt",
+      "externalIdentities",
       "format",
       "friendships",
       "groupMemberships",
+      "importedFeeds",
       "ownedGroups",
       "personalEvents",
       "profile",
       "profilePicture",
       "schemaVersion",
       "sharing",
+      "subjectBoards",
       "timetableSnapshots",
     ]);
   });

@@ -22,11 +22,13 @@ export const GET = endpoint(async (req) => {
   return json({
     id: row.user.id,
     username: row.user.username,
+    accountType: row.user.accountType,
     name: row.user.name,
     avatarVersion: row.user.avatarVersion,
     semester: row.user.semester,
     csrf: row.session.csrf,
-    reconnect: connection?.reconnect ?? true,
+    reconnect:
+      row.user.accountType === "cvut" && (connection?.reconnect ?? true),
   });
 });
 export const PATCH = endpoint(async (req) => {

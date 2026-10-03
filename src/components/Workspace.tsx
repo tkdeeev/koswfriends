@@ -30,9 +30,13 @@ import SiteFooter from "./SiteFooter";
 import AnalyticsConsent from "./AnalyticsConsent";
 import { Sharing, type Invite } from "./FriendsView";
 import PlannerView, { type SharedPlan } from "./PlannerView";
+import SubjectsView from "./SubjectsView";
+import { subjectCopy } from "@/lib/subject-copy";
+import { externalCopy } from "@/lib/external-copy";
+import CalendarFeeds from "./CalendarFeeds";
 import s from "./Workspace.module.css";
 type WorkspaceView =
-  "timetable" | "connections" | "planner" | "account" | "food";
+  "timetable" | "connections" | "planner" | "account" | "food" | "subjects";
 async function request(path: string, init: RequestInit = {}) {
   let response: Response;
   try {
@@ -53,8 +57,12 @@ export default function Workspace() {
   const t = copy[locale];
   const [me, setMe] = useState<Me | null | undefined>(undefined);
   const [view, setView] = useState<WorkspaceView>("timetable");
+  const [subjectDirty, setSubjectDirty] = useState(false);
   const navigateView = (next: WorkspaceView) => {
+    if (next !== view && subjectDirty && !confirm(subjectCopy[locale].discard))
+      return;
     const url = new URL(location.href);
+    if (next !== "subjects") url.searchParams.delete("course");
     if (next === "timetable") url.searchParams.delete("view");
     else url.searchParams.set("view", next);
     if (url.href !== location.href)
@@ -89,21 +97,32 @@ export default function Workspace() {
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const generation = useRef(0);
   useEffect(() => {
-    const readView = () => {
+    const previousUrl = location.pathname + location.search + location.hash;
+    const readView = (event?: PopStateEvent) => {
       const requested = new URLSearchParams(location.search).get("view");
-      setView(
+      const next =
         requested === "planner" ||
-          requested === "connections" ||
-          requested === "food" ||
-          requested === "account"
+        requested === "connections" ||
+        requested === "food" ||
+        requested === "subjects" ||
+        requested === "account"
           ? requested
-          : "timetable",
-      );
+          : "timetable";
+      if (
+        event &&
+        subjectDirty &&
+        next !== "subjects" &&
+        !confirm(subjectCopy[locale].discard)
+      ) {
+        history.pushState(null, "", previousUrl);
+        return;
+      }
+      setView(next);
     };
     readView();
     window.addEventListener("popstate", readView);
     return () => window.removeEventListener("popstate", readView);
-  }, []);
+  }, [subjectDirty, locale]);
   useEffect(() => {
     const saved = localStorage.getItem("kwf_locale");
     setLocale(preferredLocale(saved, navigator.language));
@@ -265,7 +284,11 @@ export default function Workspace() {
   const errorMessage =
     error === "offline"
       ? t.offline
-      : t.errors[error as keyof typeof t.errors] || t.error;
+      : externalCopy[locale].errors[
+          error as keyof typeof externalCopy.cs.errors
+        ] ||
+        t.errors[error as keyof typeof t.errors] ||
+        t.error;
   const own = calendars.find((c) => c.userId === me?.id);
   return (
     <PeopleProvider
@@ -284,22 +307,38 @@ export default function Workspace() {
           </a>
           {me && (
             <nav className={s.navigation} aria-label="Navigation">
-              {(["timetable", "connections"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  aria-current={view === tab ? "page" : undefined}
-                  className={`${s.nav} ${view === tab ? s.active : ""}`}
-                  aria-label={t[tab]}
-                  title={t[tab]}
-                  onClick={() => navigateView(tab)}
-                >
-                  <Icon
-                    name={tab === "timetable" ? "calendar" : "users"}
-                    className={s.navIcon}
-                  />
-                  <span className={s.navText}>{t[tab]}</span>
-                </button>
-              ))}
+              {(["timetable", "subjects", "connections"] as const).map(
+                (tab) => (
+                  <button
+                    key={tab}
+                    aria-current={view === tab ? "page" : undefined}
+                    className={`${s.nav} ${view === tab ? s.active : ""}`}
+                    aria-label={
+                      tab === "subjects" ? subjectCopy[locale].subjects : t[tab]
+                    }
+                    title={
+                      tab === "subjects" ? subjectCopy[locale].subjects : t[tab]
+                    }
+                    onClick={() => navigateView(tab)}
+                  >
+                    <Icon
+                      name={
+                        tab === "timetable"
+                          ? "calendar"
+                          : tab === "subjects"
+                            ? "planner"
+                            : "users"
+                      }
+                      className={s.navIcon}
+                    />
+                    <span className={s.navText}>
+                      {tab === "subjects"
+                        ? subjectCopy[locale].subjects
+                        : t[tab]}
+                    </span>
+                  </button>
+                ),
+              )}
             </nav>
           )}
           <div className={s.headerEnd}>
@@ -356,7 +395,9 @@ export default function Workspace() {
               className={`${s.titleRow} ${view === "timetable" ? s.timetableTitle : ""}`}
             >
               <div>
-                <h1>{t[view]}</h1>
+                <h1>
+                  {view === "subjects" ? subjectCopy[locale].subjects : t[view]}
+                </h1>
                 {view === "planner" && (
                   <p className={s.subtitle}>{t.plannerIntro}</p>
                 )}
@@ -374,7 +415,9 @@ export default function Workspace() {
                   {t.add}
                 </button>
               )}
-              {(view === "timetable" || view === "planner") && (
+              {(view === "timetable" ||
+                view === "planner" ||
+                view === "subjects") && (
                 <div className={s.toolbar}>
                   <label className={s.semesterLabel}>
                     <span>{t.semester}</span>
@@ -383,6 +426,11 @@ export default function Workspace() {
                       value={me.semester}
                       onChange={async (e) => {
                         const semester = e.target.value;
+                        if (
+                          subjectDirty &&
+                          !confirm(subjectCopy[locale].discard)
+                        )
+                          return;
                         setBusy(true);
                         try {
                           await mutate("/api/me", { semester }, "PATCH");
@@ -446,7 +494,12 @@ export default function Workspace() {
             )}
             {own?.error && view === "timetable" && (
               <div className={`${s.banner} ${s.warning}`}>
-                {t.stale} {t.errors[own.error as keyof typeof t.errors] || ""}
+                {t.stale}{" "}
+                {externalCopy[locale].errors[
+                  own.error as keyof typeof externalCopy.cs.errors
+                ] ||
+                  t.errors[own.error as keyof typeof t.errors] ||
+                  ""}
               </div>
             )}
             {own?.lastSuccess &&
@@ -568,6 +621,18 @@ export default function Workspace() {
               />
             )}
             {view === "food" && <FoodView locale={locale} t={t} />}
+            {view === "subjects" && (
+              <SubjectsView
+                key={`${me.id}:${me.semester}`}
+                me={me}
+                locale={locale}
+                onDirty={setSubjectDirty}
+                sourceRevision={JSON.stringify([
+                  own?.lastSuccess,
+                  events.map(({ course, title }) => [course, title]),
+                ])}
+              />
+            )}
             {view === "planner" && (
               <PlannerView
                 key={me.semester}
@@ -585,6 +650,11 @@ export default function Workspace() {
               <section className={`${s.panel} ${s.accountSection}`}>
                 <h2>{displayName(me)}</h2>
                 <p className={s.hint}>@{me.username}</p>
+                {me.accountType === "external" && (
+                  <p className={s.externalBadge}>
+                    {externalCopy[locale].external}
+                  </p>
+                )}
                 <ProfilePicture
                   me={me}
                   t={t}
@@ -595,6 +665,12 @@ export default function Workspace() {
                 />
                 <p className={s.muted}>{t.privacy}</p>
                 <p className={s.hint}>{t.retentionHint}</p>
+                <CalendarFeeds
+                  me={me}
+                  locale={locale}
+                  read={read}
+                  mutate={mutate}
+                />
                 <p>
                   <a
                     className={`${s.button} ${s.secondary}`}

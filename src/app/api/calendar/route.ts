@@ -8,6 +8,7 @@ import { personalEventRows } from "@/server/personal-events";
 import { expandPersonalEvents } from "@/lib/personal-events";
 import { semesterWindow } from "@/lib/calendar";
 import type { Person } from "@/lib/types";
+import { feedRows, combineFeeds } from "@/server/feeds";
 export const dynamic = "force-dynamic";
 export const GET = endpoint(async (req) => {
   const { user } = await session(req);
@@ -31,17 +32,29 @@ export const GET = endpoint(async (req) => {
       and(eq(snapshots.userId, user.id), eq(snapshots.semester, semester)),
     );
   const [personal] = await database()
-    .select({ events: personalEventRows(user.id, semester) })
+    .select({
+      events: personalEventRows(user.id, semester),
+      feeds: feedRows(user.id, semester),
+    })
     .from(users)
     .where(eq(users.id, user.id));
+  const ownCalendar = combineFeeds(
+    {
+      events: own?.events || [],
+      lastSuccess: own?.lastSuccess || null,
+      error: own?.error || null,
+    },
+    personal.feeds,
+  );
   const ownEvents = [
-    ...(own?.events || []),
+    ...ownCalendar.events,
     ...expandPersonalEvents(personal.events),
   ];
   const sharedRows = await database()
     .select({
       userId: users.id,
       username: users.username,
+      accountType: users.accountType,
       name: users.name,
       avatarVersion: users.avatarVersion,
       events: snapshots.events,
@@ -49,6 +62,7 @@ export const GET = endpoint(async (req) => {
       error: snapshots.error,
       semester: snapshots.window,
       personal: personalEventRows(users.id, semester),
+      feeds: feedRows(users.id, semester),
     })
     .from(users)
     .leftJoin(
@@ -56,10 +70,14 @@ export const GET = endpoint(async (req) => {
       and(eq(snapshots.userId, users.id), eq(snapshots.semester, semester)),
     )
     .where(canRead(users.id, user.id, "calendar"));
-  const shared = sharedRows.map(({ personal, ...row }) => ({
-    ...row,
-    events: [...(row.events || []), ...expandPersonalEvents(personal)],
-  }));
+  const shared = sharedRows.map(({ personal, feeds, ...row }) => {
+    const imported = combineFeeds({ ...row, events: row.events || [] }, feeds);
+    return {
+      ...row,
+      ...imported,
+      events: [...imported.events, ...expandPersonalEvents(personal)],
+    };
+  });
   // Matching attendees remain available even when overlays are switched off.
   const ownIds = new Set(
     ownEvents.filter((e) => !e.cancelled).map((e) => e.id),
@@ -71,6 +89,7 @@ export const GET = endpoint(async (req) => {
       (attendees[event.id] ||= []).push({
         id: person.userId,
         username: person.username,
+        accountType: person.accountType,
         name: person.name,
         avatarVersion: person.avatarVersion,
       });
@@ -80,11 +99,12 @@ export const GET = endpoint(async (req) => {
       {
         userId: user.id,
         username: user.username,
+        accountType: user.accountType,
         name: user.name,
         avatarVersion: user.avatarVersion,
         events: ownEvents,
-        lastSuccess: own?.lastSuccess || null,
-        error: own?.error || null,
+        lastSuccess: ownCalendar.lastSuccess,
+        error: ownCalendar.error,
         semester: own?.window || semesterWindow(semester),
       },
       ...shared
@@ -98,6 +118,7 @@ export const GET = endpoint(async (req) => {
     people: shared.map((p) => ({
       id: p.userId,
       username: p.username,
+      accountType: p.accountType,
       name: p.name,
       avatarVersion: p.avatarVersion,
     })),

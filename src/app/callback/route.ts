@@ -37,6 +37,7 @@ export const GET = endpoint(async (req) => {
         and(
           eq(attempts.hash, hash(state)),
           eq(attempts.browserHash, hash(browser)),
+          eq(attempts.provider, "cvut"),
           gt(attempts.expiresAt, new Date()),
         ),
       )
@@ -64,8 +65,10 @@ export const GET = endpoint(async (req) => {
         .onConflictDoUpdate({
           target: users.username,
           set: { activeAt: new Date() },
+          setWhere: eq(users.accountType, "cvut"),
         })
         .returning();
+      if (!user) throw new AppError("identity_conflict", 409);
       const values = {
         userId: user.id,
         access: encrypt(token.access_token),
@@ -77,14 +80,12 @@ export const GET = endpoint(async (req) => {
         .insert(connections)
         .values(values)
         .onConflictDoUpdate({ target: connections.userId, set: values });
-      await tx
-        .insert(sessions)
-        .values({
-          hash: hash(sessionToken),
-          userId: user.id,
-          csrf: randomToken(),
-          expiresAt,
-        });
+      await tx.insert(sessions).values({
+        hash: hash(sessionToken),
+        userId: user.id,
+        csrf: randomToken(),
+        expiresAt,
+      });
       return user;
     });
     response.cookies.set(SESSION_COOKIE, sessionToken, {

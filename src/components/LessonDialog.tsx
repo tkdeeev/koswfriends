@@ -5,6 +5,7 @@ import { ZONE } from "@/lib/calendar";
 import { lessonColor } from "@/lib/appearance";
 import { localizedText, lessonType, type Locale, type Text } from "@/lib/i18n";
 import { dailyCopy } from "@/lib/daily-copy";
+import { subjectCopy } from "@/lib/subject-copy";
 import type { Display } from "./CalendarView";
 import Avatar from "./Avatar";
 import { PersonLink } from "./PeopleProvider";
@@ -149,6 +150,14 @@ export default function LessonDialog({
               locale={locale}
               semester={semester}
             />
+            {detail.own && detail.lesson.course && !detail.draft && (
+              <a
+                className={`${s.button} ${s.secondary}`}
+                href={`/?${new URLSearchParams({ view: "subjects", course: detail.lesson.course })}`}
+              >
+                {subjectCopy[locale].open}
+              </a>
+            )}
             <section className={s.lessonAttendees} aria-label={t.attendees}>
               <h3>
                 {t.attendees} <span>{detail.attendees.length}</span>

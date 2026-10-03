@@ -56,7 +56,7 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     page.getByRole("img", { name: "KOS++", exact: true }),
   ).toBeVisible();
   const navigation = page.getByRole("navigation", { name: "Navigation" });
-  await expect(navigation.getByRole("button")).toHaveCount(2);
+  await expect(navigation.getByRole("button")).toHaveCount(3);
   const navBounds = (await navigation.boundingBox())!;
   const tabBounds = await navigation.getByRole("button").evaluateAll((tabs) =>
     tabs.map((tab) => {
@@ -65,8 +65,8 @@ test("mobile navigation, sharing controls and personal event editing fit small s
     }),
   );
   expect(tabBounds[0].x).toBeCloseTo(navBounds.x, 0);
-  expect(tabBounds[0].width).toBeCloseTo(navBounds.width / 2, 0);
-  expect(tabBounds[1].right).toBeCloseTo(navBounds.x + navBounds.width, 0);
+  expect(tabBounds[0].width).toBeCloseTo(navBounds.width / 3, 0);
+  expect(tabBounds[2].right).toBeCloseTo(navBounds.x + navBounds.width, 0);
   const filters = page.getByRole("button", { name: "Filters", exact: true });
   await expect(filters).toHaveAttribute("aria-expanded", "false");
   await page.getByRole("button", { name: /^Thu/ }).tap();
@@ -442,7 +442,7 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     row.getByRole("button", { name: "Accept", exact: true }),
   ).not.toBeVisible();
   await expect(
-    page.getByLabel("School username", { exact: true }),
+    page.getByLabel("Username", { exact: true }),
   ).not.toBeVisible();
   await summary.focus();
   await page.keyboard.press("Enter");
@@ -475,7 +475,7 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     group.getByRole("button", { name: "Save sharing", exact: true }),
   ).not.toBeVisible();
   await expand(group);
-  await group.getByLabel("School username", { exact: true }).fill(b.username);
+  await group.getByLabel("Username", { exact: true }).fill(b.username);
   await group
     .getByRole("button", { name: "Invite member", exact: true })
     .click();
@@ -504,16 +504,16 @@ test("connections use names, compact expandable rows, a single add dialog and mo
     animations: "disabled",
   });
   await addConnection(page, "Friends");
-  await add.getByLabel("School username", { exact: true }).fill("missing-user");
+  await add.getByLabel("Username", { exact: true }).fill("missing-user");
   await add.getByRole("button", { name: "Send request", exact: true }).click();
   await expect(add.getByRole("alert")).toBeVisible();
   expect(await add.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(
     true,
   );
-  await add.getByLabel("School username", { exact: true }).fill("draft-name");
+  await add.getByLabel("Username", { exact: true }).fill("draft-name");
   await add.getByRole("button", { name: "Groups", exact: true }).tap();
   await add.getByRole("button", { name: "Friends", exact: true }).tap();
-  await expect(add.getByLabel("School username", { exact: true })).toHaveValue(
+  await expect(add.getByLabel("Username", { exact: true })).toHaveValue(
     "draft-name",
   );
   await page.keyboard.press("Escape");
@@ -632,7 +632,7 @@ test("mobile time lanes preserve gaps, default to own lessons and compare friend
     const nav = page.getByRole("navigation", { name: "Navigation" });
     const navRect = await nav.boundingBox();
     expect(navRect!.y + navRect!.height).toBe(page.viewportSize()!.height);
-    await expect(nav.locator("button svg")).toHaveCount(2);
+    await expect(nav.locator("button svg")).toHaveCount(3);
     const filters = page.getByRole("button", { name: "Filters", exact: true });
     const iconBounds = await filters.evaluate((el) => {
       const button = el.getBoundingClientRect(),

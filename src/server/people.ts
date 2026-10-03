@@ -5,6 +5,8 @@ import { related, isBlocked, canRead } from "./sharing";
 import { personalEventRows } from "./personal-events";
 import { expandPersonalEvents } from "../lib/personal-events";
 import { currentSemester } from "../lib/calendar";
+import { feedRows, combineFeeds, type FeedData } from "./feeds";
+import { semesterWindow } from "../lib/calendar";
 import {
   availability,
   unknownAvailability,
@@ -21,6 +23,7 @@ export async function peopleOverview(
     .select({
       id: users.id,
       username: users.username,
+      accountType: users.accountType,
       name: users.name,
       avatarVersion: users.avatarVersion,
       allowed: sql<boolean>`(${users.id} = ${viewer} or ${canRead(users.id, viewer, "calendar")})`,
@@ -28,6 +31,9 @@ export async function peopleOverview(
       window: snapshots.window,
       lastSuccess: snapshots.lastSuccess,
       error: snapshots.error,
+      feeds: sql<
+        FeedData[]
+      >`case when (${users.id} = ${viewer} or ${canRead(users.id, viewer, "calendar")}) then ${feedRows(users.id, semester)} else '[]'::jsonb end`,
       personal:
         sql`case when (${users.id} = ${viewer} or ${canRead(users.id, viewer, "calendar")}) then ${personalEventRows(users.id, semester)} else '[]'::jsonb end`.mapWith(
           (v) => v as Parameters<typeof expandPersonalEvents>[0],
@@ -48,24 +54,35 @@ export async function peopleOverview(
         sql`(${users.id} = ${viewer} or (${related(users.id, viewer)} and not ${isBlocked(users.id, viewer)}))`,
       ),
     );
-  return rows.map((row) => ({
-    person: {
-      id: row.id,
-      username: row.username,
-      name: row.name,
-      avatarVersion: row.avatarVersion,
-    },
-    availability: !row.allowed
-      ? unknownAvailability("private")
-      : row.window
-        ? availability(
-            [...(row.events || []), ...expandPersonalEvents(row.personal)],
-            {
-              semester: row.window,
-              error: row.error,
-              lastSuccess: row.lastSuccess?.toISOString() || null,
-            },
-          )
-        : unknownAvailability(),
-  }));
+  return rows.map((row) => {
+    const calendar = combineFeeds(
+      {
+        events: row.events || [],
+        lastSuccess: row.lastSuccess,
+        error: row.error,
+      },
+      row.feeds,
+    );
+    return {
+      person: {
+        id: row.id,
+        username: row.username,
+        accountType: row.accountType,
+        name: row.name,
+        avatarVersion: row.avatarVersion,
+      },
+      availability: !row.allowed
+        ? unknownAvailability("private")
+        : row.window || row.feeds.length
+          ? availability(
+              [...calendar.events, ...expandPersonalEvents(row.personal)],
+              {
+                semester: row.window || semesterWindow(semester),
+                error: calendar.error,
+                lastSuccess: calendar.lastSuccess,
+              },
+            )
+          : unknownAvailability(),
+    };
+  });
 }

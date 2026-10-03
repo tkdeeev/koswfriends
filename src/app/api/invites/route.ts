@@ -14,6 +14,7 @@ export const GET = endpoint(async (req) => {
     const [invite] = await database()
       .select({
         username: users.username,
+        accountType: users.accountType,
         name: users.name,
         expiresAt: invites.expiresAt,
       })

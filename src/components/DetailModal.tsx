@@ -11,12 +11,14 @@ export default function DetailModal({
   close,
   children,
   className = "",
+  canClose,
 }: {
   title: string;
   locale: Locale;
   close: () => void;
   children: ReactNode;
   className?: string;
+  canClose?: () => boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -32,7 +34,10 @@ export default function DetailModal({
         event.stopPropagation();
         close();
       }}
-      onCancel={(event) => event.stopPropagation()}
+      onCancel={(event) => {
+        event.stopPropagation();
+        if (canClose && !canClose()) event.preventDefault();
+      }}
     >
       <div className={s.heading}>
         <h2 id={id}>{title}</h2>
@@ -40,7 +45,9 @@ export default function DetailModal({
           className={s.close}
           type="button"
           aria-label={dailyCopy[locale].close}
-          onClick={() => ref.current?.close()}
+          onClick={() => {
+            if (!canClose || canClose()) ref.current?.close();
+          }}
           autoFocus
         >
           ×

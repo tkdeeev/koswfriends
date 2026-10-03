@@ -130,6 +130,7 @@ export default function CalendarView({
         const person = {
           id: calendar.userId,
           username: calendar.username,
+          accountType: calendar.accountType,
           name: calendar.name,
           avatarVersion: calendar.avatarVersion,
         };

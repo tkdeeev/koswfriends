@@ -5,6 +5,7 @@ import type { Person } from "@/lib/types";
 import s from "./Workspace.module.css";
 import { PeopleContext } from "./PeopleContext";
 import { dailyCopy } from "@/lib/daily-copy";
+import { externalCopy } from "@/lib/external-copy";
 export default function Avatar({
   person,
   small = false,
@@ -49,6 +50,16 @@ export default function Avatar({
           aria-label={label}
           title={label}
         />
+      )}
+      {person.accountType === "external" && (
+        <span
+          className={s.avatarExternal}
+          role="img"
+          aria-label={externalCopy[locale].external}
+          title={externalCopy[locale].external}
+        >
+          EXT
+        </span>
       )}
     </span>
   );
